@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Link, useLocation } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { FaBus } from "react-icons/fa"
 import { IoPhonePortraitOutline } from "react-icons/io5"
@@ -10,8 +11,12 @@ interface HeaderProps {
 function Header({ height = "auto" }: HeaderProps) {
   const [language, setLanguage] = useState<"VI" | "EN">("VI")
   const [showLangDropdown, setShowLangDropdown] = useState(false)
+  const location = useLocation()
+  
+  const isActive = (path: string) => location.pathname === path
+  
   return (
-    <header className="relative z-50">
+    <header className="relative z-50 ">
       {/* Combined Header with Top Bar and Navigation */}
       <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 text-white shadow-xl">
         {/* Top Bar Section */}
@@ -20,7 +25,7 @@ function Header({ height = "auto" }: HeaderProps) {
           style={{ height: height }}
         >
           {/* Decorative angled background */}
-          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-br from-orange-400 to-orange-700 transform skew-x-[-20deg] translate-x-1/4"></div>
+
           
           <div className="relative z-10 w-full px-4 md:px-8 lg:px-12 h-full">
             <div className="max-w-7xl mx-auto flex items-center justify-between h-full py-4">
@@ -93,7 +98,7 @@ function Header({ height = "auto" }: HeaderProps) {
                     <FaBus className="text-2xl text-white" />
                   </div>
                   <div className="text-left">
-                    <h1 className="text-xl font-bold text-orange-600">FUTA Bus Lines</h1>
+                    <h1 className="text-xl font-bold text-orange-600">TPT Bus Lines</h1>
                     <p className="text-xs text-gray-600">CHẤT LƯỢNG LÀ DANH DỰ</p>
                   </div>
                 </div>
@@ -113,31 +118,31 @@ function Header({ height = "auto" }: HeaderProps) {
         </div>
         </div>
 
-        {/* Navigation Menu */}
+        {/* tion Menu */}
         <nav>
           <div className="w-full px-4 md:px-8 lg:px-12">
             <div className="max-w-7xl mx-auto">
               <ul className="flex items-center justify-center gap-8 text-sm font-semibold">
-                <li className="py-4 hover:bg-white/20 px-4 cursor-pointer transition-all duration-200">
-                  <a href="/" className="whitespace-nowrap">TRANG CHỦ</a>
+                <li className={`py-4 hover:bg-white/20 px-4 cursor-pointer transition-all duration-200 ${isActive('/') ? 'border-b-4 border-white' : ''}`}>
+                  <Link to="/" className="whitespace-nowrap">TRANG CHỦ</Link>
                 </li>
-                <li className="py-4 hover:bg-white/20 px-4 cursor-pointer border-b-4 border-white transition-all duration-200">
-                  <a href="#" className="whitespace-nowrap">LỊCH TRÌNH</a>
+                <li className={`py-4 hover:bg-white/20 px-4 cursor-pointer transition-all duration-200 ${isActive('/schedule') ? 'border-b-4 border-white' : ''}`}>
+                  <Link to="/schedule" className="whitespace-nowrap">LỊCH TRÌNH</Link>
                 </li>
-                <li className="py-4 hover:bg-white/20 px-4 cursor-pointer transition-all duration-200">
-                  <a href="#" className="whitespace-nowrap">TRA CỨU VÉ</a>
+                <li className={`py-4 hover:bg-white/20 px-4 cursor-pointer transition-all duration-200 ${isActive('/search-ticket') ? 'border-b-4 border-white' : ''}`}>
+                  <Link to="/search-ticket" className="whitespace-nowrap">TRA CỨU VÉ</Link>
                 </li>
-                <li className="py-4 hover:bg-white/20 px-4 cursor-pointer transition-all duration-200">
-                  <a href="#" className="whitespace-nowrap">TIN TỨC</a>
+                <li className={`py-4 hover:bg-white/20 px-4 cursor-pointer transition-all duration-200 ${isActive('/news') ? 'border-b-4 border-white' : ''}`}>
+                  <Link to="/news" className="whitespace-nowrap">TIN TỨC</Link>
                 </li>
-                <li className="py-4 hover:bg-white/20 px-4 cursor-pointer transition-all duration-200">
-                  <a href="#" className="whitespace-nowrap">HÓA ĐƠN</a>
+                <li className={`py-4 hover:bg-white/20 px-4 cursor-pointer transition-all duration-200 ${isActive('/invoice') ? 'border-b-4 border-white' : ''}`}>
+                  <Link to="/invoice" className="whitespace-nowrap">HÓA ĐƠN</Link>
                 </li>
-                <li className="py-4 hover:bg-white/20 px-4 cursor-pointer transition-all duration-200">
-                  <a href="#" className="whitespace-nowrap">LIÊN HỆ</a>
+                <li className={`py-4 hover:bg-white/20 px-4 cursor-pointer transition-all duration-200 ${isActive('/contact') ? 'border-b-4 border-white' : ''}`}>
+                  <Link to="/contact" className="whitespace-nowrap">LIÊN HỆ</Link>
                 </li>
-                <li className="py-4 hover:bg-white/20 px-4 cursor-pointer transition-all duration-200">
-                  <a href="#" className="whitespace-nowrap">VỀ CHÚNG TÔI</a>
+                <li className={`py-4 hover:bg-white/20 px-4 cursor-pointer transition-all duration-200 ${isActive('/about') ? 'border-b-4 border-white' : ''}`}>
+                  <Link to="/about" className="whitespace-nowrap">VỀ CHÚNG TÔI</Link>
                 </li>
               </ul>
             </div>
