@@ -1,0 +1,19 @@
+package com.busbooking.dto.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class DriverResponse {
+    private Integer id;
+    private String fullName;
+    private String licenseNumber;
+    private String phone;
+    private Integer experienceYears;
+    private LocalDateTime createdAt;
+}

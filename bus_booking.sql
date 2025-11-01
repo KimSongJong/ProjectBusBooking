@@ -1,6 +1,6 @@
 
-create database bus_booking2;
-Use  bus_booking2;
+
+Use  bus_booking;
 
 SET FOREIGN_KEY_CHECKS = 0;
 

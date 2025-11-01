@@ -13,7 +13,7 @@ function Footer() {
                 <FaBus className="text-2xl text-white" />
               </div>
               <div>
-                <h3 className="font-bold text-lg">FUTA Bus Lines</h3>
+                <h3 className="font-bold text-lg">TPT Bus Lines</h3>
                 <p className="text-xs text-gray-400">Chất lượng là danh dự</p>
               </div>
             </div>
@@ -55,15 +55,15 @@ function Footer() {
               <div className="flex items-start gap-2">
                 <Mail className="h-4 w-4 text-orange-400 mt-1 flex-shrink-0" />
                 <div>
-                  <a href="mailto:hotro@futa.vn" className="text-gray-400 hover:text-orange-400">
-                    hotro@futa.vn
+                  <a href="mailto:hotro@tpt.vn" className="text-gray-400 hover:text-orange-400">
+                    hotro@tpt.vn
                   </a>
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <MapPinIcon className="h-4 w-4 text-orange-400 mt-1 flex-shrink-0" />
                 <p className="text-gray-400">
-                  Số 01 Tô Hiến Thành, Phường 3, TP. Đà Lạt, Lâm Đồng
+                  147 Nguyễn Thị Thập, Phường Bình Thuận, Quận 7, TP. Hồ Chí Minh
                 </p>
               </div>
             </div>
@@ -73,7 +73,7 @@ function Footer() {
         <Separator className="my-6 bg-gray-700" />
         
         <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
-          <p>© 2025 FUTA Bus Lines. All rights reserved.</p>
+          <p>© 2025 TPT Bus Lines. All rights reserved.</p>
           <div className="flex gap-4 mt-4 md:mt-0">
             <a href="#" className="hover:text-orange-400 transition">Facebook</a>
             <a href="#" className="hover:text-orange-400 transition">YouTube</a>

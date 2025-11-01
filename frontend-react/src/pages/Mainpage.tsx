@@ -270,7 +270,7 @@ function MainPage() {
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-2">
-                FUTA BUS LINES - CHẤT LƯỢNG LÀ DANH DỰ
+                TPT BUS LINES - CHẤT LƯỢNG LÀ DANH DỰ
               </h2>
               <p className="text-orange-100">Được khách hàng tin tưởng và lựa chọn</p>
             </div>
@@ -281,7 +281,7 @@ function MainPage() {
                 <div className="text-xl font-semibold mb-2">Triệu</div>
                 <div className="text-2xl font-bold mb-2">Lượt khách</div>
                 <p className="text-sm text-orange-100">
-                  Phương Trang phục vụ hơn 20 triệu lượt khách bình quân 1 năm trên toàn quốc
+                  TPT Bus Lines phục vụ hơn 20 triệu lượt khách bình quân 1 năm trên toàn quốc
                 </p>
               </div>
 
@@ -290,7 +290,7 @@ function MainPage() {
                 <div className="text-xl font-semibold mb-2">Phòng vé</div>
                 <div className="text-2xl font-bold mb-2">Bưu cục</div>
                 <p className="text-sm text-orange-100">
-                  Phương Trang có hơn 350 phòng vé, trạm trung chuyển, bến xe,... trên toàn hệ thống
+                  TPT Bus Lines có hơn 350 phòng vé, trạm trung chuyển, bến xe,... trên toàn hệ thống
                 </p>
               </div>
 
@@ -299,7 +299,7 @@ function MainPage() {
                 <div className="text-xl font-semibold mb-2">Chuyến xe</div>
                 <div className="text-2xl font-bold mb-2">Mỗi ngày</div>
                 <p className="text-sm text-orange-100">
-                  Phương Trang phục vụ hơn 1,000 chuyến xe đường dài và liên tỉnh mỗi ngày
+                  TPT Bus Lines phục vụ hơn 1,000 chuyến xe đường dài và liên tỉnh mỗi ngày
                 </p>
               </div>
             </div>
@@ -312,7 +312,7 @@ function MainPage() {
         <div className="w-full px-4 md:px-8 lg:px-12">
           <div className="max-w-7xl mx-auto">
             <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
-              Tại sao chọn FUTA Bus Lines?
+              Tại sao chọn TPT Bus Lines?
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <FeatureCard
