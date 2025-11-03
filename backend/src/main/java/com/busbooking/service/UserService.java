@@ -1,5 +1,6 @@
 package com.busbooking.service;
 
+import com.busbooking.dto.request.UpdateUserRequest;
 import com.busbooking.dto.request.UserRequest;
 import com.busbooking.dto.response.UserResponse;
 import com.busbooking.exception.ResourceNotFoundException;
@@ -36,7 +37,7 @@ public class UserService {
         return userMapper.toResponse(saved);
     }
 
-    public UserResponse updateUser(Integer id, UserRequest request) {
+    public UserResponse updateUser(Integer id, UpdateUserRequest request) {
         User u = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         userMapper.updateEntity(u, request);

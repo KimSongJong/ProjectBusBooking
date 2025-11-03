@@ -14,6 +14,7 @@ public class DriverMapper {
         d.setLicenseNumber(request.getLicenseNumber());
         d.setPhone(request.getPhone());
         d.setExperienceYears(request.getExperienceYears());
+        d.setImageUrl(request.getImageUrl());
         return d;
     }
 
@@ -24,6 +25,7 @@ public class DriverMapper {
                 d.getPhone(),
                 d.getLicenseNumber(),
                 d.getExperienceYears(),
+                d.getImageUrl(),
                 d.getCreatedAt()
         );
     }
@@ -33,5 +35,8 @@ public class DriverMapper {
         d.setLicenseNumber(request.getLicenseNumber());
         d.setPhone(request.getPhone());
         d.setExperienceYears(request.getExperienceYears());
+        if (request.getImageUrl() != null) {
+            d.setImageUrl(request.getImageUrl());
+        }
     }
 }

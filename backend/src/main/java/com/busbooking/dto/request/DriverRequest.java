@@ -21,4 +21,6 @@ public class DriverRequest {
     
     @Positive(message = "Experience years must be positive")
     private Integer experienceYears;
+    
+    private String imageUrl; // URL of driver's photo from Cloudinary
 }

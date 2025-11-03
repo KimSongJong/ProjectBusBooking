@@ -1,8 +1,18 @@
 import { useState } from "react"
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { FaBus } from "react-icons/fa"
 import { IoPhonePortraitOutline } from "react-icons/io5"
+import { useAuth } from "@/contexts/AuthContext"
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { toast } from "sonner"
 
 interface HeaderProps {
   height?: string
@@ -12,8 +22,20 @@ function Header({ height = "auto" }: HeaderProps) {
   const [language, setLanguage] = useState<"VI" | "EN">("VI")
   const [showLangDropdown, setShowLangDropdown] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+  const { user, isAuthenticated, logout } = useAuth()
   
   const isActive = (path: string) => location.pathname === path
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      toast.success("Đăng xuất thành công")
+      navigate("/")
+    } catch (error) {
+      toast.error("Đăng xuất thất bại")
+    }
+  }
   
   return (
     <header className="relative z-50 ">
@@ -105,14 +127,51 @@ function Header({ height = "auto" }: HeaderProps) {
               </div>
             </div>
 
-            {/* Right - Login Button */}
+            {/* Right - Login Button or User Menu */}
             <div className="flex items-center">
-              <Button  
-                className="bg-transparent hover:bg-white/20 text-white border-2 border-white rounded-full px-6 py-2"
-              >
-                <span className="mr-2">👤</span>
-                Đăng nhập/Đăng ký
-              </Button>
+              {isAuthenticated && user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      className="bg-transparent hover:bg-white/20 text-white border-2 border-white rounded-full px-6 py-2"
+                    >
+                      <span className="mr-2">👤</span>
+                      <span>{user.fullName}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56 bg-white" align="end">
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.fullName}</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user.email || user.username}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate("/profile")}>
+                      <span>Thông tin cá nhân</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/invoice")}>
+                      <span>Vé của tôi</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                      <span>Đăng xuất</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button
+                  asChild
+                  className="bg-transparent hover:bg-white/20 text-white border-2 border-white rounded-full px-6 py-2"
+                >
+                  <Link to="/login" className="flex items-center gap-2">
+                    <span className="mr-2">👤</span>
+                    <span>Đăng nhập/Đăng ký</span>
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
         </div>

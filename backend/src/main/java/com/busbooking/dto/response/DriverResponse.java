@@ -12,8 +12,9 @@ import java.time.LocalDateTime;
 public class DriverResponse {
     private Integer id;
     private String fullName;
-    private String licenseNumber;
     private String phone;
+    private String licenseNumber;
     private Integer experienceYears;
+    private String imageUrl;
     private LocalDateTime createdAt;
 }

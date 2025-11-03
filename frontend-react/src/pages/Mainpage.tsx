@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
+// import { Badge } from "@/components/ui/badge"
 import {
   Select,
   SelectContent,
@@ -11,8 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Calendar, MapPin, ArrowLeftRight, Users, Clock, Star, Shield, Headphones } from "lucide-react"
-import { FaBus, FaTicketAlt } from "react-icons/fa"
+import { Calendar, MapPin, ArrowLeftRight, Users, Star, Shield, Headphones } from "lucide-react"
+// import { FaBus, FaTicketAlt } from "react-icons/fa"
 import { useNavigate } from "react-router-dom"
 import Header from "@/components/header"
 import Footer from "@/components/footer"

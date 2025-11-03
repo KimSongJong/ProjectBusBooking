@@ -28,6 +28,9 @@ public class Driver {
     @Column(name = "experience_years")
     private Integer experienceYears;
     
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     

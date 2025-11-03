@@ -88,6 +88,7 @@ public class TicketMapper {
             trip.getDriver().getPhone(),
             trip.getDriver().getLicenseNumber(),
             trip.getDriver().getExperienceYears(),
+            trip.getDriver().getImageUrl(),
             trip.getDriver().getCreatedAt()
         );
         
