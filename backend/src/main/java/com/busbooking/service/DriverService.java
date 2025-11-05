@@ -24,6 +24,12 @@ public class DriverService {
                 .collect(Collectors.toList());
     }
 
+    public List<DriverResponse> getActiveDrivers() {
+        return driverRepository.findByIsActiveTrue().stream()
+                .map(driverMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
     public DriverResponse getDriverById(Integer id) {
         Driver d = driverRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Driver not found with id: " + id));
@@ -40,6 +46,14 @@ public class DriverService {
         Driver d = driverRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Driver not found with id: " + id));
         driverMapper.updateEntity(d, request);
+        Driver updated = driverRepository.save(d);
+        return driverMapper.toResponse(updated);
+    }
+
+    public DriverResponse toggleDriverStatus(Integer id) {
+        Driver d = driverRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Driver not found with id: " + id));
+        d.setIsActive(!d.getIsActive());
         Driver updated = driverRepository.save(d);
         return driverMapper.toResponse(updated);
     }

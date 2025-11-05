@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table"
 import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaImage } from "react-icons/fa"
+import { FaPlus, FaEdit, FaSearch, FaImage, FaUserCheck, FaUserTimes } from "react-icons/fa"
 import driverService from "@/services/driver.service"
 import type { Driver, CreateDriverRequest, UpdateDriverRequest } from "@/types/driver.types"
 import AddDriverDialog from "@/components/layout/admin/addDriver"
@@ -80,25 +80,20 @@ function AdminDriver() {
     setIsDialogOpen(true)
   }
 
-  const handleDelete = async (driver: Driver) => {
-    if (!confirm(`Bạn có chắc muốn xóa tài xế "${driver.fullName}"?`)) return
+  const handleToggleStatus = async (driver: Driver) => {
+    const action = driver.isActive ? "Nghỉ làm" : "kích hoạt"
+    if (!confirm(`Bạn có chắc muốn ${action} tài xế "${driver.fullName}"?`)) return
 
     try {
-      // Delete image from Cloudinary if exists
-      if (driver.imageUrl) {
-        await driverService.deleteImage(driver.imageUrl)
-      }
-
-      // Delete driver
-      const response = await driverService.deleteDriver(driver.id)
+      const response = await driverService.toggleDriverStatus(driver.id)
       if (response.success) {
-        toast.success("Xóa tài xế thành công")
+        toast.success(response.message || `${action.charAt(0).toUpperCase() + action.slice(1)} tài xế thành công`)
         fetchDrivers()
       } else {
-        toast.error(response.message || "Xóa tài xế thất bại")
+        toast.error(response.message || `${action.charAt(0).toUpperCase() + action.slice(1)} tài xế thất bại`)
       }
     } catch (error: any) {
-      toast.error(error.payload?.message || "Lỗi khi xóa tài xế")
+      toast.error(error.payload?.message || `Lỗi khi ${action} tài xế`)
     }
   }
 
@@ -202,13 +197,14 @@ function AdminDriver() {
                       <TableHead className="font-semibold">Số điện thoại</TableHead>
                       <TableHead className="font-semibold">GPLX</TableHead>
                       <TableHead className="font-semibold">Kinh nghiệm</TableHead>
+                      <TableHead className="font-semibold">Trạng thái</TableHead>
                       <TableHead className="font-semibold text-center">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredDrivers.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-slate-400">
+                        <TableCell colSpan={8} className="text-center py-8 text-slate-400">
                           Không tìm thấy tài xế nào
                         </TableCell>
                       </TableRow>
@@ -238,6 +234,15 @@ function AdminDriver() {
                             </span>
                           </TableCell>
                           <TableCell>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              driver.isActive 
+                                ? "bg-green-100 text-green-700" 
+                                : "bg-orange-100 text-orange-700"
+                            }`}>
+                              {driver.isActive ? "Hoạt động" : "Đang nghỉ"}
+                            </span>
+                          </TableCell>
+                          <TableCell>
                             <div className="flex justify-center gap-2">
                               <Button
                                 size="sm"
@@ -251,11 +256,14 @@ function AdminDriver() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleDelete(driver)}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                title="Xóa"
+                                onClick={() => handleToggleStatus(driver)}
+                                className={driver.isActive 
+                                  ? "text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                  : "text-green-600 hover:text-green-700 hover:bg-green-50"
+                                }
+                                title={driver.isActive ? "Cho nghỉ" : "Kích hoạt"}
                               >
-                                <FaTrash />
+                                {driver.isActive ? <FaUserTimes /> : <FaUserCheck />}
                               </Button>
                             </div>
                           </TableCell>

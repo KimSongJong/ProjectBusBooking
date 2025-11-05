@@ -6,6 +6,10 @@ class VehicleService {
   async getAllVehicles(): Promise<ApiResponse<Vehicle[]>> {
     return await api.get<ApiResponse<Vehicle[]>>('/vehicles')
   }
+  
+  async getActiveVehicles(): Promise<ApiResponse<Vehicle[]>> {
+    return await api.get<ApiResponse<Vehicle[]>>('/vehicles/active')
+  }
 
   async getVehicleById(id: number): Promise<ApiResponse<Vehicle>> {
     return await api.get<ApiResponse<Vehicle>>(`/vehicles/${id}`)
@@ -17,6 +21,10 @@ class VehicleService {
 
   async updateVehicle(id: number, vehicleData: UpdateVehicleRequest): Promise<ApiResponse<Vehicle>> {
     return await api.put<ApiResponse<Vehicle>>(`/vehicles/${id}`, vehicleData)
+  }
+  
+  async toggleVehicleStatus(id: number): Promise<ApiResponse<Vehicle>> {
+    return await api.patch<ApiResponse<Vehicle>>(`/vehicles/${id}/toggle-status`)
   }
 
   async deleteVehicle(id: number): Promise<ApiResponse<null>> {

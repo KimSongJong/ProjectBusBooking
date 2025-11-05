@@ -7,6 +7,7 @@ export interface User {
   role: "customer" | "admin" | "staff"
   fullName: string
   phone: string
+  isActive: boolean
   createdAt: string
   updatedAt?: string | null
 }

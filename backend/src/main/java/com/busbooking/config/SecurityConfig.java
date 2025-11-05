@@ -59,12 +59,12 @@ public class SecurityConfig {
                 .requestMatchers("/routes/**").permitAll()  // Browse routes
                 .requestMatchers("/trips/**").permitAll()   // Browse trips
                 .requestMatchers("/promotions/**").permitAll()  // View promotions
+                .requestMatchers("/seats/**").permitAll()     // Seat management (TEMPORARY - FOR DEVELOPMENT)
+                .requestMatchers("/vehicles/**").permitAll()  // Vehicle info (TEMPORARY - FOR DEVELOPMENT)
                 
                 // Protected endpoints - require authentication
                 .requestMatchers("/users/**").authenticated()     // User management
-                .requestMatchers("/vehicles/**").authenticated()  // Vehicle management
                 .requestMatchers("/drivers/**").authenticated()   // Driver management
-                .requestMatchers("/seats/**").authenticated()     // Seat management
                 .requestMatchers("/tickets/**").authenticated()   // Ticket booking/management
                 
                 .anyRequest().authenticated()

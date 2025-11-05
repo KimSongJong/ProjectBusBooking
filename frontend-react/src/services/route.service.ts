@@ -1,10 +1,15 @@
 import api from "@/config/axios"
 import type { Route, CreateRouteRequest, UpdateRouteRequest } from "@/types/route.types"
+import type { Schedule } from "@/types/schedule.types"
 import type { ApiResponse } from "@/types/auth.types"
 
 class RouteService {
   async getAllRoutes(): Promise<ApiResponse<Route[]>> {
     return await api.get<ApiResponse<Route[]>>('/routes')
+  }
+  
+  async getSchedules(): Promise<ApiResponse<Schedule[]>> {
+    return await api.get<ApiResponse<Schedule[]>>('/routes/schedules')
   }
 
   async getRouteById(id: number): Promise<ApiResponse<Route>> {

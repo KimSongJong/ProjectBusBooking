@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/table"
 import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaSave, FaTimes, FaTag, FaPercent } from "react-icons/fa"
+import { FaPlus, FaEdit, FaSearch, FaSave, FaTimes, FaTag, FaPercent } from "react-icons/fa"
 import promotionService from "@/services/promotion.service"
 import type { Promotion, CreatePromotionRequest, UpdatePromotionRequest } from "@/types/promotion.types"
 
@@ -86,22 +86,6 @@ function AdminPromotions() {
       maxUses: promotion.maxUses,
     })
     setIsDialogOpen(true)
-  }
-
-  const handleDelete = async (promotion: Promotion) => {
-    if (!confirm(`Bạn có chắc muốn xóa khuyến mãi "${promotion.code}"?`)) return
-
-    try {
-      const response = await promotionService.deletePromotion(promotion.id)
-      if (response.success) {
-        toast.success("Xóa khuyến mãi thành công")
-        fetchPromotions()
-      } else {
-        toast.error(response.message || "Xóa khuyến mãi thất bại")
-      }
-    } catch (error: any) {
-      toast.error(error.payload?.message || "Lỗi khi xóa khuyến mãi")
-    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -270,15 +254,6 @@ function AdminPromotions() {
                                 title="Chỉnh sửa"
                               >
                                 <FaEdit />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDelete(promotion)}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                title="Xóa"
-                              >
-                                <FaTrash />
                               </Button>
                             </div>
                           </TableCell>

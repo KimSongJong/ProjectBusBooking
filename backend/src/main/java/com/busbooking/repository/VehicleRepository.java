@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface VehicleRepository extends JpaRepository<Vehicle, Integer> {
     Optional<Vehicle> findByLicensePlate(String licensePlate);
     List<Vehicle> findByVehicleType(Vehicle.VehicleType vehicleType);
+    List<Vehicle> findByIsActiveTrue();
 }

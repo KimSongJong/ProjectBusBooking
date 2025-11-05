@@ -39,10 +39,4 @@ public class PromotionController {
         PromotionResponse resp = promotionService.updatePromotion(id, request);
         return ResponseEntity.ok(new ApiResponse<>(true, "Promotion updated", resp));
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer id) {
-        promotionService.deletePromotion(id);
-        return ResponseEntity.ok(new ApiResponse<>(true, "Promotion deleted", null));
-    }
 }

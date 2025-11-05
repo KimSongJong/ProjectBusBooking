@@ -1,5 +1,5 @@
 
-
+CREATE DATABASE bus_booking;
 Use  bus_booking;
 
 SET FOREIGN_KEY_CHECKS = 0;
@@ -13,6 +13,7 @@ CREATE TABLE users (
   role ENUM('customer', 'staff', 'admin') NOT NULL,
   full_name VARCHAR(255),
   phone VARCHAR(20),
+  is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -23,6 +24,8 @@ CREATE TABLE drivers (
   license_number VARCHAR(50) UNIQUE,
   phone VARCHAR(20),
   experience_years INT,
+  image_url VARCHAR(500) NULL ,
+  is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -34,6 +37,7 @@ CREATE TABLE vehicles (
   total_seats INT NOT NULL,
   seats_layout Text, -- Thay bằng TEXT nếu MySQL < 5.7
   vehicle_type ENUM('standard', 'vip', 'sleeper') NOT NULL,
+  is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -232,5 +236,12 @@ INSERT INTO reports (trip_id, report_type, value, report_date, created_at) VALUE
 (1, 'revenue', 1080000.00, '2025-10-15', '2025-10-03 15:00:00'),
 (1, 'passenger_count', 1, '2025-10-15', '2025-10-03 15:00:00'),
 (1, 'empty_seat_ratio', 97.50, '2025-10-15', '2025-10-03 15:00:00'); -- 1/40 ghế được đặt
+
+-- ========================================
+-- MIGRATION SCRIPT: Add is_active column to vehicles table
+-- Chạy script này nếu database đã tồn tại
+-- ========================================
+-- ALTER TABLE vehicles ADD COLUMN is_active BOOLEAN DEFAULT TRUE AFTER vehicle_type;
+
 
 SET FOREIGN_KEY_CHECKS = 1;

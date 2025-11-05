@@ -41,15 +41,15 @@ public class UserController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(@PathVariable Integer id, @Valid @RequestBody UpdateUserRequest request) {
-        // Only encode password if it's provided (not null or empty)
-        if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
-            request.setPassword(passwordEncoder.encode(request.getPassword()));
-        } else {
-            // Set password to null so service knows to keep existing password
-            request.setPassword(null);
-        }
         UserResponse resp = userService.updateUser(id, request);
-        return ResponseEntity.ok(new ApiResponse<>(true, "User updated", resp));
+        return ResponseEntity.ok(new ApiResponse<>(true, "Cập nhật tài khoản thành công", resp));
+    }
+
+    @PatchMapping("/{id}/toggle-status")
+    public ResponseEntity<ApiResponse<UserResponse>> toggleUserStatus(@PathVariable Integer id) {
+        UserResponse resp = userService.toggleUserStatus(id);
+        String message = resp.getIsActive() ? "Mở khóa tài khoản thành công" : "Khóa tài khoản thành công";
+        return ResponseEntity.ok(new ApiResponse<>(true, message, resp));
     }
 
     @DeleteMapping("/{id}")

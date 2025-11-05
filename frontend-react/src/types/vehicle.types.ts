@@ -5,6 +5,7 @@ export interface Vehicle {
   totalSeats: number
   seatsLayout?: string
   vehicleType: 'standard' | 'vip' | 'sleeper'
+  isActive: boolean
   createdAt: string
 }
 

@@ -31,6 +31,9 @@ public class Driver {
     @Column(name = "image_url", length = 500)
     private String imageUrl;
     
+    @Column(name = "is_active")
+    private Boolean isActive = true; // Default active, false = đang nghỉ
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     

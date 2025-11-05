@@ -16,6 +16,7 @@ public class UserResponse {
     private String role;
     private String fullName;
     private String phone;
+    private Boolean isActive;
     private LocalDateTime createdAt;
     // Note: password is NOT included in response for security
 }

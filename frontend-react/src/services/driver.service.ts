@@ -32,6 +32,13 @@ class DriverService {
   }
 
   /**
+   * Toggle driver status (active/resting)
+   */
+  async toggleDriverStatus(id: number): Promise<ApiResponse<Driver>> {
+    return await api.patch<ApiResponse<Driver>>(`/drivers/${id}/toggle-status`)
+  }
+
+  /**
    * Delete driver
    */
   async deleteDriver(id: number): Promise<ApiResponse<null>> {

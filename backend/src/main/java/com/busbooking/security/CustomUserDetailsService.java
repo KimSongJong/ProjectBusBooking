@@ -24,14 +24,19 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
         
+        // Kiểm tra tài khoản có bị khóa không
+        if (!user.getIsActive()) {
+            throw new UsernameNotFoundException("Tài khoản đã bị khóa");
+        }
+        
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())
                 .password(user.getPassword())
                 .authorities(getAuthorities(user))
                 .accountExpired(false)
-                .accountLocked(false)
+                .accountLocked(!user.getIsActive()) // Khóa nếu isActive = false
                 .credentialsExpired(false)
-                .disabled(false)
+                .disabled(!user.getIsActive()) // Disable nếu isActive = false
                 .build();
     }
     

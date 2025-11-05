@@ -87,6 +87,7 @@ const api = {
   get: <T = any>(path: string, params?: Record<string, any>, opts?: RequestOptions) => request<T>("GET", path, undefined, { ...opts, params }),
   post: <T = any>(path: string, data?: any, opts?: RequestOptions) => request<T>("POST", path, data, opts),
   put: <T = any>(path: string, data?: any, opts?: RequestOptions) => request<T>("PUT", path, data, opts),
+  patch: <T = any>(path: string, data?: any, opts?: RequestOptions) => request<T>("PATCH", path, data, opts),
   delete: <T = any>(path: string, data?: any, opts?: RequestOptions) => request<T>("DELETE", path, data, opts),
   buildUrl,
   setToken: (token: string | null) => {

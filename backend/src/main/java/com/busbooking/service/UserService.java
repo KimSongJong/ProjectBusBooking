@@ -40,7 +40,20 @@ public class UserService {
     public UserResponse updateUser(Integer id, UpdateUserRequest request) {
         User u = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
-        userMapper.updateEntity(u, request);
+        
+        // Chỉ cho phép cập nhật email, phone, fullName
+        u.setEmail(request.getEmail());
+        u.setPhone(request.getPhone());
+        u.setFullName(request.getFullName());
+        
+        User updated = userRepository.save(u);
+        return userMapper.toResponse(updated);
+    }
+
+    public UserResponse toggleUserStatus(Integer id) {
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        u.setIsActive(!u.getIsActive());
         User updated = userRepository.save(u);
         return userMapper.toResponse(updated);
     }

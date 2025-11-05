@@ -16,5 +16,6 @@ public class DriverResponse {
     private String licenseNumber;
     private Integer experienceYears;
     private String imageUrl;
+    private Boolean isActive;
     private LocalDateTime createdAt;
 }

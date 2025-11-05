@@ -26,6 +26,7 @@ public class DriverMapper {
                 d.getLicenseNumber(),
                 d.getExperienceYears(),
                 d.getImageUrl(),
+                d.getIsActive(),
                 d.getCreatedAt()
         );
     }

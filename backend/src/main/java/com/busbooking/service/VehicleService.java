@@ -23,6 +23,12 @@ public class VehicleService {
                 .map(vehicleMapper::toResponse)
                 .collect(Collectors.toList());
     }
+    
+    public List<VehicleResponse> getActiveVehicles() {
+        return vehicleRepository.findByIsActiveTrue().stream()
+                .map(vehicleMapper::toResponse)
+                .collect(Collectors.toList());
+    }
 
     public VehicleResponse getVehicleById(Integer id) {
         Vehicle v = vehicleRepository.findById(id)
@@ -39,7 +45,20 @@ public class VehicleService {
     public VehicleResponse updateVehicle(Integer id, VehicleRequest request) {
         Vehicle v = vehicleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + id));
-        vehicleMapper.updateEntity(v, request);
+        
+        // Chỉ cho phép cập nhật biển số xe và sơ đồ ghế
+        v.setLicensePlate(request.getLicensePlate());
+        v.setSeatsLayout(request.getSeatsLayout());
+        
+        Vehicle updated = vehicleRepository.save(v);
+        return vehicleMapper.toResponse(updated);
+    }
+    
+    public VehicleResponse toggleVehicleStatus(Integer id) {
+        Vehicle v = vehicleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy xe với id: " + id));
+        
+        v.setIsActive(!v.getIsActive());
         Vehicle updated = vehicleRepository.save(v);
         return vehicleMapper.toResponse(updated);
     }

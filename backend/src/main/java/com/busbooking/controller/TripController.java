@@ -2,6 +2,7 @@ package com.busbooking.controller;
 
 import com.busbooking.dto.request.TripRequest;
 import com.busbooking.dto.response.ApiResponse;
+import com.busbooking.dto.response.ScheduleGroupResponse;
 import com.busbooking.dto.response.TripResponse;
 import com.busbooking.service.TripService;
 import jakarta.validation.Valid;
@@ -53,6 +54,12 @@ public class TripController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Trips in date range retrieved successfully", trips));
     }
     
+    @GetMapping("/schedule-routes")
+    public ResponseEntity<ApiResponse<List<ScheduleGroupResponse>>> getScheduleRoutes() {
+        List<ScheduleGroupResponse> routes = tripService.getScheduleRoutes();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Schedule routes retrieved successfully", routes));
+    }
+    
     @PostMapping
     public ResponseEntity<ApiResponse<TripResponse>> createTrip(@Valid @RequestBody TripRequest request) {
         TripResponse trip = tripService.createTrip(request);
@@ -66,11 +73,5 @@ public class TripController {
             @Valid @RequestBody TripRequest request) {
         TripResponse trip = tripService.updateTrip(id, request);
         return ResponseEntity.ok(new ApiResponse<>(true, "Trip updated successfully", trip));
-    }
-    
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteTrip(@PathVariable Integer id) {
-        tripService.deleteTrip(id);
-        return ResponseEntity.ok(new ApiResponse<>(true, "Trip deleted successfully", null));
     }
 }

@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { FaSave, FaTimes, FaUpload, FaTrash } from "react-icons/fa"
+import { FaSave, FaTimes, FaTrash } from "react-icons/fa"
 import { useState, useRef } from "react"
 import type { CreateDriverRequest } from "@/types/driver.types"
 import driverService from "@/services/driver.service"

@@ -1,0 +1,946 @@
+import { useState, useEffect } from "react";import { useState, useEffect } from "react";
+
+import LeftTaskBar from "@/components/LeftTaskBar";import LeftTaskBar from "@/components/LeftTaskBar";
+
+import { Card } from "@/components/ui/card";import { Card } from "@/components/ui/card";
+
+import { Button } from "@/components/ui/button";import { Button } from "@/components/ui/button";
+
+import { Label } from "@/components/ui/label";import { Label } from "@/components/ui/label";
+
+import {import {
+
+  Dialog,  Dialog,
+
+  DialogContent,  DialogContent,
+
+  DialogHeader,  DialogHeader,
+
+  DialogTitle,  DialogTitle,
+
+  DialogFooter,  DialogFooter,
+
+} from "@/components/ui/dialog";} from "@/components/ui/dialog";
+
+import {import {
+
+  Select,  Select,
+
+  SelectContent,  SelectContent,
+
+  SelectItem,  SelectItem,
+
+  SelectTrigger,  SelectTrigger,
+
+  SelectValue,  SelectValue,
+
+} from "@/components/ui/select";} from "@/components/ui/select";
+
+import { toast } from "sonner";import { toast } from "sonner";
+
+import { FaChair } from "react-icons/fa";import { FaChair } from "react-icons/fa";
+
+import tripSeatService from "@/services/tripSeat.service";import tripSeatService from "@/services/tripSeat.service";
+
+import tripService from "@/services/trip.service";import tripService from "@/services/trip.service";
+
+import type { TripSeat, TripOption } from "@/types/tripSeat.types";import type { TripSeat, TripOption } from "@/types/tripSeat.types";
+
+
+
+function AdminSeats() {function AdminSeats() {
+
+  const [tripSeats, setTripSeats] = useState<TripSeat[]>([]);  const [tripSeats, setTripSeats] = useState<TripSeat[]>([]);
+
+  const [trips, setTrips] = useState<TripOption[]>([]);  const [trips, setTrips] = useState<TripOption[]>([]);
+
+  const [loading, setLoading] = useState(false);  const [loading, setLoading] = useState(false);
+
+  const [selectedTripId, setSelectedTripId] = useState<number>(0);  const [selectedTripId, setSelectedTripId] = useState<number>(0);
+
+  const [selectedSeat, setSelectedSeat] = useState<TripSeat | null>(null);  const [selectedSeat, setSelectedSeat] = useState<TripSeat | null>(null);
+
+
+
+  // Dialog states  // Dialog states
+
+  const [showEditDialog, setShowEditDialog] = useState(false);  const [showEditDialog, setShowEditDialog] = useState(false);
+
+  const [editStatus, setEditStatus] = useState<"available" | "booked" | "locked">("available");
+
+  const [editStatus, setEditStatus] = useState<"available" | "booked" | "unavailable">("available");
+
+  useEffect(() => {
+
+    fetchTrips();  useEffect(() => {
+
+  }, []);    fetchVehicles();
+
+  }, []);
+
+  useEffect(() => {
+
+    if (selectedTripId > 0) {  useEffect(() => {
+
+      fetchTripSeats();    if (selectedVehicleId > 0) {
+
+    }      fetchSeats();
+
+  }, [selectedTripId]);    }
+
+  }, [selectedVehicleId]);
+
+  const fetchTrips = async () => {
+
+    try {  const fetchSeats = async () => {
+
+      const response = await tripService.getAllTrips();    try {
+
+      if (response.success && response.data) {      setLoading(true);
+
+        setTrips(response.data);      const response = await seatService.getAllSeats();
+
+        if (response.data.length > 0) {      
+
+          setSelectedTripId(response.data[0].id);      if (response.success && response.data) {
+
+        }        // Filter seats by selected vehicle - response has vehicleId directly, not nested vehicle object
+
+      }        const filtered = response.data.filter(seat => seat.vehicleId === selectedVehicleId);
+
+    } catch (error) {        
+
+      toast.error("Không thể tải danh sách chuyến đi");        const vehicle = vehicles.find(v => v.id === selectedVehicleId);
+
+      console.error("Error fetching trips:", error);        
+
+    }        // If no seats exist OR seat count doesn't match vehicle's totalSeats, auto-create them
+
+  };        if (vehicle && !isCreatingSeats && selectedVehicleId > 0) {
+
+          const expectedtotalSeats = vehicle.totalSeats;
+
+  const fetchTripSeats = async () => {          
+
+    try {          if (filtered.length === 0) {
+
+      setLoading(true);            // No seats exist, create all
+
+      const response = await tripSeatService.getSeatsByTrip(selectedTripId);            setIsCreatingSeats(true);
+
+                  await autoCreateSeats(vehicle);
+
+      if (response.success && response.data) {            return;
+
+        setTripSeats(response.data);          } else if (filtered.length < expectedtotalSeats) {
+
+      }            // Incomplete seats, create missing ones
+
+    } catch (error: any) {            toast.info(`Xe có ${expectedtotalSeats} ghế nhưng chỉ có ${filtered.length} ghế. Đang tạo thêm ${expectedtotalSeats - filtered.length} ghế...`);
+
+      // If no seats exist, try to create them            setIsCreatingSeats(true);
+
+      if (error.response?.status === 404 || !error.response) {            await createMissingSeats(vehicle, filtered);
+
+        toast.info("Đang tạo sơ đồ ghế cho chuyến đi...");            return;
+
+        try {          }
+
+          await tripSeatService.createSeatsForTrip(selectedTripId);        }
+
+          toast.success("Đã tạo sơ đồ ghế thành công");        
+
+          // Retry fetching        setSeats(filtered);
+
+          setTimeout(fetchTripSeats, 500);        setIsCreatingSeats(false);
+
+        } catch (createError) {      }
+
+          toast.error("Không thể tạo sơ đồ ghế");    } catch (error) {
+
+          console.error("Error creating trip seats:", createError);      toast.error("Không thể tải danh sách ghế");
+
+        }      console.error("Error fetching seats:", error);
+
+      } else {      setIsCreatingSeats(false);
+
+        toast.error("Không thể tải sơ đồ ghế");    } finally {
+
+        console.error("Error fetching trip seats:", error);      setLoading(false);
+
+      }    }
+
+    } finally {  };
+
+      setLoading(false);
+
+    }  const autoCreateSeats = async (vehicle: VehicleOption) => {
+
+  };    try {
+
+      setLoading(true);
+
+  const handleSeatClick = (seat: TripSeat) => {      const totalSeats = vehicle.totalSeats;
+
+    setSelectedSeat(seat);      const seatsPerFloor = Math.ceil(totalSeats / 2);
+
+    setEditStatus(seat.status);      let createdCount = 0;
+
+    setShowEditDialog(true);      const errors: string[] = [];
+
+  };
+
+      // Create lower floor seats (A1, A2, ...)
+
+  const submitEdit = async (e: React.FormEvent) => {      for (let i = 1; i <= seatsPerFloor && i <= totalSeats; i++) {
+
+    e.preventDefault();        try {
+
+              const seatData: CreateSeatRequest = {
+
+    if (!selectedSeat) return;            vehicleId: vehicle.id,
+
+            seatNumber: `A${i}`,
+
+    try {            seatType: vehicle.vehicleType === "sleeper" ? "bed" : vehicle.vehicleType === "vip" ? "vip" : "standard",
+
+      setLoading(true);            status: "available",
+
+      let response;          };
+
+                await seatService.createSeat(seatData);
+
+      if (editStatus === 'booked') {          createdCount++;
+
+        response = await tripSeatService.bookSeat(selectedSeat.id);        } catch (err: any) {
+
+      } else if (editStatus === 'locked') {          errors.push(`A${i}: ${err.message}`);
+
+        response = await tripSeatService.lockSeat(selectedSeat.id);          console.error(`Failed to create seat A${i}:`, err);
+
+      } else {        }
+
+        response = await tripSeatService.cancelSeat(selectedSeat.id);      }
+
+      }
+
+            // Create upper floor seats (B1, B2, ...) if total > seatsPerFloor
+
+      if (response.success) {      for (let i = 1; i <= totalSeats - seatsPerFloor; i++) {
+
+        toast.success("Cập nhật trạng thái ghế thành công");        try {
+
+        setShowEditDialog(false);          const seatData: CreateSeatRequest = {
+
+        fetchTripSeats();            vehicleId: vehicle.id,
+
+      } else {            seatNumber: `B${i}`,
+
+        toast.error(response.message || "Cập nhật ghế thất bại");            seatType: vehicle.vehicleType === "sleeper" ? "bed" : vehicle.vehicleType === "vip" ? "vip" : "standard",
+
+      }            status: "available",
+
+    } catch (error: any) {          };
+
+      toast.error(error.response?.data?.message || "Cập nhật ghế thất bại");          await seatService.createSeat(seatData);
+
+      console.error("Error updating seat:", error);          createdCount++;
+
+    } finally {        } catch (err: any) {
+
+      setLoading(false);          errors.push(`B${i}: ${err.message}`);
+
+    }          console.error(`Failed to create seat B${i}:`, err);
+
+  };        }
+
+      }
+
+  // Group seats by floor (lower/upper)
+
+  const lowerFloorSeats = tripSeats.filter(s =>       if (errors.length > 0) {
+
+    s.seatNumber.match(/^[A]\d+$/)        toast.warning(`Tạo được ${createdCount}/${totalSeats} ghế, có ${errors.length} lỗi. Xem console để biết chi tiết.`);
+
+  );      } else {
+
+  const upperFloorSeats = tripSeats.filter(s =>         toast.success(`Đã tạo ${totalSeats} ghế cho xe ${vehicle.licensePlate}`);
+
+    s.seatNumber.startsWith('B')      }
+
+  );      
+
+      // Wait a bit then re-fetch seats
+
+  const renderSeat = (seat: TripSeat) => {      setTimeout(() => {
+
+    const statusColors = {        setIsCreatingSeats(false);
+
+      available: "bg-green-100 border-green-500 text-green-800 hover:bg-green-200",        fetchSeats();
+
+      booked: "bg-red-100 border-red-500 text-red-800 hover:bg-red-200",      }, 500);
+
+      locked: "bg-slate-300 border-slate-500 text-slate-700 hover:bg-slate-400",      
+
+    };    } catch (error: any) {
+
+      toast.error(error.message || "Lỗi khi tạo ghế tự động");
+
+    const typeIcons = {      console.error("Error auto-creating seats:", error);
+
+      standard: "🪑",      setIsCreatingSeats(false);
+
+      vip: "👑",    } finally {
+
+      bed: "🛏️",      setLoading(false);
+
+    };    }
+
+  };
+
+    return (
+
+      <div  const createMissingSeats = async (vehicle: VehicleOption, existingSeats: Seat[]) => {
+
+        key={seat.id}    try {
+
+        onClick={() => handleSeatClick(seat)}      setLoading(true);
+
+        className={`relative w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center cursor-pointer transition-all shadow-sm ${statusColors[seat.status]}`}      const totalSeats = vehicle.totalSeats;
+
+      >      const seatsPerFloor = Math.ceil(totalSeats / 2);
+
+        <span className="text-sm font-bold">{seat.seatNumber}</span>      
+
+        <span className="text-2xl">{typeIcons[seat.seatType]}</span>      // Get existing seat numbers
+
+      </div>      const existingSeatNumbers = new Set(existingSeats.map(s => s.seatNumber));
+
+    );      let createdCount = 0;
+
+  };      const errors: string[] = [];
+
+
+
+  const selectedTrip = trips.find(t => t.id === selectedTripId);      // Create missing lower floor seats (A1, A2, ...)
+
+      for (let i = 1; i <= seatsPerFloor && i <= totalSeats; i++) {
+
+  return (        const seatNumber = `A${i}`;
+
+    <div className="flex h-screen bg-slate-50">        if (!existingSeatNumbers.has(seatNumber)) {
+
+      <LeftTaskBar />          try {
+
+            const seatData: CreateSeatRequest = {
+
+      <main className="flex-1 overflow-auto">              vehicleId: vehicle.id,
+
+        {/* Header */}              seatNumber,
+
+        <div className="bg-white border-b border-slate-200 px-8 py-6 shadow-sm">              seatType: vehicle.vehicleType === "sleeper" ? "bed" : vehicle.vehicleType === "vip" ? "vip" : "standard",
+
+          <h1 className="text-3xl font-bold text-slate-800">Quản lý ghế</h1>              status: "available",
+
+          <p className="text-slate-600 mt-1">Quản lý sơ đồ ghế theo từng chuyến đi</p>            };
+
+        </div>            await seatService.createSeat(seatData);
+
+            createdCount++;
+
+        {/* Content */}          } catch (err: any) {
+
+        <div className="p-8">            errors.push(`${seatNumber}: ${err.message}`);
+
+          {/* Trip Selector */}            console.error(`Failed to create seat ${seatNumber}:`, err);
+
+          <Card className="p-6 mb-6">          }
+
+            <div className="flex items-center gap-4 mb-2">        }
+
+              <Label className="text-lg font-semibold">Chọn chuyến đi:</Label>      }
+
+              <Select
+
+                value={selectedTripId.toString()}      // Create missing upper floor seats (B1, B2, ...)
+
+                onValueChange={(value) => setSelectedTripId(parseInt(value))}      for (let i = 1; i <= totalSeats - seatsPerFloor; i++) {
+
+              >        const seatNumber = `B${i}`;
+
+                <SelectTrigger className="w-[600px]">        if (!existingSeatNumbers.has(seatNumber)) {
+
+                  <SelectValue placeholder="Chọn chuyến đi" />          try {
+
+                </SelectTrigger>            const seatData: CreateSeatRequest = {
+
+                <SelectContent>              vehicleId: vehicle.id,
+
+                  {trips.map((trip) => (              seatNumber,
+
+                    <SelectItem key={trip.id} value={trip.id.toString()}>              seatType: vehicle.vehicleType === "sleeper" ? "bed" : vehicle.vehicleType === "vip" ? "vip" : "standard",
+
+                      {trip.route.fromLocation} → {trip.route.toLocation} | {trip.vehicle.licensePlate} ({trip.vehicle.vehicleType} - {trip.vehicle.totalSeats} ghế) | {new Date(trip.departureTime).toLocaleString('vi-VN')}              status: "available",
+
+                    </SelectItem>            };
+
+                  ))}            await seatService.createSeat(seatData);
+
+                </SelectContent>            createdCount++;
+
+              </Select>          } catch (err: any) {
+
+            </div>            errors.push(`${seatNumber}: ${err.message}`);
+
+            {selectedTrip && (            console.error(`Failed to create seat ${seatNumber}:`, err);
+
+              <div className="mt-4 flex items-center gap-6 text-sm flex-wrap">          }
+
+                <div className="bg-blue-50 px-4 py-2 rounded-lg">        }
+
+                  <span className="text-blue-600">Tuyến:</span>{" "}      }
+
+                  <span className="font-semibold text-blue-800">{selectedTrip.route.fromLocation} → {selectedTrip.route.toLocation}</span>
+
+                </div>      if (errors.length > 0) {
+
+                <div className="bg-slate-50 px-4 py-2 rounded-lg">        toast.warning(`Tạo được ${createdCount} ghế, có ${errors.length} lỗi. Xem console để biết chi tiết.`);
+
+                  <span className="text-slate-600">Xe:</span>{" "}      } else {
+
+                  <span className="font-semibold text-slate-800">{selectedTrip.vehicle.licensePlate}</span>        toast.success(`Đã tạo thêm ${createdCount} ghế cho xe ${vehicle.licensePlate} (Tổng: ${totalSeats} ghế)`);
+
+                </div>      }
+
+                <div className="bg-slate-50 px-4 py-2 rounded-lg">      
+
+                  <span className="text-slate-600">Loại:</span>{" "}      // Wait a bit then re-fetch seats
+
+                  <span className="font-semibold text-slate-800">{selectedTrip.vehicle.vehicleType}</span>      setTimeout(() => {
+
+                </div>        setIsCreatingSeats(false);
+
+                <div className="bg-slate-50 px-4 py-2 rounded-lg">        fetchSeats();
+
+                  <span className="text-slate-600">Khởi hành:</span>{" "}      }, 500);
+
+                  <span className="font-semibold text-slate-800">{new Date(selectedTrip.departureTime).toLocaleString('vi-VN')}</span>      
+
+                </div>    } catch (error: any) {
+
+                <div className="bg-green-50 px-4 py-2 rounded-lg">      toast.error(error.message || "Lỗi khi tạo ghế thiếu");
+
+                  <span className="text-green-600">Còn trống:</span>{" "}      console.error("Error creating missing seats:", error);
+
+                  <span className="font-semibold text-green-700">      setIsCreatingSeats(false);
+
+                    {tripSeats.filter(s => s.status === "available").length} ghế    } finally {
+
+                  </span>      setLoading(false);
+
+                </div>    }
+
+                <div className="bg-red-50 px-4 py-2 rounded-lg">  };
+
+                  <span className="text-red-600">Đã đặt:</span>{" "}
+
+                  <span className="font-semibold text-red-700">  const fetchVehicles = async () => {
+
+                    {tripSeats.filter(s => s.status === "booked").length} ghế    try {
+
+                  </span>      const response = await seatService.getAllVehicles();
+
+                </div>      if (response.success && response.data) {
+
+              </div>        setVehicles(response.data);
+
+            )}        if (response.data.length > 0) {
+
+          </Card>          setSelectedVehicleId(response.data[0].id);
+
+        }
+
+          {/* Legend */}      }
+
+          <Card className="p-4 mb-6 bg-gradient-to-r from-slate-50 to-slate-100">    } catch (error) {
+
+            <div className="flex items-center gap-8 flex-wrap">      toast.error("Không thể tải danh sách xe");
+
+              <div className="flex items-center gap-2">      console.error("Error fetching vehicles:", error);
+
+                <div className="w-10 h-10 bg-green-100 border-2 border-green-500 rounded-lg shadow-sm"></div>    }
+
+                <span className="text-sm font-medium">Còn trống</span>  };
+
+              </div>
+
+              <div className="flex items-center gap-2">  const handleSeatClick = (seat: Seat) => {
+
+                <div className="w-10 h-10 bg-red-100 border-2 border-red-500 rounded-lg shadow-sm"></div>    setSelectedSeat(seat);
+
+                <span className="text-sm font-medium">Đã đặt</span>    setEditStatus(seat.status);
+
+              </div>    setShowEditDialog(true);
+
+              <div className="flex items-center gap-2">  };
+
+                <div className="w-10 h-10 bg-slate-300 border-2 border-slate-500 rounded-lg shadow-sm"></div>
+
+                <span className="text-sm font-medium">Bị khóa</span>  const submitEdit = async (e: React.FormEvent) => {
+
+              </div>    e.preventDefault();
+
+              <div className="ml-auto flex items-center gap-4 text-lg">    
+
+                <span>🪑 Tiêu chuẩn</span>    if (!selectedSeat) return;
+
+                <span>👑 VIP</span>
+
+                <span>🛏️ Giường nằm</span>    try {
+
+              </div>      setLoading(true);
+
+            </div>      const updateData: UpdateSeatRequest = {
+
+          </Card>        status: editStatus,
+
+      };
+
+          {/* Seat Layout */}      
+
+          {loading ? (      const response = await seatService.updateSeat(selectedSeat.id, updateData);
+
+            <div className="text-center py-12">      
+
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>      if (response.success) {
+
+              <p className="text-slate-500 mt-4">Đang tải sơ đồ ghế...</p>        toast.success("Cập nhật trạng thái ghế thành công");
+
+            </div>        setShowEditDialog(false);
+
+          ) : tripSeats.length === 0 ? (        fetchSeats();
+
+            <Card className="p-12">      } else {
+
+              <div className="text-center">        toast.error(response.message || "Cập nhật ghế thất bại");
+
+                <FaChair className="mx-auto text-6xl text-slate-300 mb-4" />      }
+
+                <p className="text-slate-500 text-lg mb-2">Chưa có sơ đồ ghế cho chuyến này</p>    } catch (error: any) {
+
+                <p className="text-slate-400 text-sm mb-4">Nhấn nút bên dưới để tạo sơ đồ ghế</p>      toast.error(error.response?.data?.message || "Cập nhật ghế thất bại");
+
+                <Button onClick={fetchTripSeats} className="bg-orange-500 hover:bg-orange-600">      console.error("Error updating seat:", error);
+
+                  Tạo sơ đồ ghế    } finally {
+
+                </Button>      setLoading(false);
+
+              </div>    }
+
+            </Card>  };
+
+          ) : (
+
+            <div className="space-y-6">
+
+              {/* Lower Floor */}
+
+              {lowerFloorSeats.length > 0 && (  // Group seats by floor (lower/upper)
+
+                <Card className="p-6 bg-white shadow-lg">  const lowerFloorSeats = seats.filter(s => 
+
+                  <div className="flex items-center justify-between mb-6">    s.seatNumber.match(/^[A]\d+$/)
+
+                    <h3 className="text-xl font-bold text-slate-800">🔽 Tầng dưới</h3>  );
+
+                    <div className="text-sm text-slate-600">  const upperFloorSeats = seats.filter(s => 
+
+                      <span className="font-medium">{lowerFloorSeats.filter(s => s.status === 'available').length}</span> / {lowerFloorSeats.length} ghế trống    s.seatNumber.startsWith('B')
+
+                    </div>  );
+
+                  </div>
+
+                  <div className="grid grid-cols-5 gap-4 place-items-center">  const renderSeat = (seat: Seat) => {
+
+                    {lowerFloorSeats.map(renderSeat)}    const statusColors = {
+
+                  </div>      available: "bg-green-100 border-green-500 text-green-800 hover:bg-green-200",
+
+                </Card>      booked: "bg-red-100 border-red-500 text-red-800 hover:bg-red-200",
+
+              )}      unavailable: "bg-slate-300 border-slate-500 text-slate-700 hover:bg-slate-400",
+
+    };
+
+              {/* Upper Floor */}
+
+              {upperFloorSeats.length > 0 && (    const typeIcons = {
+
+                <Card className="p-6 bg-white shadow-lg">      standard: "🪑",
+
+                  <div className="flex items-center justify-between mb-6">      vip: "👑",
+
+                    <h3 className="text-xl font-bold text-slate-800">🔼 Tầng trên</h3>      bed: "🛏️",
+
+                    <div className="text-sm text-slate-600">    };
+
+                      <span className="font-medium">{upperFloorSeats.filter(s => s.status === 'available').length}</span> / {upperFloorSeats.length} ghế trống
+
+                    </div>    return (
+
+                  </div>      <div
+
+                  <div className="grid grid-cols-5 gap-4 place-items-center">        key={seat.id}
+
+                    {upperFloorSeats.map(renderSeat)}        onClick={() => handleSeatClick(seat)}
+
+                  </div>        className={`relative w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center cursor-pointer transition-all shadow-sm ${statusColors[seat.status]}`}
+
+                </Card>      >
+
+              )}        <span className="text-sm font-bold">{seat.seatNumber}</span>
+
+        <span className="text-2xl">{typeIcons[seat.seatType]}</span>
+
+              {/* Show all seats if no clear floor division */}      </div>
+
+              {lowerFloorSeats.length === 0 && upperFloorSeats.length === 0 && (    );
+
+                <Card className="p-6 bg-white shadow-lg">  };
+
+                  <div className="flex items-center justify-between mb-6">
+
+                    <h3 className="text-xl font-bold text-slate-800">Sơ đồ ghế</h3>  const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
+
+                    <div className="text-sm text-slate-600">
+
+                      <span className="font-medium">{tripSeats.filter(s => s.status === 'available').length}</span> / {tripSeats.length} ghế trống  return (
+
+                    </div>    <div className="flex h-screen bg-slate-50">
+
+                  </div>      <LeftTaskBar />
+
+                  <div className="grid grid-cols-5 gap-4 place-items-center">
+
+                    {tripSeats.map(renderSeat)}      <main className="flex-1 overflow-auto">
+
+                  </div>        {/* Header */}
+
+                </Card>        <div className="bg-white border-b border-slate-200 px-8 py-6 shadow-sm">
+
+              )}          <h1 className="text-3xl font-bold text-slate-800">Quản lý ghế</h1>
+
+            </div>          <p className="text-slate-600 mt-1">Quản lý sơ đồ ghế ngồi trong xe</p>
+
+          )}        </div>
+
+        </div>
+
+      </main>        {/* Content */}
+
+        <div className="p-8">
+
+      {/* Edit Status Dialog */}          {/* Vehicle Selector */}
+
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>          <Card className="p-6 mb-6">
+
+        <DialogContent className="max-w-md">            <div className="flex items-center gap-4">
+
+          <DialogHeader>              <Label className="text-lg font-semibold">Chọn xe:</Label>
+
+            <DialogTitle className="text-xl font-bold">Cập nhật trạng thái ghế</DialogTitle>              <Select
+
+          </DialogHeader>                value={selectedVehicleId.toString()}
+
+          <form onSubmit={submitEdit}>                onValueChange={(value) => setSelectedVehicleId(parseInt(value))}
+
+            {selectedSeat && (              >
+
+              <div className="py-4 space-y-4">                <SelectTrigger className="w-80">
+
+                <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-4 rounded-lg space-y-3 border border-orange-200">                  <SelectValue placeholder="Chọn xe" />
+
+                  <div className="flex justify-between items-center">                </SelectTrigger>
+
+                    <span className="text-sm text-slate-600">Số ghế:</span>                <SelectContent>
+
+                    <span className="font-bold text-xl text-orange-600">{selectedSeat.seatNumber}</span>                  {vehicles.map((vehicle) => (
+
+                  </div>                    <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+
+                  <div className="flex justify-between items-center">                      {vehicle.licensePlate} - {vehicle.vehicleType} ({vehicle.totalSeats} ghế)
+
+                    <span className="text-sm text-slate-600">Loại ghế:</span>                    </SelectItem>
+
+                    <span className="capitalize font-medium text-slate-800">                  ))}
+
+                      {selectedSeat.seatType === 'standard' && '🪑 Tiêu chuẩn'}                </SelectContent>
+
+                      {selectedSeat.seatType === 'vip' && '👑 VIP'}              </Select>
+
+                      {selectedSeat.seatType === 'bed' && '🛏️ Giường nằm'}            </div>
+
+                    </span>            {selectedVehicle && (
+
+                  </div>              <div className="mt-4 flex items-center gap-6 text-sm">
+
+                  <div className="flex justify-between items-center">                <div className="bg-slate-50 px-4 py-2 rounded-lg">
+
+                    <span className="text-sm text-slate-600">Trạng thái hiện tại:</span>                  <span className="text-slate-600">Loại xe:</span>{" "}
+
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${                  <span className="font-semibold text-slate-800">{selectedVehicle.vehicleType}</span>
+
+                      selectedSeat.status === 'available' ? 'bg-green-100 text-green-700' :                </div>
+
+                      selectedSeat.status === 'booked' ? 'bg-red-100 text-red-700' :                <div className="bg-slate-50 px-4 py-2 rounded-lg">
+
+                      'bg-slate-200 text-slate-700'                  <span className="text-slate-600">Tổng ghế:</span>{" "}
+
+                    }`}>                  <span className="font-semibold text-slate-800">{selectedVehicle.totalSeats} ghế</span>
+
+                      {selectedSeat.status === 'available' && 'Còn trống'}                </div>
+
+                      {selectedSeat.status === 'booked' && 'Đã đặt'}                <div className="bg-green-50 px-4 py-2 rounded-lg">
+
+                      {selectedSeat.status === 'locked' && 'Bị khóa'}                  <span className="text-green-600">Còn trống:</span>{" "}
+
+                    </span>                  <span className="font-semibold text-green-700">
+
+                  </div>                    {seats.filter(s => s.status === "available").length} ghế
+
+                </div>                  </span>
+
+                <div className="space-y-2">                </div>
+
+                  <Label htmlFor="edit-status" className="text-base font-semibold">Cập nhật trạng thái mới</Label>                <div className="bg-red-50 px-4 py-2 rounded-lg">
+
+                  <Select                  <span className="text-red-600">Đã đặt:</span>{" "}
+
+                    value={editStatus}                  <span className="font-semibold text-red-700">
+
+                    onValueChange={(value: any) => setEditStatus(value)}                    {seats.filter(s => s.status === "booked").length} ghế
+
+                  >                  </span>
+
+                    <SelectTrigger className="h-12">                </div>
+
+                      <SelectValue />              </div>
+
+                    </SelectTrigger>            )}
+
+                    <SelectContent>          </Card>
+
+                      <SelectItem value="available">
+
+                        <div className="flex items-center gap-2">          {/* Legend */}
+
+                          <div className="w-4 h-4 bg-green-500 rounded"></div>          <Card className="p-4 mb-6 bg-gradient-to-r from-slate-50 to-slate-100">
+
+                          <span>Còn trống</span>            <div className="flex items-center gap-8 flex-wrap">
+
+                        </div>              <div className="flex items-center gap-2">
+
+                      </SelectItem>                <div className="w-10 h-10 bg-green-100 border-2 border-green-500 rounded-lg shadow-sm"></div>
+
+                      <SelectItem value="booked">                <span className="text-sm font-medium">Còn trống</span>
+
+                        <div className="flex items-center gap-2">              </div>
+
+                          <div className="w-4 h-4 bg-red-500 rounded"></div>              <div className="flex items-center gap-2">
+
+                          <span>Đã đặt</span>                <div className="w-10 h-10 bg-red-100 border-2 border-red-500 rounded-lg shadow-sm"></div>
+
+                        </div>                <span className="text-sm font-medium">Đã đặt</span>
+
+                      </SelectItem>              </div>
+
+                      <SelectItem value="locked">              <div className="flex items-center gap-2">
+
+                        <div className="flex items-center gap-2">                <div className="w-10 h-10 bg-slate-300 border-2 border-slate-500 rounded-lg shadow-sm"></div>
+
+                          <div className="w-4 h-4 bg-slate-500 rounded"></div>                <span className="text-sm font-medium">Không khả dụng</span>
+
+                          <span>Bị khóa</span>              </div>
+
+                        </div>              <div className="ml-auto flex items-center gap-4 text-lg">
+
+                      </SelectItem>                <span>🪑 Tiêu chuẩn</span>
+
+                    </SelectContent>                <span>👑 VIP</span>
+
+                  </Select>                <span>🛏️ Giường nằm</span>
+
+                </div>              </div>
+
+              </div>            </div>
+
+            )}          </Card>
+
+            <DialogFooter>
+
+              <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>          {/* Seat Layout */}
+
+                Hủy          {loading ? (
+
+              </Button>            <div className="text-center py-12">
+
+              <Button type="submit" disabled={loading} className="bg-orange-500 hover:bg-orange-600">              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+
+                {loading ? "Đang cập nhật..." : "Cập nhật trạng thái"}              <p className="text-slate-500 mt-4">Đang tải sơ đồ ghế...</p>
+
+              </Button>            </div>
+
+            </DialogFooter>          ) : seats.length === 0 ? (
+
+          </form>            <Card className="p-12">
+
+        </DialogContent>              <div className="text-center">
+
+      </Dialog>                <FaChair className="mx-auto text-6xl text-slate-300 mb-4" />
+
+    </div>                <p className="text-slate-500 text-lg mb-2">Đang tạo sơ đồ ghế...</p>
+
+  );                <p className="text-slate-400 text-sm">Hệ thống sẽ tự động tạo ghế cho xe này</p>
+
+}              </div>
+
+            </Card>
+
+export default AdminSeats;          ) : (
+
+            <div className="space-y-6">
+              {/* Lower Floor */}
+              {lowerFloorSeats.length > 0 && (
+                <Card className="p-6 bg-white shadow-lg">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-slate-800">🔽 Tầng dưới</h3>
+                    <div className="text-sm text-slate-600">
+                      <span className="font-medium">{lowerFloorSeats.filter(s => s.status === 'available').length}</span> / {lowerFloorSeats.length} ghế trống
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-5 gap-4 place-items-center">
+                    {lowerFloorSeats.map(renderSeat)}
+                  </div>
+                </Card>
+              )}
+
+              {/* Upper Floor */}
+              {upperFloorSeats.length > 0 && (
+                <Card className="p-6 bg-white shadow-lg">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-slate-800">🔼 Tầng trên</h3>
+                    <div className="text-sm text-slate-600">
+                      <span className="font-medium">{upperFloorSeats.filter(s => s.status === 'available').length}</span> / {upperFloorSeats.length} ghế trống
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-5 gap-4 place-items-center">
+                    {upperFloorSeats.map(renderSeat)}
+                  </div>
+                </Card>
+              )}
+
+              {/* Show all seats if no clear floor division */}
+              {lowerFloorSeats.length === 0 && upperFloorSeats.length === 0 && (
+                <Card className="p-6 bg-white shadow-lg">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-slate-800">Sơ đồ ghế</h3>
+                    <div className="text-sm text-slate-600">
+                      <span className="font-medium">{seats.filter(s => s.status === 'available').length}</span> / {seats.length} ghế trống
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-5 gap-4 place-items-center">
+                    {seats.map(renderSeat)}
+                  </div>
+                </Card>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Edit Status Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Cập nhật trạng thái ghế</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={submitEdit}>
+            {selectedSeat && (
+              <div className="py-4 space-y-4">
+                <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-4 rounded-lg space-y-3 border border-orange-200">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600">Số ghế:</span>
+                    <span className="font-bold text-xl text-orange-600">{selectedSeat.seatNumber}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600">Loại ghế:</span>
+                    <span className="capitalize font-medium text-slate-800">
+                      {selectedSeat.seatType === 'standard' && '🪑 Tiêu chuẩn'}
+                      {selectedSeat.seatType === 'vip' && '👑 VIP'}
+                      {selectedSeat.seatType === 'bed' && '🛏️ Giường nằm'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600">Trạng thái hiện tại:</span>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      selectedSeat.status === 'available' ? 'bg-green-100 text-green-700' :
+                      selectedSeat.status === 'booked' ? 'bg-red-100 text-red-700' :
+                      'bg-slate-200 text-slate-700'
+                    }`}>
+                      {selectedSeat.status === 'available' && 'Còn trống'}
+                      {selectedSeat.status === 'booked' && 'Đã đặt'}
+                      {selectedSeat.status === 'unavailable' && 'Không khả dụng'}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-status" className="text-base font-semibold">Cập nhật trạng thái mới</Label>
+                  <Select
+                    value={editStatus}
+                    onValueChange={(value: any) => setEditStatus(value)}
+                  >
+                    <SelectTrigger className="h-12">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="available">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-green-500 rounded"></div>
+                          <span>Còn trống</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="booked">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-red-500 rounded"></div>
+                          <span>Đã đặt</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="unavailable">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-slate-500 rounded"></div>
+                          <span>Không khả dụng</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>
+                Hủy
+              </Button>
+              <Button type="submit" disabled={loading} className="bg-orange-500 hover:bg-orange-600">
+                {loading ? "Đang cập nhật..." : "Cập nhật trạng thái"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+export default AdminSeats;

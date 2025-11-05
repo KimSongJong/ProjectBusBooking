@@ -7,6 +7,7 @@ export interface Trip {
     toLocation: string;
     distanceKm: number;
     basePrice: number;
+    estimatedDuration?: number;
   };
   vehicle: {
     id: number;

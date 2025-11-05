@@ -3,6 +3,7 @@ package com.busbooking.controller;
 import com.busbooking.dto.request.RouteRequest;
 import com.busbooking.dto.response.ApiResponse;
 import com.busbooking.dto.response.RouteResponse;
+import com.busbooking.dto.response.ScheduleResponse;
 import com.busbooking.service.RouteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,12 @@ public class RouteController {
     public ResponseEntity<ApiResponse<List<RouteResponse>>> getAllRoutes() {
         List<RouteResponse> routes = routeService.getAllRoutes();
         return ResponseEntity.ok(new ApiResponse<>(true, "Routes retrieved successfully", routes));
+    }
+    
+    @GetMapping("/schedules")
+    public ResponseEntity<ApiResponse<List<ScheduleResponse>>> getSchedules() {
+        List<ScheduleResponse> schedules = routeService.getSchedules();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Schedules retrieved successfully", schedules));
     }
     
     @GetMapping("/{id}")
@@ -52,11 +59,5 @@ public class RouteController {
             @Valid @RequestBody RouteRequest request) {
         RouteResponse route = routeService.updateRoute(id, request);
         return ResponseEntity.ok(new ApiResponse<>(true, "Route updated successfully", route));
-    }
-    
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteRoute(@PathVariable Integer id) {
-        routeService.deleteRoute(id);
-        return ResponseEntity.ok(new ApiResponse<>(true, "Route deleted successfully", null));
     }
 }

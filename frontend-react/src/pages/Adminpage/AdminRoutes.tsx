@@ -12,6 +12,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Table,
   TableBody,
   TableCell,
@@ -21,9 +28,15 @@ import {
 } from "@/components/ui/table"
 import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaSave, FaTimes, FaMapMarkerAlt } from "react-icons/fa"
+import { FaPlus, FaEdit, FaSearch, FaSave, FaTimes, FaMapMarkerAlt } from "react-icons/fa"
 import routeService from "@/services/route.service"
 import type { Route, CreateRouteRequest, UpdateRouteRequest } from "@/types/route.types"
+import { VIETNAM_PROVINCES } from "@/constants/provinces"
+import { 
+  validateDistance, 
+  validatePrice, 
+  validateDuration 
+} from "@/utils/validation"
 
 function AdminRoutes() {
   const [routes, setRoutes] = useState<Route[]>([])
@@ -85,24 +98,62 @@ function AdminRoutes() {
     setIsDialogOpen(true)
   }
 
-  const handleDelete = async (route: Route) => {
-    if (!confirm(`Bạn có chắc muốn xóa tuyến "${route.fromLocation} - ${route.toLocation}"?`)) return
-
-    try {
-      const response = await routeService.deleteRoute(route.id)
-      if (response.success) {
-        toast.success("Xóa tuyến đường thành công")
-        fetchRoutes()
-      } else {
-        toast.error(response.message || "Xóa tuyến đường thất bại")
-      }
-    } catch (error: any) {
-      toast.error(error.payload?.message || "Lỗi khi xóa tuyến đường")
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validation: Kiểm tra điểm đi và điểm đến không được giống nhau
+    if (formData.fromLocation === formData.toLocation) {
+      toast.error("Điểm đi và điểm đến không được giống nhau");
+      return;
+    }
+
+    // Validation: Kiểm tra khoảng cách
+    const distanceValidation = validateDistance(Number(formData.distanceKm));
+    if (!distanceValidation.valid) {
+      toast.error(distanceValidation.message);
+      return;
+    }
+
+    // Validation: Kiểm tra giá
+    const priceValidation = validatePrice(Number(formData.basePrice));
+    if (!priceValidation.valid) {
+      toast.error(priceValidation.message);
+      return;
+    }
+
+    // Validation: Kiểm tra thời gian
+    const durationValidation = validateDuration(Number(formData.estimatedDuration));
+    if (!durationValidation.valid) {
+      toast.error(durationValidation.message);
+      return;
+    }
+
+    // Validation: Kiểm tra tuyến đường đã tồn tại chưa (chỉ khi thêm mới)
+    if (!isEditing) {
+      const isDuplicate = routes.some(route => 
+        route.fromLocation.toLowerCase() === formData.fromLocation.toLowerCase() &&
+        route.toLocation.toLowerCase() === formData.toLocation.toLowerCase()
+      );
+
+      if (isDuplicate) {
+        toast.error(`Tuyến đường "${formData.fromLocation} → ${formData.toLocation}" đã tồn tại!`);
+        return;
+      }
+    }
+
+    // Validation: Kiểm tra khi edit, không được trùng với tuyến khác
+    if (isEditing && currentRoute) {
+      const isDuplicate = routes.some(route => 
+        route.id !== currentRoute.id && // Không so sánh với chính nó
+        route.fromLocation.toLowerCase() === formData.fromLocation.toLowerCase() &&
+        route.toLocation.toLowerCase() === formData.toLocation.toLowerCase()
+      );
+
+      if (isDuplicate) {
+        toast.error(`Tuyến đường "${formData.fromLocation} → ${formData.toLocation}" đã tồn tại!`);
+        return;
+      }
+    }
 
     try {
       if (isEditing && currentRoute) {
@@ -229,15 +280,6 @@ function AdminRoutes() {
                               >
                                 <FaEdit />
                               </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDelete(route)}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                title="Xóa"
-                              >
-                                <FaTrash />
-                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -269,26 +311,52 @@ function AdminRoutes() {
                 <Label htmlFor="fromLocation">
                   Điểm đi <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="fromLocation"
+                <Select
                   value={formData.fromLocation}
-                  onChange={(e) => setFormData({ ...formData, fromLocation: e.target.value })}
-                  placeholder="Hà Nội"
+                  onValueChange={(value) => setFormData({ ...formData, fromLocation: value })}
                   required
-                />
+                  disabled={isEditing}
+                >
+                  <SelectTrigger className={isEditing ? "bg-slate-100 cursor-not-allowed" : ""}>
+                    <SelectValue placeholder="Chọn tỉnh/thành phố đi" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {VIETNAM_PROVINCES.map((province) => (
+                      <SelectItem key={province} value={province}>
+                        {province}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {isEditing && (
+                  <p className="text-xs text-slate-500">Không thể sửa điểm đi</p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="toLocation">
                   Điểm đến <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="toLocation"
+                <Select
                   value={formData.toLocation}
-                  onChange={(e) => setFormData({ ...formData, toLocation: e.target.value })}
-                  placeholder="Hải Phòng"
+                  onValueChange={(value) => setFormData({ ...formData, toLocation: value })}
                   required
-                />
+                  disabled={isEditing}
+                >
+                  <SelectTrigger className={isEditing ? "bg-slate-100 cursor-not-allowed" : ""}>
+                    <SelectValue placeholder="Chọn tỉnh/thành phố đến" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {VIETNAM_PROVINCES.map((province) => (
+                      <SelectItem key={province} value={province}>
+                        {province}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {isEditing && (
+                  <p className="text-xs text-slate-500">Không thể sửa điểm đến</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -299,12 +367,18 @@ function AdminRoutes() {
                   id="distanceKm"
                   type="number"
                   step="0.1"
-                  min="0"
+                  min="1"
+                  max="5000"
                   value={formData.distanceKm}
                   onChange={(e) => setFormData({ ...formData, distanceKm: parseFloat(e.target.value) || 0 })}
                   placeholder="120"
                   required
+                  disabled={isEditing}
+                  className={isEditing ? "bg-slate-100 cursor-not-allowed" : ""}
                 />
+                <p className="text-xs text-slate-500">
+                  {isEditing ? "Không thể sửa khoảng cách" : "* Từ 1 đến 5,000 km"}
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -314,12 +388,15 @@ function AdminRoutes() {
                 <Input
                   id="basePrice"
                   type="number"
-                  min="0"
+                  min="10000"
+                  max="10000000"
+                  step="1000"
                   value={formData.basePrice}
                   onChange={(e) => setFormData({ ...formData, basePrice: parseFloat(e.target.value) || 0 })}
                   placeholder="150000"
                   required
                 />
+                <p className="text-xs text-slate-500">* Từ 10,000 đến 10,000,000 VND</p>
               </div>
 
               <div className="space-y-2 col-span-2">
@@ -329,12 +406,14 @@ function AdminRoutes() {
                 <Input
                   id="estimatedDuration"
                   type="number"
-                  min="0"
+                  min="30"
+                  max="4320"
                   value={formData.estimatedDuration}
                   onChange={(e) => setFormData({ ...formData, estimatedDuration: parseInt(e.target.value) || 0 })}
-                  placeholder="120"
+                  placeholder="180"
                   required
                 />
+                <p className="text-xs text-slate-500">* Từ 30 phút đến 4,320 phút (3 ngày)</p>
               </div>
             </div>
 

@@ -1,7 +1,10 @@
 package com.busbooking.dto.request;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,22 +18,29 @@ import java.math.BigDecimal;
 public class TicketRequest {
     
     @NotNull(message = "User ID is required")
+    @Positive(message = "User ID must be positive")
     private Integer userId;
     
     @NotNull(message = "Trip ID is required")
+    @Positive(message = "Trip ID must be positive")
     private Integer tripId;
     
     @NotNull(message = "Seat ID is required")
+    @Positive(message = "Seat ID must be positive")
     private Integer seatId;
     
+    @Positive(message = "Promotion ID must be positive")
     private Integer promotionId;
     
     @NotNull(message = "Price is required")
-    @Positive(message = "Price must be positive")
+    @DecimalMin(value = "10000.0", message = "Price must be at least 10,000 VND")
+    @DecimalMax(value = "10000000.0", message = "Price must not exceed 10,000,000 VND")
     private BigDecimal price;
     
     @NotBlank(message = "Booking method is required")
+    @Pattern(regexp = "^(online|offline)$", message = "Booking method must be online or offline")
     private String bookingMethod; // online, offline
     
+    @Pattern(regexp = "^(booked|confirmed|cancelled)$", message = "Status must be booked, confirmed or cancelled")
     private String status; // booked, confirmed, cancelled
 }

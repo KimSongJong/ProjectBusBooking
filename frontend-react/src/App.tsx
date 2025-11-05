@@ -1,5 +1,6 @@
   import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { AdminProtectedRoute } from './components/ProtectedRoute'
 import MainPage from './pages/Mainpage'
 import Product from './pages/Product'
 import Schedule from './pages/Schedule'
@@ -38,15 +39,53 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/account" element={<AdminAccount />} />
-            <Route path="/admin/vehicles" element={<AdminVehicles />} />
-            <Route path="/admin/drivers" element={<AdminDriver />} />
-            <Route path="/admin/routes" element={<AdminRoutes />} />
-            <Route path="/admin/trips" element={<AdminTrips />} />
-            <Route path="/admin/tickets" element={<AdminTickets />} />
-            <Route path="/admin/seats" element={<AdminSeats />} />
-            <Route path="/admin/promotions" element={<AdminPromotions />} />
+          
+          {/* Protected Admin Routes */}
+          <Route path="/admin/dashboard" element={
+            <AdminProtectedRoute>
+              <AdminDashboard />
+            </AdminProtectedRoute>
+          } />
+          <Route path="/admin/account" element={
+            <AdminProtectedRoute>
+              <AdminAccount />
+            </AdminProtectedRoute>
+          } />
+          <Route path="/admin/vehicles" element={
+            <AdminProtectedRoute>
+              <AdminVehicles />
+            </AdminProtectedRoute>
+          } />
+          <Route path="/admin/drivers" element={
+            <AdminProtectedRoute>
+              <AdminDriver />
+            </AdminProtectedRoute>
+          } />
+          <Route path="/admin/routes" element={
+            <AdminProtectedRoute>
+              <AdminRoutes />
+            </AdminProtectedRoute>
+          } />
+          <Route path="/admin/trips" element={
+            <AdminProtectedRoute>
+              <AdminTrips />
+            </AdminProtectedRoute>
+          } />
+          <Route path="/admin/tickets" element={
+            <AdminProtectedRoute>
+              <AdminTickets />
+            </AdminProtectedRoute>
+          } />
+          <Route path="/admin/seats" element={
+            <AdminProtectedRoute>
+              <AdminSeats />
+            </AdminProtectedRoute>
+          } />
+          <Route path="/admin/promotions" element={
+            <AdminProtectedRoute>
+              <AdminPromotions />
+            </AdminProtectedRoute>
+          } />
         </Routes>
       </AuthProvider>
     </Router>

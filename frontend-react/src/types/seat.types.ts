@@ -1,12 +1,7 @@
 // Seat related types
 export interface Seat {
   id: number;
-  vehicle: {
-    id: number;
-    licensePlate: string;
-    vehicleType: string;
-    seatCount: number;
-  };
+  vehicleId: number;  // API returns vehicleId as number, not nested object
   seatNumber: string;
   seatType: 'standard' | 'vip' | 'bed';
   status: 'available' | 'booked' | 'unavailable';
@@ -30,5 +25,8 @@ export interface VehicleOption {
   id: number;
   licensePlate: string;
   vehicleType: string;
-  seatCount: number;
+  totalSeats: number;  // API returns totalSeats, not seatCount
+  model?: string;
+  seatsLayout?: string;
+  createdAt?: string;
 }

@@ -38,9 +38,10 @@ export default function EditAccountDialog({
             <Input
               id="username"
               value={formData.username}
-              onChange={(e) => onInputChange("username", e.target.value)}
-              required
+              disabled
+              className="bg-slate-100 cursor-not-allowed"
             />
+            <p className="text-xs text-slate-500 mt-1">Không thể sửa username</p>
           </div>
 
           <div>
@@ -76,8 +77,8 @@ export default function EditAccountDialog({
 
           <div>
             <Label htmlFor="role">Vai trò</Label>
-            <Select value={formData.role} onValueChange={(value) => onInputChange("role", value)}>
-              <SelectTrigger>
+            <Select value={formData.role} disabled>
+              <SelectTrigger className="bg-slate-100 cursor-not-allowed">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -86,6 +87,7 @@ export default function EditAccountDialog({
                 <SelectItem value="admin">Admin</SelectItem>
               </SelectContent>
             </Select>
+            <p className="text-xs text-slate-500 mt-1">Không thể sửa vai trò</p>
           </div>
 
           <DialogFooter>

@@ -32,6 +32,9 @@ public class Vehicle {
     @Column(name = "vehicle_type", nullable = false)
     private VehicleType vehicleType;
     
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     

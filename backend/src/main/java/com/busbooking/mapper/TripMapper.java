@@ -67,6 +67,7 @@ public class TripMapper {
             trip.getVehicle().getTotalSeats(),
             trip.getVehicle().getSeatsLayout(),
             trip.getVehicle().getVehicleType().name(),
+            trip.getVehicle().getIsActive(),
             trip.getVehicle().getCreatedAt()
         );
         
@@ -77,6 +78,7 @@ public class TripMapper {
             trip.getDriver().getLicenseNumber(),
             trip.getDriver().getExperienceYears(),
             trip.getDriver().getImageUrl(),
+            trip.getDriver().getIsActive(),
             trip.getDriver().getCreatedAt()
         );
         
@@ -88,7 +90,8 @@ public class TripMapper {
             trip.getDepartureTime(),
             trip.getArrivalTime(),
             trip.getStatus().name(),
-            trip.getCreatedAt()
+            trip.getCreatedAt(),
+            0L // availableSeats sẽ được set từ service layer
         );
     }
     

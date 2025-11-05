@@ -18,20 +18,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { FaBus, FaPlus, FaEdit, FaTrash, FaSearch, FaMapMarkerAlt } from "react-icons/fa";
+import { FaBus, FaPlus, FaEdit, FaSearch, FaMapMarkerAlt, FaEye } from "react-icons/fa";
 import tripService from "@/services/trip.service";
 import type { Trip, CreateTripRequest, UpdateTripRequest, RouteOption, VehicleOption, DriverOption } from "@/types/trip.types";
+import { 
+  isValidDepartureTime, 
+  getMinDateTime
+} from "@/utils/tripValidation";
 
 function AdminTrips() {
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -44,7 +38,7 @@ function AdminTrips() {
   // Dialog states
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
 
   // Form states
@@ -92,7 +86,7 @@ function AdminTrips() {
 
   const fetchVehicles = async () => {
     try {
-      const response = await tripService.getAllVehicles();
+      const response = await tripService.getActiveVehicles();
       if (response.success && response.data) {
         setVehicles(response.data);
       }
@@ -103,7 +97,7 @@ function AdminTrips() {
 
   const fetchDrivers = async () => {
     try {
-      const response = await tripService.getAllDrivers();
+      const response = await tripService.getActiveDrivers();
       if (response.success && response.data) {
         setDrivers(response.data);
       }
@@ -125,7 +119,16 @@ function AdminTrips() {
   };
 
   const handleEdit = (trip: Trip) => {
+    // Nếu trạng thái là ongoing, completed hoặc cancelled, chỉ cho xem thông tin
+    if (trip.status === 'ongoing' || trip.status === 'completed' || trip.status === 'cancelled') {
+      setSelectedTrip(trip);
+      setShowEditDialog(false); // Đảm bảo edit dialog không mở
+      setShowViewDialog(true);
+      return;
+    }
+    
     setSelectedTrip(trip);
+    setShowViewDialog(false); // Đảm bảo view dialog không mở
     setFormData({
       routeId: trip.route.id,
       vehicleId: trip.vehicle.id,
@@ -137,11 +140,6 @@ function AdminTrips() {
     setShowEditDialog(true);
   };
 
-  const handleDelete = (trip: Trip) => {
-    setSelectedTrip(trip);
-    setShowDeleteDialog(true);
-  };
-
   const submitAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -150,12 +148,25 @@ function AdminTrips() {
       return;
     }
 
+    // Validate departure time > current date
+    if (!isValidDepartureTime(formData.departureTime)) {
+      toast.error("Thời gian khởi hành phải sau thời gian hiện tại");
+      return;
+    }
+
     try {
       setLoading(true);
-      const response = await tripService.createTrip(formData);
+      
+      // Force status to 'scheduled' when creating new trip
+      const tripData = {
+        ...formData,
+        status: 'scheduled' as const
+      };
+      
+      const response = await tripService.createTrip(tripData);
       
       if (response.success) {
-        toast.success("Thêm chuyến xe thành công");
+        toast.success("Thêm chuyến xe thành công với trạng thái 'Đã lên lịch'");
         setShowAddDialog(false);
         fetchTrips();
       } else {
@@ -172,19 +183,33 @@ function AdminTrips() {
   const submitEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedTrip || !formData.routeId || !formData.vehicleId || !formData.driverId || !formData.departureTime) {
+    if (!selectedTrip) {
+      toast.error("Không tìm thấy chuyến xe");
+      return;
+    }
+
+    // Chỉ cho phép sửa khi trạng thái là "scheduled"
+    if (selectedTrip.status !== 'scheduled') {
+      toast.error("Chỉ có thể chỉnh sửa chuyến xe ở trạng thái 'Đã lên lịch'");
+      return;
+    }
+
+    // Chỉ validate các trường bắt buộc: status và driverId
+    if (!formData.status || !formData.driverId) {
       toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
       return;
     }
 
     try {
       setLoading(true);
+      
+      // Chỉ gửi status và driverId, giữ nguyên các trường khác
       const updateData: UpdateTripRequest = {
-        routeId: formData.routeId,
-        vehicleId: formData.vehicleId,
+        routeId: selectedTrip.route.id,
+        vehicleId: selectedTrip.vehicle.id,
         driverId: formData.driverId,
-        departureTime: formData.departureTime,
-        arrivalTime: formData.arrivalTime || undefined,
+        departureTime: selectedTrip.departureTime,
+        arrivalTime: selectedTrip.arrivalTime || undefined,
         status: formData.status,
       };
       
@@ -200,28 +225,6 @@ function AdminTrips() {
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Cập nhật chuyến xe thất bại");
       console.error("Error updating trip:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const confirmDelete = async () => {
-    if (!selectedTrip) return;
-
-    try {
-      setLoading(true);
-      const response = await tripService.deleteTrip(selectedTrip.id);
-      
-      if (response.success) {
-        toast.success("Xóa chuyến xe thành công");
-        setShowDeleteDialog(false);
-        fetchTrips();
-      } else {
-        toast.error(response.message || "Xóa chuyến xe thất bại");
-      }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Xóa chuyến xe thất bại");
-      console.error("Error deleting trip:", error);
     } finally {
       setLoading(false);
     }
@@ -339,17 +342,18 @@ function AdminTrips() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleEdit(trip)}
-                              className="text-blue-600 hover:text-blue-700"
+                              className={
+                                trip.status === 'ongoing' || trip.status === 'completed' || trip.status === 'cancelled'
+                                  ? "text-slate-600 hover:text-slate-700"
+                                  : "text-blue-600 hover:text-blue-700"
+                              }
+                              title={
+                                trip.status === 'ongoing' || trip.status === 'completed' || trip.status === 'cancelled'
+                                  ? "Xem thông tin chuyến xe"
+                                  : "Chỉnh sửa"
+                              }
                             >
-                              <FaEdit />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleDelete(trip)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <FaTrash />
+                              {trip.status === 'ongoing' || trip.status === 'completed' || trip.status === 'cancelled' ? <FaEye /> : <FaEdit />}
                             </Button>
                           </div>
                         </td>
@@ -424,23 +428,9 @@ function AdminTrips() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="add-status">Trạng thái *</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value: any) => setFormData({ ...formData, status: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="scheduled">Đã lên lịch</SelectItem>
-                    <SelectItem value="ongoing">Đang chạy</SelectItem>
-                    <SelectItem value="completed">Hoàn thành</SelectItem>
-                    <SelectItem value="cancelled">Đã hủy</SelectItem>
-                  </SelectContent>
-                </Select>
+                <p className="text-xs text-slate-500 mt-1">
+                  * Hệ thống sẽ kiểm tra xung đột lịch trình tự động
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="add-departure">Thời gian khởi hành *</Label>
@@ -449,17 +439,13 @@ function AdminTrips() {
                   type="datetime-local"
                   value={formData.departureTime}
                   onChange={(e) => setFormData({ ...formData, departureTime: e.target.value })}
+                  min={getMinDateTime()}
+                  step="1"
                   required
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="add-arrival">Thời gian đến (dự kiến)</Label>
-                <Input
-                  id="add-arrival"
-                  type="datetime-local"
-                  value={formData.arrivalTime}
-                  onChange={(e) => setFormData({ ...formData, arrivalTime: e.target.value })}
-                />
+                <p className="text-xs text-slate-500 mt-1">
+                  * Phải sau thời gian hiện tại. Thời gian đến sẽ được tính tự động dựa trên thời gian ước tính của tuyến đường
+                </p>
               </div>
             </div>
             <DialogFooter>
@@ -476,48 +462,24 @@ function AdminTrips() {
 
       {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle>Chỉnh sửa chuyến xe</DialogTitle>
+            <DialogTitle>Chỉnh sửa chuyến xe (Chỉ Status & Tài xế)</DialogTitle>
           </DialogHeader>
           <form onSubmit={submitEdit}>
-            <div className="grid grid-cols-2 gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-route">Tuyến đường *</Label>
-                <Select
-                  value={formData.routeId.toString()}
-                  onValueChange={(value) => setFormData({ ...formData, routeId: parseInt(value) })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn tuyến" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {routes.map((route) => (
-                      <SelectItem key={route.id} value={route.id.toString()}>
-                        {route.fromLocation} → {route.toLocation}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            {/* Hiển thị thông tin không thể chỉnh sửa */}
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-4">
+              <h3 className="font-semibold text-slate-700 mb-2">Thông tin chuyến xe:</h3>
+              <div className="space-y-1 text-sm text-slate-600">
+                <p><strong>Tuyến đường:</strong> {selectedTrip?.route.fromLocation} → {selectedTrip?.route.toLocation}</p>
+                <p><strong>Xe:</strong> {selectedTrip?.vehicle.licensePlate} ({selectedTrip?.vehicle.vehicleType})</p>
+                <p><strong>Khởi hành:</strong> {selectedTrip?.departureTime ? formatDateTime(selectedTrip.departureTime) : ''}</p>
+                <p><strong>Đến (dự kiến):</strong> {selectedTrip?.arrivalTime ? formatDateTime(selectedTrip.arrivalTime) : 'Chưa có'}</p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-vehicle">Xe *</Label>
-                <Select
-                  value={formData.vehicleId.toString()}
-                  onValueChange={(value) => setFormData({ ...formData, vehicleId: parseInt(value) })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn xe" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {vehicles.map((vehicle) => (
-                      <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                        {vehicle.licensePlate} ({vehicle.vehicleType})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            </div>
+
+            {/* Chỉ cho phép chỉnh sửa Driver và Status */}
+            <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-driver">Tài xế *</Label>
                 <Select
@@ -531,11 +493,16 @@ function AdminTrips() {
                     {drivers.map((driver) => (
                       <SelectItem key={driver.id} value={driver.id.toString()}>
                         {driver.fullName} - {driver.phoneNumber}
+                        {driver.id === selectedTrip?.driver.id && " ✓"}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-slate-500 mt-1">
+                  * Hệ thống sẽ kiểm tra xung đột lịch trình tự động
+                </p>
               </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="edit-status">Trạng thái *</Label>
                 <Select
@@ -547,32 +514,15 @@ function AdminTrips() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="scheduled">Đã lên lịch</SelectItem>
-                    <SelectItem value="ongoing">Đang chạy</SelectItem>
-                    <SelectItem value="completed">Hoàn thành</SelectItem>
                     <SelectItem value="cancelled">Đã hủy</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-departure">Thời gian khởi hành *</Label>
-                <Input
-                  id="edit-departure"
-                  type="datetime-local"
-                  value={formData.departureTime}
-                  onChange={(e) => setFormData({ ...formData, departureTime: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-arrival">Thời gian đến (dự kiến)</Label>
-                <Input
-                  id="edit-arrival"
-                  type="datetime-local"
-                  value={formData.arrivalTime}
-                  onChange={(e) => setFormData({ ...formData, arrivalTime: e.target.value })}
-                />
+                <p className="text-xs text-slate-500 mt-1">
+                  * Chỉ được chuyển giữa "Đã lên lịch" và "Đã hủy"
+                </p>
               </div>
             </div>
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>
                 Hủy
@@ -585,30 +535,86 @@ function AdminTrips() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa chuyến xe{" "}
-              <strong>
-                {selectedTrip?.route.fromLocation} → {selectedTrip?.route.toLocation}
-              </strong>{" "}
-              không? Hành động này không thể hoàn tác.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Xóa
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* View Only Dialog - For ongoing/completed trips */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-slate-800">
+              Thông tin chuyến xe
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedTrip && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Tuyến đường</Label>
+                  <Input 
+                    value={`${selectedTrip.route.fromLocation} → ${selectedTrip.route.toLocation}`}
+                    disabled
+                    className="bg-slate-50"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Xe</Label>
+                  <Input 
+                    value={`${selectedTrip.vehicle.licensePlate} (${selectedTrip.vehicle.vehicleType})`}
+                    disabled
+                    className="bg-slate-50"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Tài xế</Label>
+                  <Input 
+                    value={selectedTrip.driver.fullName}
+                    disabled
+                    className="bg-slate-50"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Khởi hành</Label>
+                  <Input 
+                    value={formatDateTime(selectedTrip.departureTime)}
+                    disabled
+                    className="bg-slate-50"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Đến (dự kiến)</Label>
+                  <Input 
+                    value={selectedTrip.arrivalTime ? formatDateTime(selectedTrip.arrivalTime) : "Chưa xác định"}
+                    disabled
+                    className="bg-slate-50"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Trạng thái</Label>
+                  <div className="p-2">
+                    {getStatusBadge(selectedTrip.status)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-sm text-yellow-800">
+                  <strong>Lưu ý:</strong> Chuyến xe đang chạy hoặc đã hoàn thành không thể chỉnh sửa.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button type="button" onClick={() => setShowViewDialog(false)} className="bg-slate-600 hover:bg-slate-700">
+              Đóng
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

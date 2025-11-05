@@ -1,5 +1,6 @@
 import api from "@/config/axios";
 import type { Trip, CreateTripRequest, UpdateTripRequest, RouteOption, VehicleOption, DriverOption } from "@/types/trip.types";
+import type { ScheduleGroup } from "@/types/schedule.types";
 import type { ApiResponse } from "@/types/auth.types";
 
 class TripService {
@@ -37,10 +38,25 @@ class TripService {
   async getAllVehicles(): Promise<ApiResponse<VehicleOption[]>> {
     return await api.get<ApiResponse<VehicleOption[]>>("/vehicles");
   }
+  
+  // Get active vehicles only for dropdown
+  async getActiveVehicles(): Promise<ApiResponse<VehicleOption[]>> {
+    return await api.get<ApiResponse<VehicleOption[]>>("/vehicles/active");
+  }
 
   // Get all drivers for dropdown
   async getAllDrivers(): Promise<ApiResponse<DriverOption[]>> {
     return await api.get<ApiResponse<DriverOption[]>>("/drivers");
+  }
+
+  // Get active drivers only for dropdown
+  async getActiveDrivers(): Promise<ApiResponse<DriverOption[]>> {
+    return await api.get<ApiResponse<DriverOption[]>>("/drivers/active");
+  }
+
+  // Get schedule routes grouped by from location
+  async getScheduleRoutes(): Promise<ApiResponse<ScheduleGroup[]>> {
+    return await api.get<ApiResponse<ScheduleGroup[]>>("/trips/schedule-routes");
   }
 }
 

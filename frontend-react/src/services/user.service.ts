@@ -33,6 +33,13 @@ class UserService {
   }
 
   /**
+   * Toggle user status (lock/unlock)
+   */
+  async toggleUserStatus(id: number): Promise<ApiResponse<User>> {
+    return await api.patch<ApiResponse<User>>(`${ENDPOINTS.USERS.BY_ID(id)}/toggle-status`)
+  }
+
+  /**
    * Delete user
    */
   async deleteUser(id: number): Promise<ApiResponse<null>> {

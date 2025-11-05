@@ -22,6 +22,11 @@ public class VehicleController {
     public ResponseEntity<ApiResponse<List<VehicleResponse>>> getAll() {
         return ResponseEntity.ok(new ApiResponse<>(true, "Vehicles retrieved", vehicleService.getAllVehicles()));
     }
+    
+    @GetMapping("/active")
+    public ResponseEntity<ApiResponse<List<VehicleResponse>>> getActive() {
+        return ResponseEntity.ok(new ApiResponse<>(true, "Active vehicles retrieved", vehicleService.getActiveVehicles()));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<VehicleResponse>> getById(@PathVariable Integer id) {
@@ -38,6 +43,13 @@ public class VehicleController {
     public ResponseEntity<ApiResponse<VehicleResponse>> update(@PathVariable Integer id, @Valid @RequestBody VehicleRequest request) {
         VehicleResponse resp = vehicleService.updateVehicle(id, request);
         return ResponseEntity.ok(new ApiResponse<>(true, "Vehicle updated", resp));
+    }
+    
+    @PatchMapping("/{id}/toggle-status")
+    public ResponseEntity<ApiResponse<VehicleResponse>> toggleStatus(@PathVariable Integer id) {
+        VehicleResponse resp = vehicleService.toggleVehicleStatus(id);
+        String message = resp.getIsActive() ? "Xe đã được kích hoạt" : "Xe đã ngừng hoạt động";
+        return ResponseEntity.ok(new ApiResponse<>(true, message, resp));
     }
 
     @DeleteMapping("/{id}")

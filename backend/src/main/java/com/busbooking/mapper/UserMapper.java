@@ -28,6 +28,7 @@ public class UserMapper {
                 user.getRole().name(),
                 user.getFullName(),
                 user.getPhone(),
+                user.getIsActive(),
                 user.getCreatedAt()
         );
     }

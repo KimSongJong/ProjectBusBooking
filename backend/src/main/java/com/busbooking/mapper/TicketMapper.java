@@ -58,6 +58,7 @@ public class TicketMapper {
             ticket.getUser().getRole().name(),
             ticket.getUser().getFullName(),
             ticket.getUser().getPhone(),
+            ticket.getUser().getIsActive(),
             ticket.getUser().getCreatedAt()
         );
         
@@ -79,6 +80,7 @@ public class TicketMapper {
             trip.getVehicle().getTotalSeats(),
             trip.getVehicle().getSeatsLayout(),
             trip.getVehicle().getVehicleType().name(),
+            trip.getVehicle().getIsActive(),
             trip.getVehicle().getCreatedAt()
         );
         
@@ -89,6 +91,7 @@ public class TicketMapper {
             trip.getDriver().getLicenseNumber(),
             trip.getDriver().getExperienceYears(),
             trip.getDriver().getImageUrl(),
+            trip.getDriver().getIsActive(),
             trip.getDriver().getCreatedAt()
         );
         
@@ -100,7 +103,8 @@ public class TicketMapper {
             trip.getDepartureTime(),
             trip.getArrivalTime(),
             trip.getStatus().name(),
-            trip.getCreatedAt()
+            trip.getCreatedAt(),
+            0L // availableSeats - set to 0 in ticket context since not needed
         );
         
         SeatResponse seatResponse = new SeatResponse(

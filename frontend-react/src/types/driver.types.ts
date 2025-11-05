@@ -5,6 +5,7 @@ export interface Driver {
   licenseNumber: string
   experienceYears: number
   imageUrl?: string
+  isActive: boolean
   createdAt: string
 }
 

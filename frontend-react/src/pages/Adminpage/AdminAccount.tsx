@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table"
 import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaKey } from "react-icons/fa"
+import { FaPlus, FaEdit, FaSearch, FaKey, FaLock, FaLockOpen } from "react-icons/fa"
 import userService from "@/services/user.service"
 import type { User, CreateUserRequest, UpdateUserRequest } from "@/types/user.types"
 import AddAccountDialog from "@/components/layout/admin/addAccount"
@@ -96,19 +96,20 @@ function AdminAccount() {
     setIsPasswordDialogOpen(true)
   }
 
-  const handleDelete = async (user: User) => {
-    if (!confirm(`Bạn có chắc muốn xóa người dùng "${user.fullName}"?`)) return
+  const handleToggleStatus = async (user: User) => {
+    const action = user.isActive ? "khóa" : "mở khóa"
+    if (!confirm(`Bạn có chắc muốn ${action} tài khoản "${user.fullName}"?`)) return
 
     try {
-      const response = await userService.deleteUser(user.id)
+      const response = await userService.toggleUserStatus(user.id)
       if (response.success) {
-        toast.success("Xóa người dùng thành công")
+        toast.success(response.message || `${action.charAt(0).toUpperCase() + action.slice(1)} tài khoản thành công`)
         fetchUsers()
       } else {
-        toast.error(response.message || "Xóa người dùng thất bại")
+        toast.error(response.message || `${action.charAt(0).toUpperCase() + action.slice(1)} tài khoản thất bại`)
       }
     } catch (error: any) {
-      toast.error(error.payload?.message || "Lỗi khi xóa người dùng")
+      toast.error(error.payload?.message || `Lỗi khi ${action} tài khoản`)
     }
   }
 
@@ -254,13 +255,14 @@ function AdminAccount() {
                       <TableHead className="font-semibold">Email</TableHead>
                       <TableHead className="font-semibold">Số điện thoại</TableHead>
                       <TableHead className="font-semibold">Vai trò</TableHead>
+                      <TableHead className="font-semibold">Trạng thái</TableHead>
                       <TableHead className="font-semibold text-center">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredUsers.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-slate-400">
+                        <TableCell colSpan={8} className="text-center py-8 text-slate-400">
                           Không tìm thấy người dùng nào
                         </TableCell>
                       </TableRow>
@@ -275,6 +277,15 @@ function AdminAccount() {
                           <TableCell>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadge(user.role)}`}>
                               {user.role}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              user.isActive 
+                                ? "bg-green-100 text-green-700" 
+                                : "bg-red-100 text-red-700"
+                            }`}>
+                              {user.isActive ? "Hoạt động" : "Đã khóa"}
                             </span>
                           </TableCell>
                           <TableCell>
@@ -300,11 +311,14 @@ function AdminAccount() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleDelete(user)}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                title="Xóa"
+                                onClick={() => handleToggleStatus(user)}
+                                className={user.isActive 
+                                  ? "text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  : "text-green-600 hover:text-green-700 hover:bg-green-50"
+                                }
+                                title={user.isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}
                               >
-                                <FaTrash />
+                                {user.isActive ? <FaLock /> : <FaLockOpen />}
                               </Button>
                             </div>
                           </TableCell>

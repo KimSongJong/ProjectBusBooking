@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/table"
 import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaSave, FaTimes } from "react-icons/fa"
+import { FaPlus, FaEdit, FaSearch, FaSave, FaTimes, FaLock, FaUnlock } from "react-icons/fa"
 import vehicleService from "@/services/vehicle.service"
 import type { Vehicle, CreateVehicleRequest, UpdateVehicleRequest } from "@/types/vehicle.types"
 
@@ -92,19 +92,20 @@ function AdminVehicles() {
     setIsDialogOpen(true)
   }
 
-  const handleDelete = async (vehicle: Vehicle) => {
-    if (!confirm(`Bạn có chắc muốn xóa xe "${vehicle.licensePlate}"?`)) return
+  const handleToggleStatus = async (vehicle: Vehicle) => {
+    const action = vehicle.isActive ? "ngừng hoạt động" : "kích hoạt"
+    if (!confirm(`Bạn có chắc muốn ${action} xe "${vehicle.licensePlate}"?`)) return
 
     try {
-      const response = await vehicleService.deleteVehicle(vehicle.id)
+      const response = await vehicleService.toggleVehicleStatus(vehicle.id)
       if (response.success) {
-        toast.success("Xóa xe thành công")
+        toast.success(response.message || `${action} xe thành công`)
         fetchVehicles()
       } else {
-        toast.error(response.message || "Xóa xe thất bại")
+        toast.error(response.message || `${action} xe thất bại`)
       }
     } catch (error: any) {
-      toast.error(error.payload?.message || "Lỗi khi xóa xe")
+      toast.error(error.payload?.message || `Lỗi khi ${action} xe`)
     }
   }
 
@@ -206,13 +207,14 @@ function AdminVehicles() {
                       <TableHead className="font-semibold">Model</TableHead>
                       <TableHead className="font-semibold">Số ghế</TableHead>
                       <TableHead className="font-semibold">Loại xe</TableHead>
+                      <TableHead className="font-semibold">Trạng thái</TableHead>
                       <TableHead className="font-semibold text-center">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredVehicles.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-slate-400">
+                        <TableCell colSpan={7} className="text-center py-8 text-slate-400">
                           Không tìm thấy xe nào
                         </TableCell>
                       </TableRow>
@@ -231,6 +233,15 @@ function AdminVehicles() {
                               </span>
                             </TableCell>
                             <TableCell>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                vehicle.isActive 
+                                  ? "bg-green-100 text-green-700" 
+                                  : "bg-red-100 text-red-700"
+                              }`}>
+                                {vehicle.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
+                              </span>
+                            </TableCell>
+                            <TableCell>
                               <div className="flex justify-center gap-2">
                                 <Button
                                   size="sm"
@@ -244,11 +255,14 @@ function AdminVehicles() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => handleDelete(vehicle)}
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  title="Xóa"
+                                  onClick={() => handleToggleStatus(vehicle)}
+                                  className={vehicle.isActive 
+                                    ? "text-red-600 hover:text-red-700 hover:bg-red-50" 
+                                    : "text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  }
+                                  title={vehicle.isActive ? "Ngừng hoạt động" : "Kích hoạt"}
                                 >
-                                  <FaTrash />
+                                  {vehicle.isActive ? <FaLock /> : <FaUnlock />}
                                 </Button>
                               </div>
                             </TableCell>
@@ -301,7 +315,12 @@ function AdminVehicles() {
                   onChange={(e) => setFormData({ ...formData, model: e.target.value })}
                   placeholder="Thaco Universe"
                   required
+                  disabled={isEditing}
+                  className={isEditing ? "bg-slate-100 cursor-not-allowed" : ""}
                 />
+                {isEditing && (
+                  <p className="text-xs text-slate-500">Không thể sửa model xe</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -316,7 +335,12 @@ function AdminVehicles() {
                   onChange={(e) => setFormData({ ...formData, totalSeats: parseInt(e.target.value) || 0 })}
                   placeholder="40"
                   required
+                  disabled={isEditing}
+                  className={isEditing ? "bg-slate-100 cursor-not-allowed" : ""}
                 />
+                {isEditing && (
+                  <p className="text-xs text-slate-500">Không thể sửa số ghế</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -326,8 +350,9 @@ function AdminVehicles() {
                 <Select
                   value={formData.vehicleType}
                   onValueChange={(value: 'standard' | 'vip' | 'sleeper') => setFormData({ ...formData, vehicleType: value })}
+                  disabled={isEditing}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={isEditing ? "bg-slate-100 cursor-not-allowed" : ""}>
                     <SelectValue placeholder="Chọn loại xe" />
                   </SelectTrigger>
                   <SelectContent>
@@ -336,6 +361,9 @@ function AdminVehicles() {
                     <SelectItem value="sleeper">Giường nằm</SelectItem>
                   </SelectContent>
                 </Select>
+                {isEditing && (
+                  <p className="text-xs text-slate-500">Không thể sửa loại xe</p>
+                )}
               </div>
             </div>
 

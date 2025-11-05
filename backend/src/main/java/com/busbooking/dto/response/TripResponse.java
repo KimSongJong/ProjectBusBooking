@@ -18,4 +18,5 @@ public class TripResponse {
     private LocalDateTime arrivalTime;
     private String status;
     private LocalDateTime createdAt;
+    private Long availableSeats; // Số ghế còn trống
 }

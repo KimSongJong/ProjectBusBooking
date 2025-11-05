@@ -35,6 +35,9 @@ public class User {
     
     private String phone;
     
+    @Column(name = "is_active")
+    private Boolean isActive = true; // Default active
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
