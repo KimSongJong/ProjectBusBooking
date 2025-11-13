@@ -60,7 +60,7 @@ function AdminLogin() {
       <div className="relative w-full max-w-md">
         {/* Logo Section */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-2xl mb-4">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-950 to-blue-900 rounded-2xl shadow-2xl mb-4">
             <FaBus className="text-4xl text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Admin Portal</h1>
@@ -88,7 +88,7 @@ function AdminLogin() {
                   placeholder="Nhập tên đăng nhập"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="mt-2 bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-orange-500 focus:ring-orange-500"
+                  className="mt-2 bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-950 focus:ring-blue-950"
                   required
                 />
               </div>
@@ -103,7 +103,7 @@ function AdminLogin() {
                   placeholder="Nhập mật khẩu"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="mt-2 bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-orange-500 focus:ring-orange-500"
+                  className="mt-2 bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-950 focus:ring-blue-950"
                   required
                 />
               </div>
@@ -116,7 +116,7 @@ function AdminLogin() {
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3 shadow-lg shadow-orange-500/30"
+                className="w-full bg-gradient-to-r from-blue-950 to-blue-900 hover:from-blue-900 hover:to-orange-700 text-white font-semibold py-3 shadow-lg shadow-blue-950/30"
                 disabled={loading}
               >
                 {loading ? (
@@ -153,3 +153,5 @@ function AdminLogin() {
 }
 
 export default AdminLogin
+
+

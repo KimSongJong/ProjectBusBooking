@@ -232,7 +232,7 @@ function AdminTrips() {
 
   const getStatusBadge = (status: string) => {
     const badges: Record<string, { label: string; className: string }> = {
-      scheduled: { label: "Đã lên lịch", className: "bg-blue-100 text-blue-800" },
+      scheduled: { label: "Đã lên lịch", className: "bg-blue-100 text-blue-950" },
       ongoing: { label: "Đang chạy", className: "bg-yellow-100 text-yellow-800" },
       completed: { label: "Hoàn thành", className: "bg-green-100 text-green-800" },
       cancelled: { label: "Đã hủy", className: "bg-red-100 text-red-800" },
@@ -332,7 +332,7 @@ function AdminTrips() {
                             <span className="font-medium">{trip.route.toLocation}</span>
                           </div>
                         </td>
-                        <td className="py-3 px-4 text-blue-600">{trip.vehicle.licensePlate}</td>
+                        <td className="py-3 px-4 text-blue-950">{trip.vehicle.licensePlate}</td>
                         <td className="py-3 px-4">{trip.driver.fullName}</td>
                         <td className="py-3 px-4 text-sm">{formatDateTime(trip.departureTime)}</td>
                         <td className="py-3 px-4">{getStatusBadge(trip.status)}</td>
@@ -345,7 +345,7 @@ function AdminTrips() {
                               className={
                                 trip.status === 'ongoing' || trip.status === 'completed' || trip.status === 'cancelled'
                                   ? "text-slate-600 hover:text-slate-700"
-                                  : "text-blue-600 hover:text-blue-700"
+                                  : "text-blue-950 hover:text-blue-900"
                               }
                               title={
                                 trip.status === 'ongoing' || trip.status === 'completed' || trip.status === 'cancelled'
@@ -527,7 +527,7 @@ function AdminTrips() {
               <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>
                 Hủy
               </Button>
-              <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700">
+              <Button type="submit" disabled={loading} className="bg-blue-950 hover:bg-blue-900">
                 {loading ? "Đang cập nhật..." : "Cập nhật"}
               </Button>
             </DialogFooter>
@@ -620,3 +620,5 @@ function AdminTrips() {
 }
 
 export default AdminTrips;
+
+

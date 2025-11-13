@@ -222,7 +222,7 @@ function AdminRoutes() {
               </div>
               <Button
                 onClick={handleCreate}
-                className="bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"
+                className="bg-blue-950 hover:bg-blue-900 text-white flex items-center gap-2"
               >
                 <FaPlus /> Thêm tuyến đường
               </Button>
@@ -265,7 +265,7 @@ function AdminRoutes() {
                             </div>
                           </TableCell>
                           <TableCell>{route.distanceKm} km</TableCell>
-                          <TableCell className="font-semibold text-orange-600">
+                          <TableCell className="font-semibold text-blue-900">
                             {formatCurrency(route.basePrice)}
                           </TableCell>
                           <TableCell>{formatDuration(route.estimatedDuration)}</TableCell>
@@ -275,7 +275,7 @@ function AdminRoutes() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleEdit(route)}
-                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                className="text-blue-950 hover:text-blue-900 hover:bg-blue-50"
                                 title="Chỉnh sửa"
                               >
                                 <FaEdit />
@@ -428,7 +428,7 @@ function AdminRoutes() {
               </Button>
               <Button
                 type="submit"
-                className="bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"
+                className="bg-blue-950 hover:bg-blue-900 text-white flex items-center gap-2"
               >
                 <FaSave /> {isEditing ? "Cập nhật" : "Lưu tuyến đường"}
               </Button>
@@ -441,3 +441,5 @@ function AdminRoutes() {
 }
 
 export default AdminRoutes
+
+

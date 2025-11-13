@@ -202,7 +202,7 @@ function AdminAccount() {
   const getRoleBadge = (role: string) => {
     const colors = {
       admin: "bg-red-100 text-red-700",
-      staff: "bg-blue-100 text-blue-700",
+      staff: "bg-blue-100 text-blue-900",
       customer: "bg-green-100 text-green-700",
     }
     return colors[role as keyof typeof colors] || "bg-gray-100 text-gray-700"
@@ -235,7 +235,7 @@ function AdminAccount() {
               </div>
               <Button
                 onClick={handleCreate}
-                className="bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"
+                className="bg-blue-950 hover:bg-blue-900 text-white flex items-center gap-2"
               >
                 <FaPlus /> Thêm người dùng
               </Button>
@@ -294,7 +294,7 @@ function AdminAccount() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleEdit(user)}
-                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                className="text-blue-950 hover:text-blue-900 hover:bg-blue-50"
                                 title="Chỉnh sửa"
                               >
                                 <FaEdit />
@@ -374,3 +374,5 @@ function AdminAccount() {
 }
 
 export default AdminAccount
+
+

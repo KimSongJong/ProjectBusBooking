@@ -14,6 +14,23 @@ export default {
     },
     extend: {
       colors: {
+        // Custom brand colors
+        brand: {
+          blue: {
+            50: '#eff6ff',
+            100: '#dbeafe',
+            500: '#1e40af',
+            600: '#1e3a8a',
+            700: '#1e3a8a',
+            800: '#1e3a8a',
+            900: '#172554',
+          },
+          orange: {
+            400: '#fb923c',
+            500: '#fb923c',
+            600: '#f97316',
+          }
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

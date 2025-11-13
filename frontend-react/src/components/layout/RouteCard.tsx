@@ -21,7 +21,7 @@ export const RouteCard = ({ from, routes, image }: RouteCardProps) => {
       />
       <CardContent className="p-6">
         <h3 className="text-xl font-bold text-gray-800 mb-4">
-          Tuyến xe từ <span className="text-orange-600">{from}</span>
+          Tuyến xe từ <span className="text-orange-500">{from}</span>
         </h3>
         <div className="space-y-3">
           {routes.map((route, i) => (
@@ -30,7 +30,7 @@ export const RouteCard = ({ from, routes, image }: RouteCardProps) => {
                 <div className="font-semibold text-gray-800">{route.to}</div>
                 <div className="text-sm text-gray-500">{route.distance} - {route.duration}</div>
               </div>
-              <div className="text-orange-600 font-bold">{route.price}</div>
+              <div className="text-orange-500 font-bold">{route.price}</div>
             </div>
           ))}
         </div>

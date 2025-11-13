@@ -6,6 +6,7 @@ import Product from './pages/Product'
 import Schedule from './pages/Schedule'
 import SearchTicket from './pages/SearchTicket'
 import News from './pages/News'
+import NewsDetail from './pages/NewsDetail'
 import Invoice from './pages/Invoice'
 import Contact from './pages/Contact'
 import About from './pages/About'
@@ -33,6 +34,7 @@ function App() {
           <Route path="/schedule" element={<Schedule />} />
           <Route path="/search-ticket" element={<SearchTicket />} />
           <Route path="/news" element={<News />} />
+          <Route path="/news/:slug" element={<NewsDetail />} />
           <Route path="/invoice" element={<Invoice />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/about" element={<About />} />

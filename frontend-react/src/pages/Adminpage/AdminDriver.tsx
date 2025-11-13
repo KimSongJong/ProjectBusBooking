@@ -177,7 +177,7 @@ function AdminDriver() {
               </div>
               <Button
                 onClick={handleCreate}
-                className="bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"
+                className="bg-blue-950 hover:bg-blue-900 text-white flex items-center gap-2"
               >
                 <FaPlus /> Thêm tài xế
               </Button>
@@ -229,7 +229,7 @@ function AdminDriver() {
                           <TableCell>{driver.phone}</TableCell>
                           <TableCell>{driver.licenseNumber}</TableCell>
                           <TableCell>
-                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-900">
                               {driver.experienceYears} năm
                             </span>
                           </TableCell>
@@ -248,7 +248,7 @@ function AdminDriver() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleEdit(driver)}
-                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                className="text-blue-950 hover:text-blue-900 hover:bg-blue-50"
                                 title="Chỉnh sửa"
                               >
                                 <FaEdit />
@@ -258,7 +258,7 @@ function AdminDriver() {
                                 variant="outline"
                                 onClick={() => handleToggleStatus(driver)}
                                 className={driver.isActive 
-                                  ? "text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                  ? "text-blue-900 hover:text-orange-700 hover:bg-orange-50"
                                   : "text-green-600 hover:text-green-700 hover:bg-green-50"
                                 }
                                 title={driver.isActive ? "Cho nghỉ" : "Kích hoạt"}
@@ -304,3 +304,5 @@ function AdminDriver() {
 }
 
 export default AdminDriver
+
+
