@@ -60,8 +60,8 @@ function AdminDashboard() {
       title: "Tổng người dùng",
       value: loading ? "..." : stats.totalUsers,
       icon: <FaUsers className="text-3xl" />,
-      color: "from-blue-500 to-blue-600",
-      textColor: "text-blue-600",
+      color: "from-blue-500 to-blue-950",
+      textColor: "text-blue-950",
     },
     {
       title: "Tổng xe",
@@ -81,8 +81,8 @@ function AdminDashboard() {
       title: "Tổng vé đã bán",
       value: loading ? "..." : stats.totalTickets,
       icon: <FaTicketAlt className="text-3xl" />,
-      color: "from-orange-500 to-orange-600",
-      textColor: "text-orange-600",
+      color: "from-blue-950 to-blue-900",
+      textColor: "text-blue-900",
     },
     {
       title: "Doanh thu",
@@ -142,7 +142,7 @@ function AdminDashboard() {
             {/* Recent Tickets */}
             <Card className="p-6">
               <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <FaTicketAlt className="text-orange-500" />
+                <FaTicketAlt className="text-blue-950" />
                 Vé gần đây
               </h2>
               <div className="space-y-3">
@@ -177,7 +177,7 @@ function AdminDashboard() {
                 </div>
                 <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
                   <span className="text-sm font-medium text-slate-700">Server Load</span>
-                  <span className="px-3 py-1 bg-orange-500 text-white text-xs font-semibold rounded-full">
+                  <span className="px-3 py-1 bg-blue-950 text-white text-xs font-semibold rounded-full">
                     Normal
                   </span>
                 </div>
@@ -186,7 +186,7 @@ function AdminDashboard() {
           </div>
 
           {/* Welcome Message */}
-          <Card className="mt-6 p-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+          <Card className="mt-6 p-6 bg-gradient-to-r from-blue-950 to-blue-900 text-white">
             <h2 className="text-2xl font-bold mb-2">Chào mừng đến với Admin Portal! 👋</h2>
             <p className="text-orange-100">
               Quản lý toàn bộ hệ thống xe khách TPT Bus Lines. Sử dụng menu bên trái để điều hướng đến các chức năng quản lý.
@@ -199,3 +199,5 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard
+
+

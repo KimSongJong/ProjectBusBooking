@@ -180,7 +180,7 @@ function AdminSeats() {
             {selectedTrip && (
               <div className="mt-4 flex items-center gap-6 text-sm flex-wrap">
                 <div className="bg-blue-50 px-4 py-2 rounded-lg">
-                  <span className="text-blue-600">Tuyến:</span> <span className="font-semibold text-blue-800">{selectedTrip.route.fromLocation} → {selectedTrip.route.toLocation}</span>
+                  <span className="text-blue-950">Tuyến:</span> <span className="font-semibold text-blue-950">{selectedTrip.route.fromLocation} → {selectedTrip.route.toLocation}</span>
                 </div>
                 <div className="bg-slate-50 px-4 py-2 rounded-lg">
                   <span className="text-slate-600">Xe:</span> <span className="font-semibold text-slate-800">{selectedTrip.vehicle.licensePlate}</span>
@@ -223,7 +223,7 @@ function AdminSeats() {
           </Card>
           {loading ? (
             <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-950"></div>
               <p className="text-slate-500 mt-4">Đang tải sơ đồ ghế...</p>
             </div>
           ) : tripSeats.length === 0 ? (
@@ -232,7 +232,7 @@ function AdminSeats() {
                 <FaChair className="mx-auto text-6xl text-slate-300 mb-4" />
                 <p className="text-slate-500 text-lg mb-2">Chưa có sơ đồ ghế cho chuyến này</p>
                 <p className="text-slate-400 text-sm mb-4">Nhấn nút bên dưới để tạo sơ đồ ghế</p>
-                <Button onClick={fetchTripSeats} className="bg-orange-500 hover:bg-orange-600">Tạo sơ đồ ghế</Button>
+                <Button onClick={fetchTripSeats} className="bg-blue-950 hover:bg-blue-900">Tạo sơ đồ ghế</Button>
               </div>
             </Card>
           ) : (
@@ -282,10 +282,10 @@ function AdminSeats() {
           <form onSubmit={submitEdit}>
             {selectedSeat && (
               <div className="py-4 space-y-4">
-                <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-4 rounded-lg space-y-3 border border-orange-200">
+                <div className="bg-gradient-to-r bg-gray-50 p-4 rounded-lg space-y-3 border border-orange-200">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-slate-600">Số ghế:</span>
-                    <span className="font-bold text-xl text-orange-600">{selectedSeat.seatNumber}</span>
+                    <span className="font-bold text-xl text-blue-900">{selectedSeat.seatNumber}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-slate-600">Loại ghế:</span>
@@ -338,7 +338,7 @@ function AdminSeats() {
             )}
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>Hủy</Button>
-              <Button type="submit" disabled={loading} className="bg-orange-500 hover:bg-orange-600">
+              <Button type="submit" disabled={loading} className="bg-blue-950 hover:bg-blue-900">
                 {loading ? "Đang cập nhật..." : "Cập nhật trạng thái"}
               </Button>
             </DialogFooter>
@@ -350,3 +350,5 @@ function AdminSeats() {
 }
 
 export default AdminSeats;
+
+

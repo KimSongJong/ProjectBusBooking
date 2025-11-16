@@ -128,7 +128,7 @@ function AdminTickets() {
 
   const getStatusBadge = (status: string) => {
     const badges: Record<string, { label: string; className: string }> = {
-      booked: { label: "Đã đặt", className: "bg-blue-100 text-blue-800" },
+      booked: { label: "Đã đặt", className: "bg-blue-100 text-blue-950" },
       confirmed: { label: "Đã xác nhận", className: "bg-green-100 text-green-800" },
       cancelled: { label: "Đã hủy", className: "bg-red-100 text-red-800" },
     };
@@ -262,13 +262,13 @@ function AdminTickets() {
                           </div>
                         </td>
                         <td className="py-3 px-4">
-                          <span className="font-bold text-blue-600">{ticket.seat.seatNumber}</span>
+                          <span className="font-bold text-blue-950">{ticket.seat.seatNumber}</span>
                           <span className="text-xs text-slate-500 ml-1">({ticket.seat.seatType})</span>
                         </td>
                         <td className="py-3 px-4 font-semibold text-green-600">
                           {formatCurrency(ticket.price)}
                           {ticket.promotion && (
-                            <div className="text-xs text-orange-600">
+                            <div className="text-xs text-blue-900">
                               -{ticket.promotion.code}
                             </div>
                           )}
@@ -284,7 +284,7 @@ function AdminTickets() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleEdit(ticket)}
-                              className="text-blue-600 hover:text-blue-700"
+                              className="text-blue-950 hover:text-blue-900"
                             >
                               <FaEdit />
                             </Button>
@@ -334,7 +334,7 @@ function AdminTickets() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-slate-600">Ghế:</span>
-                    <span className="font-bold text-blue-600">{selectedTicket.seat.seatNumber}</span>
+                    <span className="font-bold text-blue-950">{selectedTicket.seat.seatNumber}</span>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -359,7 +359,7 @@ function AdminTickets() {
               <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>
                 Hủy
               </Button>
-              <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700">
+              <Button type="submit" disabled={loading} className="bg-blue-950 hover:bg-blue-900">
                 {loading ? "Đang cập nhật..." : "Cập nhật"}
               </Button>
             </DialogFooter>
@@ -393,3 +393,5 @@ function AdminTickets() {
 }
 
 export default AdminTickets;
+
+

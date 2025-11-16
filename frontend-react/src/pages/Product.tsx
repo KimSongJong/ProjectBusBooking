@@ -132,12 +132,12 @@ function Product() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100">
+    <div className="min-h-screen bg-gradient-to-br bg-gray-50">
       <Header />
 
       {/* Banner */}
       
-      <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white py-12">
+      <div className="bg-gradient-to-r from-orange-400 via-blue-800 to-blue-900 text-white py-12">
         <div className="w-full px-4 md:px-8 lg:px-12">
           <div className="flex items-center justify-center gap-4 mb-6">
             <img src="/futa-group-logo.png" alt="FUTA Group" className="h-12" />
@@ -169,7 +169,7 @@ function Product() {
                   id="oneWay"
                   checked={tripType === "oneWay"}
                   onChange={() => setTripType("oneWay")}
-                  className="w-4 h-4 text-orange-600"
+                  className="w-4 h-4 text-blue-900"
                 />
                 <Label htmlFor="oneWay" className="cursor-pointer">Một chiều</Label>
               </div>
@@ -179,11 +179,11 @@ function Product() {
                   id="roundTrip"
                   checked={tripType === "roundTrip"}
                   onChange={() => setTripType("roundTrip")}
-                  className="w-4 h-4 text-orange-600"
+                  className="w-4 h-4 text-blue-900"
                 />
                 <Label htmlFor="roundTrip" className="cursor-pointer">Khứ hồi</Label>
               </div>
-              <a href="#" className="ml-auto text-orange-600 text-sm hover:underline">
+              <a href="#" className="ml-auto text-blue-900 text-sm hover:underline">
                 Hướng dẫn mua vé
               </a>
             </div>
@@ -193,7 +193,7 @@ function Product() {
               {/* Điểm đi */}
               <div className="space-y-2">
                 <Label htmlFor="from" className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-orange-600" />
+                  <MapPin className="h-4 w-4 text-blue-900" />
                   Điểm đi
                 </Label>
                 <Input
@@ -209,7 +209,7 @@ function Product() {
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="text-orange-600"
+                  className="text-blue-900"
                   onClick={handleSwapLocations}
                 >
                   <ArrowLeftRight className="h-5 w-5" />
@@ -219,7 +219,7 @@ function Product() {
               {/* Điểm đến */}
               <div className="space-y-2">
                 <Label htmlFor="to" className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-orange-600" />
+                  <MapPin className="h-4 w-4 text-blue-900" />
                   Điểm đến
                 </Label>
                 <Input
@@ -233,7 +233,7 @@ function Product() {
               {/* Ngày đi */}
               <div className="space-y-2">
                 <Label htmlFor="date" className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-orange-600" />
+                  <Calendar className="h-4 w-4 text-blue-900" />
                   Ngày đi
                 </Label>
                 <Input
@@ -249,7 +249,7 @@ function Product() {
             {/* Số vé */}
             <div className="mb-6">
               <Label htmlFor="passengers" className="flex items-center gap-2 mb-2">
-                <Users className="h-4 w-4 text-orange-600" />
+                <Users className="h-4 w-4 text-blue-900" />
                 Số vé
               </Label>
               <Select value={passengers.toString()} onValueChange={(v) => setPassengers(Number(v))}>
@@ -277,7 +277,7 @@ function Product() {
 
             {/* Search Button */}
             <Button 
-              className="w-full bg-orange-600 hover:bg-orange-700 text-white py-6 text-lg font-semibold"
+              className="w-full bg-blue-900 hover:bg-orange-700 text-white py-6 text-lg font-semibold"
               onClick={handleSearch}
               disabled={loading}
             >
@@ -302,7 +302,7 @@ function Product() {
             <div className="space-y-4">
               {loading ? (
                 <div className="text-center py-12">
-                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-800"></div>
                   <p className="mt-4 text-gray-600">Đang tìm kiếm chuyến xe...</p>
                 </div>
               ) : trips.length === 0 ? (
@@ -317,10 +317,10 @@ function Product() {
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-6">
-                          <FaBus className="text-4xl text-orange-600" />
+                          <FaBus className="text-4xl text-blue-900" />
                           <div>
                             <div className="flex items-center gap-3 mb-2">
-                              <span className="text-2xl font-bold text-orange-600">
+                              <span className="text-2xl font-bold text-blue-900">
                                 {formatTime(trip.departureTime)}
                               </span>
                               <Badge variant="secondary">
@@ -347,10 +347,10 @@ function Product() {
 
                         <div className="text-right">
                           <div className="text-sm text-gray-500 mb-1">Giá vé từ</div>
-                          <div className="text-2xl font-bold text-orange-600 mb-3">
+                          <div className="text-2xl font-bold text-blue-900 mb-3">
                             {formatPrice(Number(trip.route.basePrice))} ₫
                           </div>
-                          <Button className="bg-orange-600 hover:bg-orange-700 px-8">
+                          <Button className="bg-blue-900 hover:bg-orange-700 px-8">
                             Chọn chuyến
                           </Button>
                         </div>

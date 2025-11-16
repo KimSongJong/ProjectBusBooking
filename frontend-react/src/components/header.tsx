@@ -40,7 +40,7 @@ function Header({ height = "auto" }: HeaderProps) {
   return (
     <header className="relative z-50 ">
       {/* Combined Header with Top Bar and Navigation */}
-      <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 text-white shadow-xl">
+      <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 text-white shadow-xl">
         {/* Top Bar Section */}
         <div 
           className="relative"
@@ -114,14 +114,14 @@ function Header({ height = "auto" }: HeaderProps) {
 
             {/* Center - Logo */}
             <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
-              <div className="bg-white rounded-lg px-6 py-3 shadow-lg flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <div className="bg-orange-500 rounded p-1">
-                    <FaBus className="text-2xl text-white" />
+              <div className="bg-white rounded-xl px-8 py-4 shadow-2xl flex items-center gap-3 hover:shadow-3xl transition-shadow border-2 border-orange-400">
+                <div className="flex items-center gap-3">
+                  <div className="bg-gradient-to-br from-blue-800 to-blue-900 rounded-lg p-2">
+                    <FaBus className="text-3xl text-orange-400" />
                   </div>
                   <div className="text-left">
-                    <h1 className="text-xl font-bold text-orange-600">TPT Bus Lines</h1>
-                    <p className="text-xs text-gray-600">CHẤT LƯỢNG LÀ DANH DỰ</p>
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-800 to-blue-900 bg-clip-text text-transparent">TPT Bus Lines</h1>
+                    <p className="text-xs text-gray-600 font-medium">CHẤT LƯỢNG LÀ DANH DỰ</p>
                   </div>
                 </div>
               </div>

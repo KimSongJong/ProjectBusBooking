@@ -83,7 +83,7 @@ function LeftTaskBar() {
       <div className="p-5 bg-slate-900 border-b border-slate-700">
         {user && (
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+            <div className="w-12 h-12 bg-blue-950 rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
               {user.fullName?.charAt(0).toUpperCase() || "A"}
             </div>
             <div className="flex-1 min-w-0">
@@ -104,7 +104,7 @@ function LeftTaskBar() {
               flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all duration-200
               ${
                 isActive(item.path)
-                  ? "bg-orange-500 text-white shadow-lg shadow-orange-500/30"
+                  ? "bg-blue-950 text-white shadow-lg shadow-blue-950/30"
                   : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
               }
             `}

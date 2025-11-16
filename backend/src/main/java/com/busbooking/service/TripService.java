@@ -165,12 +165,10 @@ public class TripService {
     }
     
     public List<ScheduleGroupResponse> getScheduleRoutes() {
-        // Lấy tất cả trips (tạm thời bỏ filter để test)
-        List<Trip> allTrips = tripRepository.findAll();
-        // List<Trip> scheduledTrips = allTrips.stream()
-        //         .filter(trip -> "scheduled".equals(trip.getStatus()))
-        //         .collect(Collectors.toList());
-        List<Trip> scheduledTrips = allTrips; // Tạm thời lấy tất cả để test
+        // Chỉ lấy các chuyến đã lên lịch
+        List<Trip> scheduledTrips = tripRepository.findAll().stream()
+                .filter(trip -> Trip.Status.scheduled.equals(trip.getStatus()))
+                .collect(Collectors.toList());
         
         // Nhóm trips theo điểm đi (fromLocation)
         Map<String, List<Trip>> tripsByFromLocation = scheduledTrips.stream()

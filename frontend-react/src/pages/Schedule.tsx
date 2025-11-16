@@ -79,7 +79,7 @@ function Schedule() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 py-12">
+      <div className="min-h-screen bg-gradient-to-br bg-gray-50 py-12">
         <div className="w-full px-4 md:px-8 lg:px-12">
           <div className="max-w-7xl mx-auto">
             {/* Search Section */}
@@ -99,7 +99,7 @@ function Schedule() {
                   variant="outline"
                   size="icon"
                   onClick={handleSwapLocations}
-                  className="h-12 w-12 rounded-full hover:bg-orange-100 hover:text-orange-600"
+                  className="h-12 w-12 rounded-full hover:bg-blue-100 hover:text-blue-900"
                 >
                   <FaExchangeAlt className="h-5 w-5" />
                 </Button>
@@ -115,7 +115,7 @@ function Schedule() {
 
                 <Button
                   type="button"
-                  className="h-12 bg-orange-500 hover:bg-orange-600 text-white px-8"
+                  className="h-12 bg-blue-800 hover:bg-blue-900 text-white px-8"
                   onClick={fetchSchedules}
                 >
                   <FaSearch className="mr-2" />
@@ -127,7 +127,7 @@ function Schedule() {
             {/* Routes Table */}
             {loading ? (
               <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-800"></div>
                 <p className="mt-4 text-gray-600">Đang tải dữ liệu...</p>
               </div>
             ) : (
@@ -199,7 +199,7 @@ function Schedule() {
 
                           <div className="text-center">
                             <Button
-                              className="bg-orange-100 text-orange-600 hover:bg-orange-200 px-6"
+                              className="bg-blue-100 text-blue-900 hover:bg-blue-200 px-6"
                               onClick={() => handleSearchTrip(group.fromLocation, dest.toLocation)}
                             >
                               Tìm tuyến xe

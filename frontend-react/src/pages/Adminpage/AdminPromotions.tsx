@@ -169,7 +169,7 @@ function AdminPromotions() {
               </div>
               <Button
                 onClick={handleCreate}
-                className="bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"
+                className="bg-blue-950 hover:bg-blue-900 text-white flex items-center gap-2"
               >
                 <FaPlus /> Thêm khuyến mãi
               </Button>
@@ -205,8 +205,8 @@ function AdminPromotions() {
                           <TableCell className="font-medium">{promotion.id}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              <FaTag className="text-orange-500" />
-                              <span className="font-bold text-orange-600">{promotion.code}</span>
+                              <FaTag className="text-blue-950" />
+                              <span className="font-bold text-blue-900">{promotion.code}</span>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -250,7 +250,7 @@ function AdminPromotions() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleEdit(promotion)}
-                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                className="text-blue-950 hover:text-blue-900 hover:bg-blue-50"
                                 title="Chỉnh sửa"
                               >
                                 <FaEdit />
@@ -382,7 +382,7 @@ function AdminPromotions() {
               </Button>
               <Button
                 type="submit"
-                className="bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"
+                className="bg-blue-950 hover:bg-blue-900 text-white flex items-center gap-2"
               >
                 <FaSave /> {isEditing ? "Cập nhật" : "Lưu khuyến mãi"}
               </Button>
@@ -395,3 +395,5 @@ function AdminPromotions() {
 }
 
 export default AdminPromotions
+
+

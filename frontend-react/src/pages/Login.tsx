@@ -58,7 +58,7 @@ function Login() {
               <div className="p-10 bg-[url('/src/assets/bus-bg.svg')] bg-no-repeat bg-left-bottom relative">
                 <div className="max-w-md">
                   <h2 className="text-3xl font-extrabold text-green-800 mb-3">PHƯƠNG TRANG</h2>
-                  <p className="text-xl text-orange-500 font-medium mb-6">Cùng bạn trên mọi nẻo đường</p>
+                  <p className="text-xl text-blue-950 font-medium mb-6">Cùng bạn trên mọi nẻo đường</p>
 
                   <div className="text-green-800 text-2xl font-bold leading-relaxed">
                     XE TRUNG CHUYỂN
@@ -77,7 +77,7 @@ function Login() {
 
                 <div className="mb-6">
                   <div className="flex gap-6 items-center border-b-2 border-orange-100 pb-3">
-                    <button className="text-orange-500 font-semibold border-b-2 border-orange-500 pb-1">ĐĂNG NHẬP</button>
+                    <button className="text-blue-950 font-semibold border-b-2 border-blue-950 pb-1">ĐĂNG NHẬP</button>
                     <Link to="/register" className="text-gray-400 hover:text-orange-400 transition">ĐĂNG KÝ</Link>
                   </div>
                 </div>
@@ -115,13 +115,13 @@ function Login() {
                   </div>
 
                   <div className="flex items-center justify-between mt-2">
-                    <a href="#" className="text-sm text-orange-500 hover:underline">Quên mật khẩu</a>
+                    <a href="#" className="text-sm text-blue-950 hover:underline">Quên mật khẩu</a>
                   </div>
 
                   <div className="pt-4">
                     <Button 
                       type="submit" 
-                      className="w-full bg-orange-500 hover:bg-orange-600"
+                      className="w-full bg-blue-950 hover:bg-blue-900"
                       disabled={loading}
                     >
                       {loading ? "Đang xử lý..." : "Đăng nhập"}

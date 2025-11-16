@@ -99,7 +99,7 @@ function MainPage() {
                       id="oneWay"
                       checked={tripType === "oneWay"}
                       onChange={() => setTripType("oneWay")}
-                      className="w-4 h-4 text-orange-600"
+                      className="w-4 h-4 text-blue-900"
                     />
                     <Label htmlFor="oneWay" className="cursor-pointer">Một chiều</Label>
                   </div>
@@ -109,7 +109,7 @@ function MainPage() {
                       id="roundTrip"
                       checked={tripType === "roundTrip"}
                       onChange={() => setTripType("roundTrip")}
-                      className="w-4 h-4 text-orange-600"
+                      className="w-4 h-4 text-blue-900"
                     />
                     <Label htmlFor="roundTrip" className="cursor-pointer">Khứ hồi</Label>
                   </div>
@@ -120,7 +120,7 @@ function MainPage() {
                   {/* Điểm đi */}
                   <div className="space-y-2">
                     <Label htmlFor="from" className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-orange-600" />
+                      <MapPin className="h-4 w-4 text-blue-900" />
                       Điểm đi
                     </Label>
                     <Select value={from} onValueChange={setFrom}>
@@ -142,7 +142,7 @@ function MainPage() {
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="text-orange-600"
+                      className="text-blue-900"
                       onClick={() => {
                         const temp = from
                         setFrom(to)
@@ -156,7 +156,7 @@ function MainPage() {
                   {/* Điểm đến */}
                   <div className="space-y-2">
                     <Label htmlFor="to" className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-orange-600" />
+                      <MapPin className="h-4 w-4 text-blue-900" />
                       Điểm đến
                     </Label>
                     <Select value={to} onValueChange={setTo}>
@@ -176,7 +176,7 @@ function MainPage() {
                   {/* Ngày đi */}
                   <div className="space-y-2">
                     <Label htmlFor="date" className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-orange-600" />
+                      <Calendar className="h-4 w-4 text-blue-900" />
                       Ngày đi
                     </Label>
                     <Input
@@ -191,7 +191,7 @@ function MainPage() {
                   {/* Số vé */}
                   <div className="space-y-2">
                     <Label htmlFor="passengers" className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-orange-600" />
+                      <Users className="h-4 w-4 text-blue-900" />
                       Số vé
                     </Label>
                     <Select value={passengers.toString()} onValueChange={(v) => setPassengers(Number(v))}>
@@ -212,7 +212,7 @@ function MainPage() {
                 {/* Search Button */}
                 <Button 
                   onClick={handleSearch}
-                  className="w-full bg-orange-600 hover:bg-orange-700 text-white py-6 text-lg font-semibold"
+                  className="w-full bg-blue-900 hover:bg-orange-700 text-white py-6 text-lg font-semibold"
                 >
                   Tìm chuyến xe
                 </Button>
@@ -265,7 +265,7 @@ function MainPage() {
       </div>
 
       {/* Stats Section */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-16">
+      <div className="bg-gradient-to-r from-blue-800 to-blue-900 text-white py-16">
         <div className="w-full px-4 md:px-8 lg:px-12">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12">

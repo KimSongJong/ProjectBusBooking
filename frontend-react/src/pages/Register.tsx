@@ -118,7 +118,7 @@ function Register() {
       <main className="flex-1 bg-gradient-to-br from-orange-50 to-white -mt-6 py-12">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-xl overflow-hidden border border-orange-100">
-            <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-8 text-white">
+            <div className="bg-gradient-to-r from-blue-950 to-blue-900 p-8 text-white">
               <h2 className="text-3xl font-bold mb-2">Đăng ký tài khoản</h2>
               <p className="text-orange-100">Tạo tài khoản để đặt vé xe khách trực tuyến</p>
             </div>
@@ -246,7 +246,7 @@ function Register() {
                 <div className="pt-4">
                   <Button
                     type="submit"
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3"
+                    className="w-full bg-blue-950 hover:bg-blue-900 text-white font-semibold py-3"
                     disabled={loading}
                   >
                     {loading ? "Đang xử lý..." : "Đăng ký"}
@@ -257,7 +257,7 @@ function Register() {
                 <div className="text-center pt-4 border-t">
                   <p className="text-gray-600">
                     Đã có tài khoản?{" "}
-                    <Link to="/login" className="text-orange-500 font-semibold hover:underline">
+                    <Link to="/login" className="text-blue-950 font-semibold hover:underline">
                       Đăng nhập ngay
                     </Link>
                   </p>

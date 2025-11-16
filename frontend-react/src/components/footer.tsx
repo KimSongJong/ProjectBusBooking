@@ -9,7 +9,7 @@ function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="bg-orange-600 rounded-lg p-2">
+              <div className="bg-blue-800 rounded-lg p-2">
                 <FaBus className="text-2xl text-white" />
               </div>
               <div>
