@@ -13,6 +13,7 @@ export interface LoginResponse {
   email: string
   role: string
   fullName: string
+  phone: string
 }
 
 export interface RegisterRequest {
