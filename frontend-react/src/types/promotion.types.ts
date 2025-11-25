@@ -1,29 +1,44 @@
 export interface Promotion {
   id: number
   code: string
-  discountPercentage?: number
-  discountAmount?: number
+  description?: string
+  discountType: 'percentage' | 'fixed'
+  discountValue: number
+  minAmount?: number
+  maxDiscount?: number
   startDate: string
   endDate: string
-  maxUses: number
+  usageLimit: number
   usedCount: number
+  isActive?: boolean
+  applicableToRoundTrip?: boolean
   createdAt: string
 }
 
 export interface CreatePromotionRequest {
   code: string
-  discountPercentage?: number
-  discountAmount?: number
+  description?: string
+  discountType: 'percentage' | 'fixed'
+  discountValue: number
+  minAmount?: number
+  maxDiscount?: number
   startDate: string
   endDate: string
-  maxUses: number
+  usageLimit: number
+  isActive?: boolean
+  applicableToRoundTrip?: boolean
 }
 
 export interface UpdatePromotionRequest {
   code: string
-  discountPercentage?: number
-  discountAmount?: number
+  description?: string
+  discountType: 'percentage' | 'fixed'
+  discountValue: number
+  minAmount?: number
+  maxDiscount?: number
   startDate: string
   endDate: string
-  maxUses: number
+  usageLimit: number
+  isActive?: boolean
+  applicableToRoundTrip?: boolean
 }

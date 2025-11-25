@@ -9,19 +9,42 @@ import Header from "@/components/header";
 import Footer from "@/components/footer";
 import bookingService from "@/services/booking.service";
 import tripSeatService from "@/services/tripSeat.service";
+import paymentService from "@/services/payment.service"; // ✅ ADD: Import payment service
 import type { TripSeat } from "@/types/tripSeat.types";
 
 interface BookingData {
-  userId: number; // THÊM userId
-  tripId: number;
-  trip: any;
-  selectedSeats: string[];
+  // Common fields
+  userId: number;
   customerName: string;
   customerPhone: string;
   customerEmail: string;
-  pickupLocation: string;
-  dropoffLocation: string;
   totalPrice: number;
+
+  // One-way fields
+  tripId?: number;
+  trip?: any;
+  selectedSeats?: string[];
+  ticketIds?: number[];
+  pickupLocation?: string;
+  dropoffLocation?: string;
+
+  // ⭐ Round trip fields
+  tripType?: 'oneWay' | 'roundTrip';
+  bookingGroupId?: string;
+  outboundTrip?: any;
+  returnTrip?: any;
+  outboundTickets?: any[];
+  returnTickets?: any[];
+  selectedOutboundSeats?: string[];
+  selectedReturnSeats?: string[];
+  discountAmount?: number;
+  finalPrice?: number;
+
+  // ⭐ Round trip pickup/dropoff
+  outboundPickupLocation?: string;
+  outboundDropoffLocation?: string;
+  returnPickupLocation?: string;
+  returnDropoffLocation?: string;
 }
 
 type PaymentMethod = "momo" | "vnpay" | null;
@@ -36,6 +59,10 @@ function Payment() {
   const [seats, setSeats] = useState<TripSeat[]>([]); // THÊM STATE NÀY
   const [loading, setLoading] = useState(false);
 
+  // ⭐ NEW: Pickup/Dropoff points
+  const [pickupOptions, setPickupOptions] = useState<Array<{name: string, address: string}>>([]);
+  const [dropoffOptions, setDropoffOptions] = useState<Array<{name: string, address: string}>>([]);
+
   useEffect(() => {
     // Lấy dữ liệu booking từ sessionStorage
     const storedData = sessionStorage.getItem("bookingData");
@@ -48,6 +75,35 @@ function Payment() {
     try {
       const data = JSON.parse(storedData);
       setBookingData(data);
+
+      // ⭐ Parse pickup/dropoff points from route
+      if (data.trip?.route) {
+        const route = data.trip.route;
+
+        // Parse pickupPoints
+        if (route.pickupPoints && Array.isArray(route.pickupPoints)) {
+          setPickupOptions(route.pickupPoints);
+        } else if (typeof route.pickupPoints === 'string') {
+          try {
+            const parsed = JSON.parse(route.pickupPoints);
+            setPickupOptions(Array.isArray(parsed) ? parsed : []);
+          } catch {
+            setPickupOptions([]);
+          }
+        }
+
+        // Parse dropoffPoints
+        if (route.dropoffPoints && Array.isArray(route.dropoffPoints)) {
+          setDropoffOptions(route.dropoffPoints);
+        } else if (typeof route.dropoffPoints === 'string') {
+          try {
+            const parsed = JSON.parse(route.dropoffPoints);
+            setDropoffOptions(Array.isArray(parsed) ? parsed : []);
+          } catch {
+            setDropoffOptions([]);
+          }
+        }
+      }
 
       // Load danh sách ghế của chuyến xe
       fetchSeats(data.tripId);
@@ -111,30 +167,34 @@ function Payment() {
   const calculateDiscount = () => {
     // Giảm 2% khi thanh toán online
     if (!bookingData) return 0;
+
+    if (bookingData.tripType === 'roundTrip') {
+      // Round trip: Already has 10% discount, add 2% online discount on final price
+      const priceAfterRoundTripDiscount = bookingData.finalPrice || bookingData.totalPrice;
+      return Math.round(priceAfterRoundTripDiscount * 0.02);
+    }
+
+    // One-way: 2% online discount
     return Math.round(bookingData.totalPrice * 0.02);
   };
 
   const calculateFinalTotal = () => {
     if (!bookingData) return 0;
+
+    if (bookingData.tripType === 'roundTrip') {
+      // Round trip: finalPrice (after 10%) - 2% online
+      const priceAfterRoundTripDiscount = bookingData.finalPrice || bookingData.totalPrice;
+      return priceAfterRoundTripDiscount - calculateDiscount();
+    }
+
+    // One-way: totalPrice - 2%
     return bookingData.totalPrice - calculateDiscount();
   };
 
   const handlePaymentSelect = (method: PaymentMethod) => {
     setSelectedPayment(method);
-
-    // Generate QR code (giả lập)
-    if (method === "momo") {
-      setQrCode(
-        "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=MOMO_PAYMENT_" +
-          Date.now()
-      );
-    } else if (method === "vnpay") {
-      setQrCode(
-        "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=VNPAY_PAYMENT_" +
-          Date.now()
-      );
-    }
-    setShowQR(true);
+    // ✅ REMOVE: Fake QR code generation - will redirect to real payment gateway instead
+    setShowQR(false);
   };
 
   const handleConfirmPayment = async () => {
@@ -143,7 +203,7 @@ function Payment() {
       return;
     }
 
-    if (!bookingData || seats.length === 0) {
+    if (!bookingData) {
       toast.error("Dữ liệu không hợp lệ");
       return;
     }
@@ -151,35 +211,73 @@ function Payment() {
     try {
       setLoading(true);
 
-      // Tạo ticket cho từng ghế đã chọn
-      const bookingPromises = bookingData.selectedSeats.map((seatNumber) => {
-        const seat = seats.find((s) => s.seatNumber === seatNumber);
+      if (selectedPayment === "vnpay") {
+        // ✅ VNPay: Redirect to VNPay payment gateway
+        const finalAmount = calculateFinalTotal();
+        const orderInfo = `Dat ve ${bookingData.trip.route.fromLocation}-${bookingData.trip.route.toLocation} ghe ${bookingData.selectedSeats.join(",")}`;
 
-        if (!seat) {
-          throw new Error(`Không tìm thấy ghế ${seatNumber}`);
-        }
-
-        return bookingService.createBooking({
-          userId: bookingData.userId,
-          tripId: bookingData.tripId,
-          seatId: seat.id,
-          price: Number(bookingData.trip.route.basePrice),
-          bookingMethod:
-            selectedPayment === "momo" || selectedPayment === "vnpay"
-              ? "online"
-              : "offline",
-          status: "confirmed",
+        console.log("Creating VNPay payment with data:", {
+          ticketId: bookingData.tripId,
+          amount: finalAmount,
+          orderInfo: orderInfo,
         });
-      });
 
-      await Promise.all(bookingPromises);
+        const response = await paymentService.createVNPayPayment({
+          ticketId: bookingData.tripId,
+          amount: finalAmount,
+          orderInfo: orderInfo,
+        });
 
-      toast.success("Thanh toán thành công!");
-      sessionStorage.removeItem("bookingData");
-      navigate("/invoice");
+        console.log("VNPay response:", response);
+
+        if (response && response.status === "success" && response.paymentUrl) {
+          // Save booking data for later (after payment callback)
+          console.log("💾 Saving booking data to pendingBookingData:", bookingData);
+          console.log("💾 userId:", bookingData?.userId, "tripId:", bookingData?.tripId);
+          console.log("💾 ticketIds:", bookingData?.ticketIds);
+          sessionStorage.setItem("pendingBookingData", JSON.stringify(bookingData));
+
+          toast.info("Đang chuyển đến VNPay...");
+          // Redirect to VNPay
+          window.location.href = response.paymentUrl;
+        } else {
+          throw new Error(response?.message || "Không thể tạo thanh toán VNPay");
+        }
+      } else if (selectedPayment === "momo") {
+        // ✅ MoMo: Redirect to MoMo payment gateway
+        const finalAmount = calculateFinalTotal();
+        const orderInfo = `Dat ve ${bookingData.trip.route.fromLocation}-${bookingData.trip.route.toLocation} ghe ${bookingData.selectedSeats.join(",")}`;
+
+        console.log("Creating MoMo payment with data:", {
+          ticketId: bookingData.tripId,
+          amount: finalAmount,
+          orderInfo: orderInfo,
+        });
+
+        const response = await paymentService.createMoMoPayment({
+          ticketId: bookingData.tripId,
+          amount: finalAmount,
+          orderInfo: orderInfo,
+        });
+
+        console.log("MoMo response:", response);
+
+        if (response && response.status === "success" && response.paymentUrl) {
+          // Save booking data for later
+          console.log("💾 Saving booking data to pendingBookingData (MoMo):", bookingData);
+          console.log("💾 ticketIds:", bookingData?.ticketIds);
+          sessionStorage.setItem("pendingBookingData", JSON.stringify(bookingData));
+
+          toast.info("Đang chuyển đến MoMo...");
+          // Redirect to MoMo
+          window.location.href = response.paymentUrl;
+        } else {
+          throw new Error(response?.message || "Không thể tạo thanh toán MoMo");
+        }
+      }
     } catch (error: any) {
       console.error("Payment error:", error);
-      toast.error(error.message || "Thanh toán thất bại. Vui lòng thử lại.");
+      toast.error(error.message || "Không thể tạo thanh toán. Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
@@ -365,11 +463,19 @@ function Payment() {
                       </label>
                     </div>
                     <div className="mt-3 p-3 bg-gray-50 rounded text-sm">
-                      <select className="w-full bg-white border rounded px-2 py-1">
-                        <option>
-                          BX {bookingData.trip.route.fromLocation}
-                        </option>
-                      </select>
+                      {pickupOptions.length > 0 ? (
+                        <select className="w-full bg-white border rounded px-3 py-2">
+                          {pickupOptions.map((point, index) => (
+                            <option key={index} value={point.name}>
+                              {point.name} - {point.address}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <select className="w-full bg-white border rounded px-3 py-2">
+                          <option>BX {bookingData.trip.route.fromLocation}</option>
+                        </select>
+                      )}
                       <p className="text-xs text-gray-600 mt-2">
                         Quý khách vui lòng có mặt tại Bến xe/Văn Phòng{" "}
                         <span className="font-semibold text-red-600">
@@ -407,9 +513,22 @@ function Payment() {
                       </label>
                     </div>
                     <div className="mt-3 p-3 bg-gray-50 rounded text-sm">
-                      <select className="w-full bg-white border rounded px-2 py-1">
-                        <option>BX {bookingData.trip.route.toLocation}</option>
-                      </select>
+                      {dropoffOptions.length > 0 ? (
+                        <select className="w-full bg-white border rounded px-3 py-2">
+                          {dropoffOptions.map((point, index) => (
+                            <option key={index} value={point.name}>
+                              {point.name} - {point.address}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <select className="w-full bg-white border rounded px-3 py-2">
+                          <option>BX {bookingData.trip.route.toLocation}</option>
+                        </select>
+                      )}
+                      <p className="text-xs text-gray-500 mt-2">
+                        Chúng tôi không đón/trung chuyển tại những điểm xe trung chuyển không thể tới được
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -466,68 +585,129 @@ function Payment() {
 
                 <Separator className="my-4" />
 
-                <h2 className="text-xl font-bold mb-4">Thông tin lượt đi</h2>
+                {/* ⭐ ROUND TRIP: Show both trips */}
+                {bookingData.tripType === 'roundTrip' ? (
+                  <>
+                    {/* Outbound Trip */}
+                    <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h3 className="font-bold text-green-800 mb-3 flex items-center gap-2">
+                        <span>🚌</span>
+                        <span>CHUYẾN ĐI</span>
+                      </h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Tuyến xe</span>
+                          <span className="font-semibold text-right">
+                            {bookingData.outboundTrip?.route.fromLocation} → {bookingData.outboundTrip?.route.toLocation}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Thời gian</span>
+                          <span className="font-semibold">
+                            {formatTime(bookingData.outboundTrip?.departureTime)} {formatDate(bookingData.outboundTrip?.departureTime)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Số ghế</span>
+                          <span className="font-semibold text-blue-600">
+                            {bookingData.selectedOutboundSeats?.join(", ")}
+                          </span>
+                        </div>
+                        {bookingData.outboundPickupLocation && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Điểm đón</span>
+                            <span className="font-semibold text-right">
+                              {bookingData.outboundPickupLocation}
+                            </span>
+                          </div>
+                        )}
+                        {bookingData.outboundDropoffLocation && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Điểm trả</span>
+                            <span className="font-semibold text-right">
+                              {bookingData.outboundDropoffLocation}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Tuyến xe</span>
-                    <span className="font-semibold text-right">
-                      {bookingData.trip.route.fromLocation} -{" "}
-                      {bookingData.trip.route.toLocation}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Thời gian xuất bến</span>
-                    <span className="font-semibold">
-                      {formatTime(bookingData.trip.departureTime)}{" "}
-                      {formatDate(bookingData.trip.departureTime)}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Số lượng ghế</span>
-                    <span className="font-semibold">
-                      {bookingData.selectedSeats.length} Ghế
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Số ghế</span>
-                    <span className="font-semibold text-blue-600">
-                      {bookingData.selectedSeats.join(", ")}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Điểm lên xe</span>
-                    <span className="font-semibold">
-                      BX {bookingData.trip.route.fromLocation}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">
-                      Thời gian tới điểm lên xe
-                    </span>
-                    <span className="font-semibold text-red-600">
-                      Trước {formatTime(bookingData.trip.departureTime)}{" "}
-                      {formatDate(bookingData.trip.departureTime)}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Điểm trả khách</span>
-                    <span className="font-semibold">BV Y Dược</span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Tổng tiền lượt đi</span>
-                    <span className="font-bold text-orange-600">
-                      {formatPrice(bookingData.totalPrice)}đ
-                    </span>
-                  </div>
-                </div>
+                    {/* Return Trip */}
+                    <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <h3 className="font-bold text-blue-800 mb-3 flex items-center gap-2">
+                        <span>🔄</span>
+                        <span>CHUYẾN VỀ</span>
+                      </h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Tuyến xe</span>
+                          <span className="font-semibold text-right">
+                            {bookingData.returnTrip?.route.fromLocation} → {bookingData.returnTrip?.route.toLocation}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Thời gian</span>
+                          <span className="font-semibold">
+                            {formatTime(bookingData.returnTrip?.departureTime)} {formatDate(bookingData.returnTrip?.departureTime)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Số ghế</span>
+                          <span className="font-semibold text-blue-600">
+                            {bookingData.selectedReturnSeats?.join(", ")}
+                          </span>
+                        </div>
+                        {bookingData.returnPickupLocation && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Điểm đón</span>
+                            <span className="font-semibold text-right">
+                              {bookingData.returnPickupLocation}
+                            </span>
+                          </div>
+                        )}
+                        {bookingData.returnDropoffLocation && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Điểm trả</span>
+                            <span className="font-semibold text-right">
+                              {bookingData.returnDropoffLocation}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  /* ONE-WAY: Original display */
+                  <>
+                    <h2 className="text-xl font-bold mb-4">Thông tin lượt đi</h2>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tuyến xe</span>
+                        <span className="font-semibold text-right">
+                          {bookingData.trip?.route.fromLocation} - {bookingData.trip?.route.toLocation}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Thời gian xuất bến</span>
+                        <span className="font-semibold">
+                          {formatTime(bookingData.trip?.departureTime)} {formatDate(bookingData.trip?.departureTime)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Số ghế</span>
+                        <span className="font-semibold text-blue-600">
+                          {bookingData.selectedSeats?.join(", ")}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tổng tiền lượt đi</span>
+                        <span className="font-bold text-orange-600">
+                          {formatPrice(bookingData.totalPrice)}đ
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 <Separator className="my-4" />
 
@@ -538,11 +718,23 @@ function Payment() {
                   </h3>
 
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Giá vé lượt đi</span>
+                    <span className="text-gray-600">
+                      {bookingData.tripType === 'roundTrip' ? 'Tạm tính (2 vé)' : 'Giá vé lượt đi'}
+                    </span>
                     <span className="font-semibold text-orange-600">
                       {formatPrice(bookingData.totalPrice)}đ
                     </span>
                   </div>
+
+                  {/* ⭐ Round trip discount */}
+                  {bookingData.tripType === 'roundTrip' && bookingData.discountAmount && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">🎉 Giảm giá khứ hồi (10%)</span>
+                      <span className="font-semibold text-green-600">
+                        -{formatPrice(bookingData.discountAmount)}đ
+                      </span>
+                    </div>
+                  )}
 
                   <div className="flex justify-between">
                     <span className="text-gray-600">Phí thanh toán</span>
@@ -550,9 +742,7 @@ function Payment() {
                   </div>
 
                   <div className="flex justify-between">
-                    <span className="text-gray-600">
-                      Ưu đãi thanh toán Online
-                    </span>
+                    <span className="text-gray-600">Ưu đãi thanh toán Online</span>
                     <span className="font-semibold text-green-600">
                       (2%) -{formatPrice(calculateDiscount())}đ
                     </span>

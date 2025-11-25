@@ -152,7 +152,7 @@ function Header({ height = "auto" }: HeaderProps) {
                     <DropdownMenuItem onClick={() => navigate("/profile")}>
                       <span>Thông tin cá nhân</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/invoice")}>
+                    <DropdownMenuItem onClick={() => navigate("/search-ticket")}>
                       <span>Vé của tôi</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -193,9 +193,6 @@ function Header({ height = "auto" }: HeaderProps) {
                 </li>
                 <li className={`py-4 hover:bg-white/20 px-4 cursor-pointer transition-all duration-200 ${isActive('/news') ? 'border-b-4 border-white' : ''}`}>
                   <Link to="/news" className="whitespace-nowrap">TIN TỨC</Link>
-                </li>
-                <li className={`py-4 hover:bg-white/20 px-4 cursor-pointer transition-all duration-200 ${isActive('/invoice') ? 'border-b-4 border-white' : ''}`}>
-                  <Link to="/invoice" className="whitespace-nowrap">HÓA ĐƠN</Link>
                 </li>
                 <li className={`py-4 hover:bg-white/20 px-4 cursor-pointer transition-all duration-200 ${isActive('/contact') ? 'border-b-4 border-white' : ''}`}>
                   <Link to="/contact" className="whitespace-nowrap">LIÊN HỆ</Link>

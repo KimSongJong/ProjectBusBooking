@@ -13,7 +13,10 @@ public class SeatMapper {
         // Seat has vehicle relation; service will set vehicle by id if needed
         s.setSeatNumber(request.getSeatNumber());
         s.setSeatType(Seat.SeatType.valueOf(request.getSeatType()));
-        s.setStatus(Seat.Status.valueOf(request.getStatus()));
+        // Convert status string to boolean if needed
+        if (request.getStatus() != null) {
+            s.setIsAvailable("available".equalsIgnoreCase(request.getStatus()));
+        }
         return s;
     }
 
@@ -24,13 +27,15 @@ public class SeatMapper {
                 vehicleId,
                 s.getSeatNumber(),
                 s.getSeatType().name(),
-                s.getStatus().name()
+                s.getIsAvailable() != null && s.getIsAvailable() ? "available" : "unavailable"
         );
     }
 
     public void updateEntity(Seat s, SeatRequest request) {
         s.setSeatNumber(request.getSeatNumber());
         s.setSeatType(Seat.SeatType.valueOf(request.getSeatType()));
-        s.setStatus(Seat.Status.valueOf(request.getStatus()));
+        if (request.getStatus() != null) {
+            s.setIsAvailable("available".equalsIgnoreCase(request.getStatus()));
+        }
     }
 }

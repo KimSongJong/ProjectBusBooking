@@ -4,8 +4,9 @@ import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { FaExchangeAlt, FaSearch } from "react-icons/fa"
+import { Card, CardContent } from "@/components/ui/card"
+import { FaExchangeAlt, FaChevronDown, FaChevronUp } from "react-icons/fa"
+import { MapPin } from "lucide-react"
 import { toast } from "sonner"
 import tripService from "@/services/trip.service"
 import type { ScheduleGroup } from "@/types/schedule.types"
@@ -16,6 +17,7 @@ function Schedule() {
   const [loading, setLoading] = useState(true)
   const [searchFrom, setSearchFrom] = useState("")
   const [searchTo, setSearchTo] = useState("")
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetchSchedules()
@@ -25,15 +27,14 @@ function Schedule() {
     try {
       setLoading(true)
       const response = await tripService.getScheduleRoutes()
-      console.log("API Response:", response)
       if (response.success && response.data) {
-        console.log("Schedule data:", response.data)
         setScheduleGroups(response.data)
+        // Auto expand all groups on load
+        const allLocations = response.data.map(g => g.fromLocation)
+        setExpandedGroups(new Set(allLocations))
       }
     } catch (error: any) {
-      console.error("Error:", error)
       toast.error("Không thể tải danh sách lịch trình")
-      console.error(error)
     } finally {
       setLoading(false)
     }
@@ -45,179 +46,214 @@ function Schedule() {
     setSearchTo(temp)
   }
 
-  // Filter schedule groups
+  const toggleGroup = (fromLocation: string) => {
+    const newExpanded = new Set(expandedGroups)
+    if (newExpanded.has(fromLocation)) {
+      newExpanded.delete(fromLocation)
+    } else {
+      newExpanded.add(fromLocation)
+    }
+    setExpandedGroups(newExpanded)
+  }
+
+  // Simple filter
   const filteredGroups = scheduleGroups
     .map(group => ({
       ...group,
       destinations: group.destinations.filter(dest => {
-        const matchFrom = searchFrom === "" || 
+        const matchFrom = searchFrom === "" ||
           group.fromLocation.toLowerCase().includes(searchFrom.toLowerCase())
-        const matchTo = searchTo === "" || 
+        const matchTo = searchTo === "" ||
           dest.toLocation.toLowerCase().includes(searchTo.toLowerCase())
         return matchFrom && matchTo
       })
     }))
     .filter(group => group.destinations.length > 0)
-  
-  console.log("Schedule Groups:", scheduleGroups)
-  console.log("Filtered Groups:", filteredGroups)
 
   const getVehicleTypeLabel = (type: string) => {
     const labels: { [key: string]: string } = {
-      standard: "Tiêu chuẩn",
-      vip: "VIP",
+      standard: "Ghế",
+      vip: "Ghế VIP",
       sleeper: "Giường nằm"
     }
     return labels[type.toLowerCase()] || type
   }
 
   const handleSearchTrip = (fromLocation: string, toLocation: string) => {
-    // Navigate to Product page with search params
     navigate(`/product?from=${encodeURIComponent(fromLocation)}&to=${encodeURIComponent(toLocation)}`)
   }
 
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br bg-gray-50 py-12">
-        <div className="w-full px-4 md:px-8 lg:px-12">
-          <div className="max-w-7xl mx-auto">
-            {/* Search Section */}
-            <Card className="p-6 mb-8 shadow-lg">
-              <div className="flex flex-col md:flex-row gap-4 items-center">
-                <div className="flex-1 w-full">
+
+      {/* Orange Banner - FUTA Style */}
+      <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <h1 className="text-3xl font-bold text-center">LỊCH TRÌNH</h1>
+        </div>
+      </div>
+
+      <div className="min-h-screen bg-gray-50 py-6">
+        <div className="max-w-7xl mx-auto px-4">
+          {/* Simple Search Bar - Horizontal */}
+          <Card className="shadow-md mb-6">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                {/* From Location */}
+                <div className="flex-1 relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
                     placeholder="Nhập điểm đi"
                     value={searchFrom}
                     onChange={(e) => setSearchFrom(e.target.value)}
-                    className="h-12"
+                    className="pl-10 h-12"
                   />
                 </div>
-                
+
+                {/* Swap Button */}
                 <Button
-                  type="button"
                   variant="outline"
                   size="icon"
                   onClick={handleSwapLocations}
-                  className="h-12 w-12 rounded-full hover:bg-blue-100 hover:text-blue-900"
+                  className="h-12 w-12 rounded-full text-orange-500"
                 >
-                  <FaExchangeAlt className="h-5 w-5" />
+                  <FaExchangeAlt className="h-4 w-4" />
                 </Button>
 
-                <div className="flex-1 w-full">
+                {/* To Location */}
+                <div className="flex-1 relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
                     placeholder="Nhập điểm đến"
                     value={searchTo}
                     onChange={(e) => setSearchTo(e.target.value)}
-                    className="h-12"
+                    className="pl-10 h-12"
                   />
                 </div>
-
-                <Button
-                  type="button"
-                  className="h-12 bg-blue-800 hover:bg-blue-900 text-white px-8"
-                  onClick={fetchSchedules}
-                >
-                  <FaSearch className="mr-2" />
-                  Tìm kiếm
-                </Button>
               </div>
-            </Card>
+            </CardContent>
+          </Card>
 
-            {/* Routes Table */}
+          {/* Routes List - GROUPED BY FROM LOCATION */}
+          <div className="space-y-4">
             {loading ? (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-800"></div>
+              <div className="p-12 text-center bg-white rounded-lg shadow-md">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
                 <p className="mt-4 text-gray-600">Đang tải dữ liệu...</p>
               </div>
+            ) : filteredGroups.length === 0 ? (
+              <div className="p-12 text-center text-gray-500 bg-white rounded-lg shadow-md">
+                <div className="text-6xl mb-4">🚌</div>
+                <p className="text-xl">Không tìm thấy tuyến xe nào</p>
+              </div>
             ) : (
-              <Card className="overflow-hidden shadow-lg">
-                {/* Table Header */}
-                <div className="bg-white border-b border-gray-200">
-                  <div className="grid grid-cols-6 gap-4 p-4 font-semibold text-gray-700">
-                    <div>Tuyến xe</div>
-                    <div className="text-center">Loại xe</div>
-                    <div className="text-center">Quãng đường</div>
-                    <div className="text-center">Thời gian hành trình</div>
-                    <div className="text-center">Giá vé</div>
-                    <div className="text-center">Hành động</div>
-                  </div>
-                </div>
+              filteredGroups.map((group) => {
+                const isExpanded = expandedGroups.has(group.fromLocation)
 
-                {/* Table Body */}
-                <div className="bg-white divide-y divide-gray-100">
-                  {filteredGroups.length === 0 ? (
-                    <div className="text-center py-12 text-gray-400">
-                      Không tìm thấy tuyến xe nào
-                    </div>
-                  ) : (
-                    filteredGroups.map((group) => (
-                      group.destinations.map((dest, index) => (
-                        <div
-                          key={`${group.fromLocation}-${dest.routeId}`}
-                          className="grid grid-cols-6 gap-4 p-4 hover:bg-orange-50 transition-colors"
-                        >
-                          <div className="flex flex-col">
-                            {index === 0 && (
-                              <span className="text-red-500 font-bold text-lg mb-2">
-                                {group.fromLocation}
-                              </span>
-                            )}
-                            <span className="text-gray-400 text-sm ml-4">→</span>
-                            <span className="text-red-500 font-medium ml-4">
-                              {dest.toLocation}
-                            </span>
+                return (
+                  <Card key={group.fromLocation} className="shadow-md overflow-hidden">
+                    {/* GROUP HEADER - Click to expand/collapse */}
+                    <div
+                      className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 cursor-pointer hover:from-orange-600 hover:to-orange-700 transition-all"
+                      onClick={() => toggleGroup(group.fromLocation)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-white/20 rounded-full p-2">
+                            <MapPin className="h-5 w-5" />
                           </div>
-
-                          <div className="text-center">
-                            <div className="flex flex-wrap justify-center gap-1">
-                              {dest.vehicleTypes.map((type, idx) => (
-                                <span key={idx} className="text-gray-700 text-sm">
-                                  {getVehicleTypeLabel(type)}{idx < dest.vehicleTypes.length - 1 ? ', ' : ''}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="text-center">
-                            <span className="text-gray-700">
-                              {dest.distanceKm}
-                            </span>
-                          </div>
-
-                          <div className="text-center">
-                            <span className="text-gray-700">
-                              {dest.estimatedDuration}
-                            </span>
-                          </div>
-
-                          <div className="text-center">
-                            <span className="text-gray-700">
-                              {dest.basePrice}
-                            </span>
-                          </div>
-
-                          <div className="text-center">
-                            <Button
-                              className="bg-blue-100 text-blue-900 hover:bg-blue-200 px-6"
-                              onClick={() => handleSearchTrip(group.fromLocation, dest.toLocation)}
-                            >
-                              Tìm tuyến xe
-                            </Button>
+                          <div>
+                            <h2 className="text-xl font-bold">{group.fromLocation}</h2>
+                            <p className="text-sm text-orange-100">
+                              {group.destinations.length} tuyến xe khả dụng
+                            </p>
                           </div>
                         </div>
-                      ))
-                    ))
-                  )}
-                </div>
-              </Card>
+                        <div className="text-white">
+                          {isExpanded ? (
+                            <FaChevronUp className="h-5 w-5" />
+                          ) : (
+                            <FaChevronDown className="h-5 w-5" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* DESTINATIONS - Only show when expanded */}
+                    {isExpanded && (
+                      <div className="bg-white">
+                        {/* Table Header */}
+                        <div className="bg-gray-50 border-b">
+                          <div className="grid grid-cols-5 gap-4 p-4 text-sm font-semibold text-gray-700">
+                            <div>Điểm đến</div>
+                            <div className="text-center">Loại xe</div>
+                            <div className="text-center">Quãng đường</div>
+                            <div className="text-center">Thời gian</div>
+                            <div className="text-center">Giá vé</div>
+                          </div>
+                        </div>
+
+                        {/* Destinations List */}
+                        <div className="divide-y divide-gray-100">
+                          {group.destinations.map((dest) => (
+                            <div
+                              key={dest.routeId}
+                              className="hover:bg-orange-50 transition-colors"
+                            >
+                              <div className="grid grid-cols-5 gap-4 p-4 items-center">
+                                {/* Destination */}
+                                <div className="flex items-center gap-2">
+                                  <span className="text-orange-600">→</span>
+                                  <span className="font-medium text-gray-800">{dest.toLocation}</span>
+                                </div>
+
+                                {/* Vehicle Type */}
+                                <div className="text-center text-gray-600 text-sm">
+                                  {dest.vehicleTypes.map(getVehicleTypeLabel).join(", ")}
+                                </div>
+
+                                {/* Distance */}
+                                <div className="text-center text-gray-700 font-medium">
+                                  {dest.distanceKm}
+                                </div>
+
+                                {/* Duration */}
+                                <div className="text-center text-gray-600 text-sm">
+                                  {dest.estimatedDuration}
+                                </div>
+
+                                {/* Price & Button */}
+                                <div className="flex items-center justify-between gap-3">
+                                  <span className="font-bold text-orange-600">
+                                    {dest.basePrice}
+                                  </span>
+                                  <Button
+                                    onClick={() => handleSearchTrip(group.fromLocation, dest.toLocation)}
+                                    size="sm"
+                                    className="bg-orange-500 hover:bg-orange-600 text-white font-medium px-4 rounded-full"
+                                  >
+                                    Tìm xe
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+                )
+              })
             )}
           </div>
         </div>
       </div>
+
       <Footer />
     </>
   )
 }
 
 export default Schedule
+

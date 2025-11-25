@@ -32,6 +32,20 @@ public class TicketRequest {
     @Positive(message = "Promotion ID must be positive")
     private Integer promotionId;
     
+    private String pickupPoint;
+
+    private String dropoffPoint;
+
+    private String customerName;
+
+    @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be 10 digits")
+    private String customerPhone;
+
+    @Pattern(regexp = "^[A-Za-z0-9+_.-]+@(.+)$", message = "Invalid email format")
+    private String customerEmail;
+
+    private String notes;
+
     @NotNull(message = "Price is required")
     @DecimalMin(value = "10000.0", message = "Price must be at least 10,000 VND")
     @DecimalMax(value = "10000000.0", message = "Price must not exceed 10,000,000 VND")

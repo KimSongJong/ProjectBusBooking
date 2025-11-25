@@ -60,4 +60,17 @@ public class RouteController {
         RouteResponse route = routeService.updateRoute(id, request);
         return ResponseEntity.ok(new ApiResponse<>(true, "Route updated successfully", route));
     }
+
+    /**
+     * Calculate route information from two stations using OpenStreetMap
+     * GET /routes/calculate?fromStation=1&toStation=3
+     */
+    @GetMapping("/calculate")
+    public ResponseEntity<ApiResponse<com.busbooking.dto.response.RouteCalculationResponse>> calculateRoute(
+            @RequestParam Integer fromStation,
+            @RequestParam Integer toStation) {
+        com.busbooking.dto.response.RouteCalculationResponse calculation =
+                routeService.calculateRouteFromStations(fromStation, toStation);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Route calculated successfully", calculation));
+    }
 }

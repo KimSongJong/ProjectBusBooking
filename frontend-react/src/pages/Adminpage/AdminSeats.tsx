@@ -3,6 +3,7 @@ import LeftTaskBar from "@/components/LeftTaskBar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -18,19 +19,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { FaChair } from "react-icons/fa";
+import { FaChair, FaSearch, FaFilter, FaCalendar } from "react-icons/fa";
 import tripSeatService from "@/services/tripSeat.service";
 import tripService from "@/services/trip.service";
 import type { TripSeat, TripOption } from "@/types/tripSeat.types";
 
 function AdminSeats() {
   const [tripSeats, setTripSeats] = useState<TripSeat[]>([]);
-  const [trips, setTrips] = useState<TripOption[]>([]);
+  const [allTrips, setAllTrips] = useState<TripOption[]>([]); // Store all trips
+  const [filteredTrips, setFilteredTrips] = useState<TripOption[]>([]); // Store filtered trips
   const [loading, setLoading] = useState(false);
   const [selectedTripId, setSelectedTripId] = useState<number>(0);
   const [selectedSeat, setSelectedSeat] = useState<TripSeat | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editStatus, setEditStatus] = useState<"available" | "booked" | "locked">("available");
+
+  // Filter states
+  const [statusFilter, setStatusFilter] = useState<string>("scheduled"); // all, scheduled, starting_soon, completed, cancelled
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [dateFromFilter, setDateFromFilter] = useState<string>("");
+  const [dateToFilter, setDateToFilter] = useState<string>("");
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const ITEMS_PER_PAGE = 12; // 12 cards per page (4x3 grid)
 
   useEffect(() => {
     fetchTrips();
@@ -42,20 +54,100 @@ function AdminSeats() {
     }
   }, [selectedTripId]);
 
+  // Apply filters whenever filter states change
+  useEffect(() => {
+    applyFilters();
+  }, [allTrips, statusFilter, searchQuery, dateFromFilter, dateToFilter]);
+
   const fetchTrips = async () => {
     try {
       const response = await tripService.getAllTrips();
       if (response.success && response.data) {
-        setTrips(response.data);
-        if (response.data.length > 0) {
-          setSelectedTripId(response.data[0].id);
-        }
+        setAllTrips(response.data);
+        // Don't auto-select first trip, let filters apply first
       }
     } catch (error) {
       toast.error("Không thể tải danh sách chuyến đi");
       console.error("Error fetching trips:", error);
     }
   };
+
+  const applyFilters = () => {
+    let filtered = [...allTrips];
+
+    // 1. Filter by status
+    if (statusFilter === "scheduled") {
+      filtered = filtered.filter(trip => trip.status === "scheduled");
+    } else if (statusFilter === "completed") {
+      filtered = filtered.filter(trip => trip.status === "completed");
+    } else if (statusFilter === "cancelled") {
+      filtered = filtered.filter(trip => trip.status === "cancelled");
+    } else if (statusFilter === "starting_soon") {
+      // Sắp khởi hành trong 30 phút
+      const now = new Date();
+      const in30Minutes = new Date(now.getTime() + 30 * 60 * 1000);
+
+      filtered = filtered.filter(trip => {
+        const departureTime = new Date(trip.departureTime);
+        return trip.status === "scheduled" &&
+               departureTime >= now &&
+               departureTime <= in30Minutes;
+      });
+    }
+    // statusFilter === "all" → không filter
+
+    // 2. Filter by search query (route, vehicle plate, ID)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(trip => {
+        const routeMatch = trip.route?.fromLocation?.toLowerCase().includes(query) ||
+                          trip.route?.toLocation?.toLowerCase().includes(query);
+        const vehicleMatch = trip.vehicle?.licensePlate?.toLowerCase().includes(query);
+        const idMatch = trip.id.toString().includes(query);
+        return routeMatch || vehicleMatch || idMatch;
+      });
+    }
+
+    // 3. Filter by date range
+    if (dateFromFilter || dateToFilter) {
+      filtered = filtered.filter(trip => {
+        const tripDate = new Date(trip.departureTime);
+        const tripDateOnly = new Date(tripDate.getFullYear(), tripDate.getMonth(), tripDate.getDate());
+
+        let matchFrom = true;
+        let matchTo = true;
+
+        if (dateFromFilter) {
+          const fromDate = new Date(dateFromFilter);
+          matchFrom = tripDateOnly >= fromDate;
+        }
+
+        if (dateToFilter) {
+          const toDate = new Date(dateToFilter);
+          matchTo = tripDateOnly <= toDate;
+        }
+
+        return matchFrom && matchTo;
+      });
+    }
+
+    setFilteredTrips(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
+
+    // Auto-select first trip if available and no trip is selected
+    if (filtered.length > 0 && selectedTripId === 0) {
+      setSelectedTripId(filtered[0].id);
+    } else if (filtered.length === 0) {
+      setSelectedTripId(0);
+      setTripSeats([]);
+    }
+  };
+
+  // Calculate paginated trips
+  const totalPages = Math.ceil(filteredTrips.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedTrips = filteredTrips.slice(startIndex, endIndex);
 
   const fetchTripSeats = async () => {
     try {
@@ -142,15 +234,15 @@ function AdminSeats() {
       <div
         key={seat.id}
         onClick={() => handleSeatClick(seat)}
-        className={`relative w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center cursor-pointer transition-all shadow-sm ${statusColors[seat.status]}`}
+        className={`relative w-14 h-14 rounded-md border-2 flex flex-col items-center justify-center cursor-pointer transition-all ${statusColors[seat.status]}`}
       >
-        <span className="text-sm font-bold">{seat.seatNumber}</span>
-        <span className="text-2xl">{typeIcons[seat.seatType]}</span>
+        <span className="text-xs font-bold">{seat.seatNumber}</span>
+        <span className="text-base">{typeIcons[seat.seatType]}</span>
       </div>
     );
   };
 
-  const selectedTrip = trips.find(t => t.id === selectedTripId);
+  const selectedTrip = filteredTrips.find(t => t.id === selectedTripId);
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -161,113 +253,296 @@ function AdminSeats() {
           <p className="text-slate-600 mt-1">Quản lý sơ đồ ghế theo từng chuyến đi</p>
         </div>
         <div className="p-8">
-          <Card className="p-6 mb-6">
-            <div className="flex items-center gap-4 mb-2">
-              <Label className="text-lg font-semibold">Chọn chuyến đi:</Label>
-              <Select value={selectedTripId.toString()} onValueChange={(value) => setSelectedTripId(parseInt(value))}>
-                <SelectTrigger className="w-[600px]">
-                  <SelectValue placeholder="Chọn chuyến đi" />
-                </SelectTrigger>
-                <SelectContent>
-                  {trips.map((trip) => (
-                    <SelectItem key={trip.id} value={trip.id.toString()}>
-                      {trip.route.fromLocation} → {trip.route.toLocation} | {trip.vehicle.licensePlate} ({trip.vehicle.vehicleType} - {trip.vehicle.seatCount} ghế) | {new Date(trip.departureTime).toLocaleString('vi-VN')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* Compact Filters Card */}
+          <Card className="p-4 mb-4">
+            <div className="flex items-center gap-2 mb-3">
+              <FaFilter className="text-blue-600 text-sm" />
+              <h3 className="text-sm font-semibold text-gray-800">Bộ lọc & tìm kiếm</h3>
             </div>
-            {selectedTrip && (
-              <div className="mt-4 flex items-center gap-6 text-sm flex-wrap">
-                <div className="bg-blue-50 px-4 py-2 rounded-lg">
-                  <span className="text-blue-950">Tuyến:</span> <span className="font-semibold text-blue-950">{selectedTrip.route.fromLocation} → {selectedTrip.route.toLocation}</span>
-                </div>
-                <div className="bg-slate-50 px-4 py-2 rounded-lg">
-                  <span className="text-slate-600">Xe:</span> <span className="font-semibold text-slate-800">{selectedTrip.vehicle.licensePlate}</span>
-                </div>
-                <div className="bg-slate-50 px-4 py-2 rounded-lg">
-                  <span className="text-slate-600">Loại:</span> <span className="font-semibold text-slate-800">{selectedTrip.vehicle.vehicleType}</span>
-                </div>
-                <div className="bg-slate-50 px-4 py-2 rounded-lg">
-                  <span className="text-slate-600">Khởi hành:</span> <span className="font-semibold text-slate-800">{new Date(selectedTrip.departureTime).toLocaleString('vi-VN')}</span>
-                </div>
-                <div className="bg-green-50 px-4 py-2 rounded-lg">
-                  <span className="text-green-600">Còn trống:</span> <span className="font-semibold text-green-700">{tripSeats.filter(s => s.status === "available").length} ghế</span>
-                </div>
-                <div className="bg-red-50 px-4 py-2 rounded-lg">
-                  <span className="text-red-600">Đã đặt:</span> <span className="font-semibold text-red-700">{tripSeats.filter(s => s.status === "booked").length} ghế</span>
-                </div>
+
+            {/* Compact Filter Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              {/* Search */}
+              <div>
+                <Label className="text-xs font-medium mb-1 block text-gray-600">Tìm kiếm</Label>
+                <Input
+                  placeholder="🔍 Tuyến, xe, mã..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-9 text-sm"
+                />
+              </div>
+
+              {/* Status Filter */}
+              <div>
+                <Label className="text-xs font-medium mb-1 block text-gray-600">Trạng thái</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue placeholder="Chọn trạng thái" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">📋 Tất cả</SelectItem>
+                    <SelectItem value="scheduled">🟢 Sắp đi</SelectItem>
+                    <SelectItem value="starting_soon">🔥 Trong 30p</SelectItem>
+                    <SelectItem value="completed">✅ Xong</SelectItem>
+                    <SelectItem value="cancelled">❌ Hủy</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* From Date */}
+              <div>
+                <Label className="text-xs font-medium mb-1 block text-gray-600">Từ ngày</Label>
+                <Input
+                  type="date"
+                  value={dateFromFilter}
+                  onChange={(e) => setDateFromFilter(e.target.value)}
+                  className="h-9 text-sm"
+                />
+              </div>
+
+              {/* To Date */}
+              <div>
+                <Label className="text-xs font-medium mb-1 block text-gray-600">Đến ngày</Label>
+                <Input
+                  type="date"
+                  value={dateToFilter}
+                  onChange={(e) => setDateToFilter(e.target.value)}
+                  className="h-9 text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Filter Summary - Inline */}
+            {(searchQuery || statusFilter !== "scheduled" || dateFromFilter || dateToFilter) && (
+              <div className="mt-3 flex items-center justify-between pt-3 border-t border-gray-200">
+                <p className="text-xs text-blue-600">
+                  📊 <span className="font-bold">{filteredTrips.length}</span> / {allTrips.length} chuyến
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setStatusFilter("scheduled");
+                    setDateFromFilter("");
+                    setDateToFilter("");
+                  }}
+                  className="h-7 px-2 text-xs"
+                >
+                  ❌ Xóa lọc
+                </Button>
               </div>
             )}
           </Card>
-          <Card className="p-4 mb-6 bg-gradient-to-r from-slate-50 to-slate-100">
-            <div className="flex items-center gap-8 flex-wrap">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-green-100 border-2 border-green-500 rounded-lg shadow-sm"></div>
-                <span className="text-sm font-medium">Còn trống</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-red-100 border-2 border-red-500 rounded-lg shadow-sm"></div>
-                <span className="text-sm font-medium">Đã đặt</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-slate-300 border-2 border-slate-500 rounded-lg shadow-sm"></div>
-                <span className="text-sm font-medium">Bị khóa</span>
-              </div>
-              <div className="ml-auto flex items-center gap-4 text-lg">
-                <span>🪑 Tiêu chuẩn</span>
-                <span>👑 VIP</span>
-                <span>🛏️ Giường nằm</span>
-              </div>
-            </div>
-          </Card>
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-950"></div>
-              <p className="text-slate-500 mt-4">Đang tải sơ đồ ghế...</p>
-            </div>
-          ) : tripSeats.length === 0 ? (
+
+          {/* Trip Cards Grid with Pagination */}
+          {filteredTrips.length === 0 ? (
             <Card className="p-12">
-              <div className="text-center">
-                <FaChair className="mx-auto text-6xl text-slate-300 mb-4" />
-                <p className="text-slate-500 text-lg mb-2">Chưa có sơ đồ ghế cho chuyến này</p>
-                <p className="text-slate-400 text-sm mb-4">Nhấn nút bên dưới để tạo sơ đồ ghế</p>
-                <Button onClick={fetchTripSeats} className="bg-blue-950 hover:bg-blue-900">Tạo sơ đồ ghế</Button>
+              <div className="text-center text-gray-500">
+                <FaSearch className="mx-auto text-6xl text-gray-300 mb-4" />
+                <p className="text-lg mb-2 font-medium">Không tìm thấy chuyến xe nào</p>
+                <p className="text-sm">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
               </div>
             </Card>
           ) : (
-            <div className="space-y-6">
-              {lowerFloorSeats.length > 0 && (
-                <Card className="p-6 bg-white shadow-lg">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-bold text-slate-800">🔽 Tầng dưới</h3>
-                    <div className="text-sm text-slate-600">
-                      <span className="font-medium">{lowerFloorSeats.filter(s => s.status === 'available').length}</span> / {lowerFloorSeats.length} ghế trống
+            <>
+              {/* Cards Grid - Fixed Height, No Scroll (12 cards per page = 3 rows) */}
+              <div className="mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 min-h-[360px]">
+                  {paginatedTrips.map((trip) => {
+                      const isSelected = selectedTripId === trip.id;
+                      return (
+                        <Card
+                          key={trip.id}
+                          onClick={() => setSelectedTripId(trip.id)}
+                          className={`p-3 cursor-pointer transition-all duration-200 ${
+                            isSelected
+                              ? 'border-2 border-blue-600 bg-blue-50 shadow-md'
+                              : 'border border-gray-200 hover:border-blue-400 hover:shadow-sm'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-bold text-sm text-gray-800 mb-0.5 line-clamp-1">
+                                {trip.route.fromLocation} → {trip.route.toLocation}
+                              </h3>
+                              <p className="text-xs text-gray-500">#{trip.id}</p>
+                            </div>
+                            {isSelected && (
+                              <div className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-xs font-medium whitespace-nowrap ml-1">
+                                ✓
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="space-y-1 text-xs">
+                            <div className="flex items-center gap-1">
+                              <span className="text-gray-500">🚌</span>
+                              <span className="font-medium truncate">{trip.vehicle.licensePlate}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-gray-500">⏰</span>
+                              <span className="font-medium truncate">{new Date(trip.departureTime).toLocaleString('vi-VN', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${
+                                trip.status === 'scheduled' ? 'bg-green-100 text-green-700' :
+                                trip.status === 'completed' ? 'bg-gray-100 text-gray-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                {trip.status === 'scheduled' && '🟢 Sắp đi'}
+                                {trip.status === 'completed' && '✅ Xong'}
+                                {trip.status === 'cancelled' && '❌ Hủy'}
+                              </span>
+                            </div>
+                          </div>
+                        </Card>
+                      );
+                    })}
+                </div>
+
+                {/* Pagination Controls - Centered & Bigger Buttons */}
+                {totalPages > 1 && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex flex-col items-center gap-3">
+                      <p className="text-sm text-gray-600">
+                        Trang <span className="font-semibold text-lg">{currentPage}</span> / {totalPages}
+                        <span className="ml-2 text-gray-500">
+                          ({startIndex + 1}-{Math.min(endIndex, filteredTrips.length)} / {filteredTrips.length} chuyến)
+                        </span>
+                      </p>
+                      <div className="flex gap-3">
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          onClick={() => setCurrentPage(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="px-6 py-2 text-base"
+                        >
+                          ← Trang trước
+                        </Button>
+                        <Button
+                          variant="default"
+                          size="lg"
+                          onClick={() => setCurrentPage(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className="px-6 py-2 text-base"
+                        >
+                          Trang sau →
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-5 gap-4 place-items-center">{lowerFloorSeats.map(renderSeat)}</div>
+                )}
+              </div>
+
+              {/* Selected Trip Details & Seats */}
+              {selectedTrip && (
+                <>
+                  {/* Compact Sticky Trip Bar with Legend */}
+                  <div className="sticky top-0 z-10 mb-3 -mx-8 px-8 pt-3 pb-3 bg-slate-50">
+                    <Card className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300">
+                      {/* Trip Info Row */}
+                      <div className="flex items-center gap-4 text-xs flex-wrap mb-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-blue-700 font-semibold">📍</span>
+                          <span className="font-bold text-blue-900 text-sm">{selectedTrip.route.fromLocation} → {selectedTrip.route.toLocation}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span>🚌</span>
+                          <span className="font-medium">{selectedTrip.vehicle.licensePlate}</span>
+                        </div>
+                        <div className="bg-green-100 px-2 py-1 rounded border border-green-300">
+                          <span className="text-green-700">Trống:</span>{' '}
+                          <span className="font-bold text-green-800">{tripSeats.filter(s => s.status === "available").length}</span>
+                        </div>
+                        <div className="bg-red-100 px-2 py-1 rounded border border-red-300">
+                          <span className="text-red-700">Đã đặt:</span>{' '}
+                          <span className="font-bold text-red-800">{tripSeats.filter(s => s.status === "booked").length}</span>
+                        </div>
+                      </div>
+
+                      {/* Legend Row */}
+                      <div className="flex items-center gap-4 text-xs pt-2 border-t border-blue-200">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-6 h-6 bg-green-100 border border-green-500 rounded"></div>
+                          <span>Trống</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-6 h-6 bg-red-100 border border-red-500 rounded"></div>
+                          <span>Đã đặt</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-6 h-6 bg-slate-300 border border-slate-500 rounded"></div>
+                          <span>Khóa</span>
+                        </div>
+                        <div className="ml-auto flex items-center gap-3 text-sm">
+                          <span>🪑</span>
+                          <span>👑</span>
+                          <span>🛏️</span>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                </>
+              )}
+            </>
+          )}
+
+          {/* Compact Seat Layout */}
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-950"></div>
+              <p className="text-slate-500 mt-3 text-sm">Đang tải...</p>
+            </div>
+          ) : tripSeats.length === 0 ? (
+            <Card className="p-8">
+              <div className="text-center">
+                <FaChair className="mx-auto text-5xl text-slate-300 mb-3" />
+                <p className="text-slate-500 text-base mb-1">Chưa có sơ đồ ghế</p>
+                <p className="text-slate-400 text-xs mb-3">Nhấn nút bên dưới để tạo</p>
+                <Button onClick={fetchTripSeats} size="sm" className="bg-blue-950 hover:bg-blue-900">Tạo sơ đồ ghế</Button>
+              </div>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {lowerFloorSeats.length > 0 && (
+                <Card className="p-4 bg-white">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-bold text-slate-800">🔽 Tầng dưới</h3>
+                    <div className="text-xs text-slate-600">
+                      <span className="font-medium">{lowerFloorSeats.filter(s => s.status === 'available').length}</span>/{lowerFloorSeats.length} trống
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-8 gap-2 place-items-center">{lowerFloorSeats.map(renderSeat)}</div>
                 </Card>
               )}
               {upperFloorSeats.length > 0 && (
-                <Card className="p-6 bg-white shadow-lg">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-bold text-slate-800">🔼 Tầng trên</h3>
-                    <div className="text-sm text-slate-600">
-                      <span className="font-medium">{upperFloorSeats.filter(s => s.status === 'available').length}</span> / {upperFloorSeats.length} ghế trống
+                <Card className="p-4 bg-white">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-bold text-slate-800">🔼 Tầng trên</h3>
+                    <div className="text-xs text-slate-600">
+                      <span className="font-medium">{upperFloorSeats.filter(s => s.status === 'available').length}</span>/{upperFloorSeats.length} trống
                     </div>
                   </div>
-                  <div className="grid grid-cols-5 gap-4 place-items-center">{upperFloorSeats.map(renderSeat)}</div>
+                  <div className="grid grid-cols-8 gap-2 place-items-center">{upperFloorSeats.map(renderSeat)}</div>
                 </Card>
               )}
               {lowerFloorSeats.length === 0 && upperFloorSeats.length === 0 && (
-                <Card className="p-6 bg-white shadow-lg">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-bold text-slate-800">Sơ đồ ghế</h3>
-                    <div className="text-sm text-slate-600">
-                      <span className="font-medium">{tripSeats.filter(s => s.status === 'available').length}</span> / {tripSeats.length} ghế trống
+                <Card className="p-4 bg-white">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-bold text-slate-800">Sơ đồ ghế</h3>
+                    <div className="text-xs text-slate-600">
+                      <span className="font-medium">{tripSeats.filter(s => s.status === 'available').length}</span>/{tripSeats.length} trống
                     </div>
                   </div>
-                  <div className="grid grid-cols-5 gap-4 place-items-center">{tripSeats.map(renderSeat)}</div>
+                  <div className="grid grid-cols-8 gap-2 place-items-center">{tripSeats.map(renderSeat)}</div>
                 </Card>
               )}
             </div>
@@ -350,5 +625,3 @@ function AdminSeats() {
 }
 
 export default AdminSeats;
-
-

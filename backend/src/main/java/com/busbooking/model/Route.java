@@ -33,6 +33,12 @@ public class Route {
     @Column(name = "estimated_duration")
     private Integer estimatedDuration;
     
+    @Column(name = "pickup_points", columnDefinition = "JSON")
+    private String pickupPoints;
+
+    @Column(name = "dropoff_points", columnDefinition = "JSON")
+    private String dropoffPoints;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     

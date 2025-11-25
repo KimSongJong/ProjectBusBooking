@@ -10,6 +10,7 @@ import com.busbooking.model.Trip;
 import com.busbooking.repository.RouteRepository;
 import com.busbooking.repository.TripRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -17,12 +18,15 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RouteService {
     
     private final RouteRepository routeRepository;
     private final TripRepository tripRepository;
     private final RouteMapper routeMapper;
-    
+    private final OpenStreetMapService openStreetMapService;
+    private final com.busbooking.repository.StationRepository stationRepository;
+
     public List<RouteResponse> getAllRoutes() {
         return routeRepository.findAll().stream()
                 .map(routeMapper::toResponse)
@@ -139,5 +143,57 @@ public class RouteService {
             default:
                 return type;
         }
+    }
+
+    /**
+     * Calculate route information from two stations using OpenStreetMap (OSRM)
+     * @param fromStationId Origin station ID
+     * @param toStationId Destination station ID
+     * @return Route calculation with distance, duration, and price
+     */
+    public com.busbooking.dto.response.RouteCalculationResponse calculateRouteFromStations(
+            Integer fromStationId,
+            Integer toStationId
+    ) {
+        log.info("🔍 Calculating route from station {} to {}", fromStationId, toStationId);
+
+        // Get stations
+        com.busbooking.model.Station fromStation = stationRepository.findById(fromStationId)
+                .orElseThrow(() -> {
+                    log.error("❌ From station not found: {}", fromStationId);
+                    return new ResourceNotFoundException("From station not found with id: " + fromStationId);
+                });
+
+        com.busbooking.model.Station toStation = stationRepository.findById(toStationId)
+                .orElseThrow(() -> {
+                    log.error("❌ To station not found: {}", toStationId);
+                    return new ResourceNotFoundException("To station not found with id: " + toStationId);
+                });
+
+        log.info("✅ Found stations: {} → {}", fromStation.getName(), toStation.getName());
+
+        // Calculate using OpenStreetMap (OSRM)
+        Map<String, Object> calculation = openStreetMapService.calculateRouteInfo(
+                fromStation.getLatitude(),
+                fromStation.getLongitude(),
+                toStation.getLatitude(),
+                toStation.getLongitude()
+        );
+
+        // Build response
+        com.busbooking.dto.response.RouteCalculationResponse response = new com.busbooking.dto.response.RouteCalculationResponse();
+        response.setFromStationId(fromStation.getId());
+        response.setFromStationName(fromStation.getName());
+        response.setFromCity(fromStation.getCity());
+        response.setToStationId(toStation.getId());
+        response.setToStationName(toStation.getName());
+        response.setToCity(toStation.getCity());
+        response.setDistanceKm((java.math.BigDecimal) calculation.get("distanceKm"));
+        response.setDurationMinutes((Integer) calculation.get("durationMinutes"));
+        response.setBasePrice((java.math.BigDecimal) calculation.get("basePrice"));
+        response.setCalculationSource((String) calculation.get("source"));
+        response.setMessage("Route calculated successfully via OpenStreetMap");
+
+        return response;
     }
 }

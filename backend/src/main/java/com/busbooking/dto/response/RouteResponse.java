@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -18,4 +19,16 @@ public class RouteResponse {
     private BigDecimal basePrice;
     private Integer estimatedDuration;
     private LocalDateTime createdAt;
+
+    // Pickup and dropoff points as List of PickupPoint objects
+    private List<PickupPoint> pickupPoints;
+    private List<PickupPoint> dropoffPoints;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PickupPoint {
+        private String name;
+        private String address;
+    }
 }

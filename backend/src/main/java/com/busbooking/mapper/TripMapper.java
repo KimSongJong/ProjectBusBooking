@@ -27,6 +27,9 @@ public class TripMapper {
     @Autowired
     private DriverRepository driverRepository;
     
+    @Autowired
+    private RouteMapper routeMapper;
+
     public Trip toEntity(TripRequest request) {
         Trip trip = new Trip();
         
@@ -50,16 +53,8 @@ public class TripMapper {
     }
     
     public TripResponse toResponse(Trip trip) {
-        RouteResponse routeResponse = new RouteResponse(
-            trip.getRoute().getId(),
-            trip.getRoute().getFromLocation(),
-            trip.getRoute().getToLocation(),
-            trip.getRoute().getDistanceKm(),
-            trip.getRoute().getBasePrice(),
-            trip.getRoute().getEstimatedDuration(),
-            trip.getRoute().getCreatedAt()
-        );
-        
+        RouteResponse routeResponse = routeMapper.toResponse(trip.getRoute());
+
         VehicleResponse vehicleResponse = new VehicleResponse(
             trip.getVehicle().getId(),
             trip.getVehicle().getLicensePlate(),
@@ -67,6 +62,7 @@ public class TripMapper {
             trip.getVehicle().getTotalSeats(),
             trip.getVehicle().getSeatsLayout(),
             trip.getVehicle().getVehicleType().name(),
+            trip.getVehicle().getVehicleTypeDisplay(),
             trip.getVehicle().getIsActive(),
             trip.getVehicle().getCreatedAt()
         );

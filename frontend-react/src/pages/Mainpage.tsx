@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -18,17 +18,47 @@ import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { RouteCard, PromotionCard, FeatureCard } from "@/components/layout"
 import bannerImage from "@/assets/2257 x 501 px.png"
+import { ALL_PROVINCES, POPULAR_PROVINCES, getAvailableDestinations } from "@/constants/provinces"
 
 function MainPage() {
   const navigate = useNavigate()
   const [tripType, setTripType] = useState<"oneWay" | "roundTrip">("oneWay")
   const [from, setFrom] = useState("")
   const [to, setTo] = useState("")
-  const [date, setDate] = useState("2025-10-14")
+  const [date, setDate] = useState(() => {
+    // Default to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split("T")[0];
+  })
+  const [returnDate, setReturnDate] = useState(() => {
+    // Default to 2 days from now
+    const dayAfter = new Date();
+    dayAfter.setDate(dayAfter.getDate() + 2);
+    return dayAfter.toISOString().split("T")[0];
+  })
   const [passengers, setPassengers] = useState(1)
 
+  // Lấy danh sách điểm đến khả dụng dựa trên điểm đi
+  const availableDestinations = useMemo(() => {
+    return getAvailableDestinations(from);
+  }, [from])
+
   const handleSearch = () => {
-    navigate(`/product?from=${from}&to=${to}&date=${date}&passengers=${passengers}`)
+    if (!from || !to) {
+      return
+    }
+    const params = new URLSearchParams({
+      from,
+      to,
+      date,
+      passengers: passengers.toString(),
+      tripType
+    })
+    if (tripType === "roundTrip" && returnDate) {
+      params.append("returnDate", returnDate)
+    }
+    navigate(`/product?${params.toString()}`)
   }
 
   const promotions = [
@@ -116,33 +146,56 @@ function MainPage() {
                 </div>
 
                 {/* Search Inputs */}
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
                   {/* Điểm đi */}
                   <div className="space-y-2">
                     <Label htmlFor="from" className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-blue-900" />
                       Điểm đi
                     </Label>
-                    <Select value={from} onValueChange={setFrom}>
+                    <Select value={from} onValueChange={(value) => {
+                      setFrom(value);
+                      // Reset điểm đến nếu không còn hợp lệ
+                      if (to && !getAvailableDestinations(value).some(p => p.name === to)) {
+                        setTo("");
+                      }
+                    }}>
                       <SelectTrigger id="from">
                         <SelectValue placeholder="Chọn điểm đi" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="hcm">TP. Hồ Chí Minh</SelectItem>
-                        <SelectItem value="dalat">Đà Lạt</SelectItem>
-                        <SelectItem value="danang">Đà Nẵng</SelectItem>
-                        <SelectItem value="cantho">Cần Thơ</SelectItem>
-                        <SelectItem value="nhatrang">Nha Trang</SelectItem>
+                      <SelectContent className="max-h-[300px]">
+                        {/* Tỉnh phổ biến */}
+                        <div className="font-semibold text-sm text-gray-500 px-2 py-1.5">
+                          Thành phố lớn
+                        </div>
+                        {POPULAR_PROVINCES.map((province) => (
+                          <SelectItem key={province.name} value={province.name}>
+                            {province.name}
+                          </SelectItem>
+                        ))}
+
+                        {/* Divider */}
+                        <div className="border-t my-2"></div>
+
+                        {/* Tất cả tỉnh thành */}
+                        <div className="font-semibold text-sm text-gray-500 px-2 py-1.5">
+                          Tất cả tỉnh thành
+                        </div>
+                        {ALL_PROVINCES.filter(p => !p.isPopular).map((province) => (
+                          <SelectItem key={province.name} value={province.name}>
+                            {province.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {/* Swap Button */}
-                  <div className="flex items-end justify-center pb-2">
-                    <Button 
+                  {/* Swap Button - Takes minimal space */}
+                  <div className="flex items-end justify-center pb-2 md:col-span-1">
+                    <Button
                       variant="ghost" 
                       size="icon" 
-                      className="text-blue-900"
+                      className="text-blue-900 h-10 w-10"
                       onClick={() => {
                         const temp = from
                         setFrom(to)
@@ -159,16 +212,43 @@ function MainPage() {
                       <MapPin className="h-4 w-4 text-blue-900" />
                       Điểm đến
                     </Label>
-                    <Select value={to} onValueChange={setTo}>
+                    <Select value={to} onValueChange={setTo} disabled={!from}>
                       <SelectTrigger id="to">
-                        <SelectValue placeholder="Chọn điểm đến" />
+                        <SelectValue placeholder={from ? "Chọn điểm đến" : "Vui lòng chọn điểm đi trước"} />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="dalat">Đà Lạt</SelectItem>
-                        <SelectItem value="hcm">TP. Hồ Chí Minh</SelectItem>
-                        <SelectItem value="danang">Đà Nẵng</SelectItem>
-                        <SelectItem value="cantho">Cần Thơ</SelectItem>
-                        <SelectItem value="nhatrang">Nha Trang</SelectItem>
+                      <SelectContent className="max-h-[300px]">
+                        {availableDestinations.length === 0 ? (
+                          <div className="text-sm text-gray-500 px-2 py-1.5">
+                            Không có tuyến xe khả dụng
+                          </div>
+                        ) : (
+                          <>
+                            {/* Tỉnh phổ biến có thể đi */}
+                            {availableDestinations.filter(p => p.isPopular).length > 0 && (
+                              <>
+                                <div className="font-semibold text-sm text-gray-500 px-2 py-1.5">
+                                  Thành phố lớn
+                                </div>
+                                {availableDestinations.filter(p => p.isPopular).map((province) => (
+                                  <SelectItem key={province.name} value={province.name}>
+                                    {province.name}
+                                  </SelectItem>
+                                ))}
+                                <div className="border-t my-2"></div>
+                              </>
+                            )}
+
+                            {/* Tỉnh thường có thể đi */}
+                            <div className="font-semibold text-sm text-gray-500 px-2 py-1.5">
+                              Các tỉnh khác
+                            </div>
+                            {availableDestinations.filter(p => !p.isPopular).map((province) => (
+                              <SelectItem key={province.name} value={province.name}>
+                                {province.name}
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -183,13 +263,42 @@ function MainPage() {
                       id="date"
                       type="date"
                       value={date}
-                      onChange={(e) => setDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      onChange={(e) => {
+                        setDate(e.target.value)
+                        // Auto adjust return date if it's before departure date
+                        if (tripType === "roundTrip" && returnDate < e.target.value) {
+                          setReturnDate(e.target.value)
+                        }
+                      }}
                       className="border-gray-300"
                     />
                   </div>
 
+                  {/* Ngày về - Only show for round trip */}
+                  {tripType === "roundTrip" ? (
+                    <div className="space-y-2 md:col-span-1">
+                      <Label htmlFor="returnDate" className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-orange-600" />
+                        Ngày về
+                      </Label>
+                      <Input
+                        id="returnDate"
+                        type="date"
+                        value={returnDate}
+                        min={date}
+                        onChange={(e) => setReturnDate(e.target.value)}
+                        className="border-gray-300"
+                        placeholder="Thêm ngày về"
+                      />
+                    </div>
+                  ) : (
+                    // Empty div to maintain grid layout when one-way
+                    <div className="hidden md:block md:col-span-1"></div>
+                  )}
+
                   {/* Số vé */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 md:col-span-1">
                     <Label htmlFor="passengers" className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-blue-900" />
                       Số vé
@@ -201,7 +310,7 @@ function MainPage() {
                       <SelectContent>
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
                           <SelectItem key={num} value={num.toString()}>
-                            {num}
+                            {num} vé
                           </SelectItem>
                         ))}
                       </SelectContent>

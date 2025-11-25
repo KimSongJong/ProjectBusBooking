@@ -37,6 +37,11 @@ function AdminTickets() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  // ⭐ Round trip filters
+  const [tripTypeFilter, setTripTypeFilter] = useState<"all" | "one_way" | "round_trip">("all");
+  const [directionFilter, setDirectionFilter] = useState<"all" | "outbound" | "return">("all");
 
   // Dialog states
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -53,13 +58,22 @@ function AdminTickets() {
   const fetchTickets = async () => {
     try {
       setLoading(true);
+      setError(null);
+      console.log("🎫 Fetching tickets...");
       const response = await ticketService.getAllTickets();
+      console.log("📦 Tickets response:", response);
       if (response.success && response.data) {
+        console.log("✅ Tickets loaded:", response.data.length);
         setTickets(response.data);
+      } else {
+        console.warn("⚠️ No tickets data in response");
+        setError("Không có dữ liệu vé");
       }
-    } catch (error) {
-      toast.error("Không thể tải danh sách vé");
-      console.error("Error fetching tickets:", error);
+    } catch (error: any) {
+      console.error("❌ Error fetching tickets:", error);
+      const errorMsg = error?.payload?.message || error?.message || "Không thể tải danh sách vé";
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -153,6 +167,28 @@ function AdminTickets() {
     );
   };
 
+  const getTripTypeBadge = (tripType?: string) => {
+    if (!tripType || tripType === "one_way") {
+      return (
+        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+          Một chiều
+        </span>
+      );
+    }
+    return (
+      <span className="px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+        Khứ hồi
+      </span>
+    );
+  };
+
+  const getDirectionIcon = (isReturnTrip?: boolean) => {
+    if (isReturnTrip) {
+      return <span className="text-orange-600" title="Vé về">←</span>;
+    }
+    return <span className="text-green-600" title="Vé đi">→</span>;
+  };
+
   const formatDateTime = (dateTimeString: string) => {
     const date = new Date(dateTimeString);
     return new Intl.DateTimeFormat("vi-VN", {
@@ -171,13 +207,34 @@ function AdminTickets() {
     }).format(amount);
   };
 
-  const filteredTickets = tickets.filter((ticket) =>
-    ticket.user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.trip.route.fromLocation.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.trip.route.toLocation.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.seat.seatNumber.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredTickets = tickets.filter((ticket) => {
+    try {
+      // Search filter
+      const matchesSearch = (
+        ticket?.user?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ticket?.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ticket?.trip?.route?.fromLocation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ticket?.trip?.route?.toLocation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ticket?.seat?.seatNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ticket?.bookingGroupId?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+      // Trip type filter
+      const matchesTripType = tripTypeFilter === "all" ||
+        (tripTypeFilter === "one_way" && ticket.tripType === "one_way") ||
+        (tripTypeFilter === "round_trip" && ticket.tripType === "round_trip");
+
+      // Direction filter (only for round trip)
+      const matchesDirection = directionFilter === "all" ||
+        (directionFilter === "outbound" && !ticket.isReturnTrip) ||
+        (directionFilter === "return" && ticket.isReturnTrip);
+
+      return matchesSearch && matchesTripType && matchesDirection;
+    } catch (error) {
+      console.error("❌ Error filtering ticket:", ticket, error);
+      return false;
+    }
+  });
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -193,25 +250,80 @@ function AdminTickets() {
         {/* Content */}
         <div className="p-8">
           <Card className="p-6">
-            {/* Search */}
-            <div className="flex justify-between items-center mb-6">
-              <div className="relative flex-1 max-w-md">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                <Input
-                  type="text"
-                  placeholder="Tìm theo khách hàng, email, tuyến, số ghế..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+            {/* Search & Filters */}
+            <div className="space-y-4 mb-6">
+              <div className="flex gap-4 items-center">
+                <div className="relative flex-1">
+                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+                  <Input
+                    type="text"
+                    placeholder="Tìm theo khách hàng, email, tuyến, số ghế, booking group..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="text-sm text-slate-600 whitespace-nowrap">
+                  Tổng: <span className="font-bold">{filteredTickets.length}</span> vé
+                </div>
               </div>
-              <div className="ml-4 text-sm text-slate-600">
-                Tổng: <span className="font-bold">{filteredTickets.length}</span> vé
+
+              {/* Filters Row */}
+              <div className="flex gap-3 items-center">
+                <span className="text-sm font-medium text-slate-700">Lọc:</span>
+
+                {/* Trip Type Filter */}
+                <select
+                  value={tripTypeFilter}
+                  onChange={(e) => setTripTypeFilter(e.target.value as any)}
+                  className="px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">Tất cả loại</option>
+                  <option value="one_way">Một chiều</option>
+                  <option value="round_trip">Khứ hồi</option>
+                </select>
+
+                {/* Direction Filter (only show when round_trip is selected) */}
+                {tripTypeFilter === "round_trip" && (
+                  <select
+                    value={directionFilter}
+                    onChange={(e) => setDirectionFilter(e.target.value as any)}
+                    className="px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">Cả 2 chiều</option>
+                    <option value="outbound">Chỉ vé đi</option>
+                    <option value="return">Chỉ vé về</option>
+                  </select>
+                )}
+
+                {/* Reset Filters */}
+                {(tripTypeFilter !== "all" || directionFilter !== "all" || searchTerm) && (
+                  <button
+                    onClick={() => {
+                      setTripTypeFilter("all");
+                      setDirectionFilter("all");
+                      setSearchTerm("");
+                    }}
+                    className="px-3 py-1.5 text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-md"
+                  >
+                    Xóa bộ lọc
+                  </button>
+                )}
               </div>
             </div>
 
             {/* Table */}
-            {loading ? (
+            {error ? (
+              <div className="text-center py-8">
+                <p className="text-red-600 font-medium">{error}</p>
+                <Button
+                  onClick={fetchTickets}
+                  className="mt-4 bg-blue-950 hover:bg-blue-900"
+                >
+                  Thử lại
+                </Button>
+              </div>
+            ) : loading ? (
               <div className="text-center py-8">
                 <p className="text-slate-500">Đang tải...</p>
               </div>
@@ -226,9 +338,11 @@ function AdminTickets() {
                   <thead>
                     <tr className="border-b border-slate-200">
                       <th className="text-left py-3 px-4 font-semibold text-slate-700">ID</th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700">Loại vé</th>
                       <th className="text-left py-3 px-4 font-semibold text-slate-700">Khách hàng</th>
                       <th className="text-left py-3 px-4 font-semibold text-slate-700">Tuyến đường</th>
                       <th className="text-left py-3 px-4 font-semibold text-slate-700">Ghế</th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700">Đón/Trả</th>
                       <th className="text-left py-3 px-4 font-semibold text-slate-700">Giá vé</th>
                       <th className="text-left py-3 px-4 font-semibold text-slate-700">Đặt lúc</th>
                       <th className="text-left py-3 px-4 font-semibold text-slate-700">Phương thức</th>
@@ -239,7 +353,27 @@ function AdminTickets() {
                   <tbody>
                     {filteredTickets.map((ticket) => (
                       <tr key={ticket.id} className="border-b border-slate-100 hover:bg-slate-50">
-                        <td className="py-3 px-4">#{ticket.id}</td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium">#{ticket.id}</span>
+                            {ticket.tripType === "round_trip" && (
+                              <span className="text-lg">{getDirectionIcon(ticket.isReturnTrip)}</span>
+                            )}
+                          </div>
+                          {ticket.bookingGroupId && (
+                            <div className="text-xs text-slate-500 mt-0.5">
+                              Group: {ticket.bookingGroupId.substring(0, 8)}...
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          {getTripTypeBadge(ticket.tripType)}
+                          {ticket.linkedTicketId && (
+                            <div className="text-xs text-blue-600 mt-1">
+                              ↔ #{ticket.linkedTicketId}
+                            </div>
+                          )}
+                        </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
                             <FaUser className="text-slate-400 text-xs" />
@@ -262,8 +396,43 @@ function AdminTickets() {
                           </div>
                         </td>
                         <td className="py-3 px-4">
-                          <span className="font-bold text-blue-950">{ticket.seat.seatNumber}</span>
-                          <span className="text-xs text-slate-500 ml-1">({ticket.seat.seatType})</span>
+                          {ticket.seat ? (
+                            <>
+                              <span className="font-bold text-blue-950">{ticket.seat.seatNumber}</span>
+                              <span className="text-xs text-slate-500 ml-1">({ticket.seat.seatType})</span>
+                            </>
+                          ) : ticket.tripSeat ? (
+                            <>
+                              <span className="font-bold text-blue-950">{ticket.tripSeat.seatNumber}</span>
+                              <span className="text-xs text-slate-500 ml-1">({ticket.tripSeat.seatType})</span>
+                            </>
+                          ) : (
+                            <span className="text-slate-400 text-xs">N/A</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          {ticket.pickupPoint || ticket.dropoffPoint ? (
+                            <div className="text-xs">
+                              {ticket.pickupPoint && (
+                                <div className="text-green-600 flex items-center gap-1">
+                                  <FaMapMarkerAlt className="text-[10px]" />
+                                  <span className="truncate max-w-[120px]" title={ticket.pickupPoint}>
+                                    {ticket.pickupPoint}
+                                  </span>
+                                </div>
+                              )}
+                              {ticket.dropoffPoint && (
+                                <div className="text-red-600 flex items-center gap-1 mt-0.5">
+                                  <FaMapMarkerAlt className="text-[10px]" />
+                                  <span className="truncate max-w-[120px]" title={ticket.dropoffPoint}>
+                                    {ticket.dropoffPoint}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 text-xs">N/A</span>
+                          )}
                         </td>
                         <td className="py-3 px-4 font-semibold text-green-600">
                           {formatCurrency(ticket.price)}
@@ -322,6 +491,37 @@ function AdminTickets() {
                     <span className="text-sm text-slate-600">Vé số:</span>
                     <span className="font-bold">#{selectedTicket.id}</span>
                   </div>
+
+                  {/* Round trip info */}
+                  {selectedTicket.tripType === "round_trip" && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-slate-600">Loại vé:</span>
+                        {getTripTypeBadge(selectedTicket.tripType)}
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-slate-600">Chiều:</span>
+                        <span className="font-medium">
+                          {selectedTicket.isReturnTrip ? "Về (←)" : "Đi (→)"}
+                        </span>
+                      </div>
+                      {selectedTicket.linkedTicketId && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-slate-600">Vé liên kết:</span>
+                          <span className="text-blue-600 font-medium">#{selectedTicket.linkedTicketId}</span>
+                        </div>
+                      )}
+                      {selectedTicket.bookingGroupId && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-slate-600">Group ID:</span>
+                          <span className="text-xs text-slate-500 font-mono">
+                            {selectedTicket.bookingGroupId.substring(0, 12)}...
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )}
+
                   <div className="flex justify-between">
                     <span className="text-sm text-slate-600">Khách hàng:</span>
                     <span className="font-medium">{selectedTicket.user.fullName}</span>
@@ -334,9 +534,23 @@ function AdminTickets() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-slate-600">Ghế:</span>
-                    <span className="font-bold text-blue-950">{selectedTicket.seat.seatNumber}</span>
+                    <span className="font-bold text-blue-950">
+                      {selectedTicket.seat?.seatNumber || selectedTicket.tripSeat?.seatNumber || 'N/A'}
+                    </span>
                   </div>
                 </div>
+
+                {/* Warning for round trip cancellation */}
+                {selectedTicket.tripType === "round_trip" && editStatus === "cancelled" && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <p className="text-sm text-yellow-800">
+                      <strong>⚠️ Lưu ý:</strong> Vé này là một phần của booking khứ hồi.
+                      {selectedTicket.linkedTicketId && (
+                        <> Vé liên kết (#{selectedTicket.linkedTicketId}) cũng nên được xem xét hủy.</>
+                      )}
+                    </p>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="edit-status">Trạng thái *</Label>
                   <Select

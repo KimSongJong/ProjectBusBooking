@@ -32,6 +32,12 @@ public class Vehicle {
     @Column(name = "vehicle_type", nullable = false)
     private VehicleType vehicleType;
     
+    @Column(name = "vehicle_type_display")
+    private String vehicleTypeDisplay;
+
+    @Column(name = "amenities", columnDefinition = "JSON")
+    private String amenities;
+
     @Column(name = "is_active")
     private Boolean isActive = true;
     
@@ -39,11 +45,33 @@ public class Vehicle {
     private LocalDateTime createdAt;
     
     public enum VehicleType {
-        standard, vip, sleeper
+        standard, vip, sleeper, limousine
     }
     
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        setVehicleTypeDisplayFromEnum();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        setVehicleTypeDisplayFromEnum();
+    }
+
+    private void setVehicleTypeDisplayFromEnum() {
+        if (vehicleType != null && vehicleTypeDisplay == null) {
+            switch (vehicleType) {
+                case standard:
+                    vehicleTypeDisplay = "Ghế ngồi";
+                    break;
+                case sleeper:
+                    vehicleTypeDisplay = "Giường nằm";
+                    break;
+                case limousine:
+                    vehicleTypeDisplay = "Limousine";
+                    break;
+            }
+        }
     }
 }

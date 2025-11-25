@@ -21,6 +21,10 @@ public class TripSeat {
     @JoinColumn(name = "trip_id", nullable = false)
     private Trip trip;
     
+    @ManyToOne
+    @JoinColumn(name = "seat_id")
+    private Seat seat;
+
     @Column(name = "seat_number", nullable = false)
     private String seatNumber;
     

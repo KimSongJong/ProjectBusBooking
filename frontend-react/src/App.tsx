@@ -1,10 +1,12 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Toaster } from "sonner";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AdminProtectedRoute } from "./components/ProtectedRoute";
 import MainPage from "./pages/Mainpage";
 import Product from "./pages/Product";
 import BookingSeat from "./pages/BookingSeat";
 import Payment from "./pages/Payment";
+import PaymentResult from "./pages/PaymentResult"; // ✅ ADD: Import PaymentResult
 import Schedule from "./pages/Schedule";
 import SearchTicket from "./pages/SearchTicket";
 import News from "./pages/News";
@@ -24,17 +26,21 @@ import AdminTrips from "./pages/Adminpage/AdminTrips";
 import AdminTickets from "./pages/Adminpage/AdminTickets";
 import AdminSeats from "./pages/Adminpage/AdminSeats";
 import AdminPromotions from "./pages/Adminpage/AdminPromotions";
+import AdminPayments from "./pages/Adminpage/AdminPayments";
+import AdminStations from "./pages/AdminStations";
 import "./App.css";
 
 function App() {
   return (
     <Router>
       <AuthProvider>
+        <Toaster position="top-right" richColors />
         <Routes>
           <Route path="/" element={<MainPage />} />
           <Route path="/product" element={<Product />} />
           <Route path="/booking-seat" element={<BookingSeat />} />
           <Route path="/payment" element={<Payment />} />
+          <Route path="/payment/result" element={<PaymentResult />} /> {/* ✅ ADD: Payment callback route */}
           <Route path="/schedule" element={<Schedule />} />
           <Route path="/search-ticket" element={<SearchTicket />} />
           <Route path="/news" element={<News />} />
@@ -116,6 +122,22 @@ function App() {
             element={
               <AdminProtectedRoute>
                 <AdminPromotions />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/payments"
+            element={
+              <AdminProtectedRoute>
+                <AdminPayments />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/stations"
+            element={
+              <AdminProtectedRoute>
+                <AdminStations />
               </AdminProtectedRoute>
             }
           />

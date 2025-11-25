@@ -26,6 +26,7 @@ public class VehicleMapper {
                 v.getTotalSeats(),
                 v.getSeatsLayout(),
                 v.getVehicleType().name(),
+                v.getVehicleTypeDisplay(),
                 v.getIsActive(),
                 v.getCreatedAt()
         );

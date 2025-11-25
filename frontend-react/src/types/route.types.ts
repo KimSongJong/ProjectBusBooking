@@ -1,3 +1,13 @@
+export interface PickupPoint {
+  name: string
+  address: string
+}
+
+export interface DropoffPoint {
+  name: string
+  address: string
+}
+
 export interface Route {
   id: number
   fromLocation: string
@@ -5,6 +15,8 @@ export interface Route {
   distanceKm: number
   basePrice: number
   estimatedDuration: number
+  pickupPoints?: PickupPoint[]
+  dropoffPoints?: DropoffPoint[]
   createdAt: string
 }
 

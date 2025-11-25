@@ -4,6 +4,8 @@ import com.busbooking.dto.request.TripRequest;
 import com.busbooking.dto.response.ApiResponse;
 import com.busbooking.dto.response.ScheduleGroupResponse;
 import com.busbooking.dto.response.TripResponse;
+import com.busbooking.dto.TripSearchRequest;
+import com.busbooking.dto.TripSearchResponse;
 import com.busbooking.service.TripService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -60,6 +62,33 @@ public class TripController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Schedule routes retrieved successfully", routes));
     }
     
+    /**
+     * NEW: Search trips with round trip support
+     * GET /trips/search-advanced?from=TP+Hồ+Chí+Minh&to=Đà+Lạt&departureDate=2025-11-24T06:00:00&tripType=roundTrip&returnDate=2025-11-26T06:00:00
+     */
+    @GetMapping("/search-advanced")
+    public ResponseEntity<ApiResponse<TripSearchResponse>> searchTripsAdvanced(
+            @RequestParam String from,
+            @RequestParam String to,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime departureDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime returnDate,
+            @RequestParam(defaultValue = "1") Integer passengers,
+            @RequestParam(required = false) String vehicleType,
+            @RequestParam(defaultValue = "oneWay") String tripType) {
+
+        TripSearchRequest request = new TripSearchRequest();
+        request.setFromLocation(from);
+        request.setToLocation(to);
+        request.setDepartureDate(departureDate);
+        request.setReturnDate(returnDate);
+        request.setPassengers(passengers);
+        request.setVehicleType(vehicleType);
+        request.setTripType(tripType);
+
+        TripSearchResponse response = tripService.searchTripsAdvanced(request);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Trips searched successfully", response));
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponse<TripResponse>> createTrip(@Valid @RequestBody TripRequest request) {
         TripResponse trip = tripService.createTrip(request);

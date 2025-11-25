@@ -27,13 +27,35 @@ public class Ticket {
     private Trip trip;
     
     @ManyToOne
-    @JoinColumn(name = "seat_id", nullable = false)
+    @JoinColumn(name = "seat_id")
     private Seat seat;
     
+    @ManyToOne
+    @JoinColumn(name = "trip_seat_id")
+    private TripSeat tripSeat;
+
     @ManyToOne
     @JoinColumn(name = "promotion_id")
     private Promotion promotion;
     
+    @Column(name = "pickup_point")
+    private String pickupPoint;
+
+    @Column(name = "dropoff_point")
+    private String dropoffPoint;
+
+    @Column(name = "customer_name")
+    private String customerName;
+
+    @Column(name = "customer_phone", length = 20)
+    private String customerPhone;
+
+    @Column(name = "customer_email")
+    private String customerEmail;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+
     @Column(nullable = false)
     private BigDecimal price;
     
@@ -51,6 +73,21 @@ public class Ticket {
     @Column(name = "cancelled_at")
     private LocalDateTime cancelledAt;
     
+    // ⭐ NEW: Round trip support fields
+    @Enumerated(EnumType.STRING)
+    @Column(name = "trip_type", nullable = false)
+    private TripType tripType = TripType.one_way;
+
+    @Column(name = "is_return_trip", nullable = false)
+    private Boolean isReturnTrip = false;
+
+    @ManyToOne
+    @JoinColumn(name = "linked_ticket_id")
+    private Ticket linkedTicket;
+
+    @Column(name = "booking_group_id", length = 50)
+    private String bookingGroupId;
+
     public enum BookingMethod {
         online, offline
     }
@@ -59,6 +96,11 @@ public class Ticket {
         booked, confirmed, cancelled
     }
     
+    public enum TripType {
+        one_way,
+        round_trip
+    }
+
     @PrePersist
     protected void onCreate() {
         bookedAt = LocalDateTime.now();

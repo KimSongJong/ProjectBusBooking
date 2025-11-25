@@ -150,13 +150,13 @@ function AdminVehicles() {
   const getVehicleTypeBadge = (type: string) => {
     const colors = {
       standard: "bg-gray-100 text-gray-700",
-      vip: "bg-purple-100 text-purple-700",
       sleeper: "bg-blue-100 text-blue-900",
+      limousine: "bg-purple-100 text-purple-700",
     }
     const labels = {
-      standard: "Tiêu chuẩn",
-      vip: "VIP",
+      standard: "Ghế ngồi",
       sleeper: "Giường nằm",
+      limousine: "Limousine",
     }
     return { color: colors[type as keyof typeof colors], label: labels[type as keyof typeof labels] }
   }
@@ -229,7 +229,7 @@ function AdminVehicles() {
                             <TableCell>{vehicle.totalSeats} ghế</TableCell>
                             <TableCell>
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${typeBadge.color}`}>
-                                {typeBadge.label}
+                                {vehicle.vehicleTypeDisplay || typeBadge.label}
                               </span>
                             </TableCell>
                             <TableCell>
@@ -349,16 +349,16 @@ function AdminVehicles() {
                 </Label>
                 <Select
                   value={formData.vehicleType}
-                  onValueChange={(value: 'standard' | 'vip' | 'sleeper') => setFormData({ ...formData, vehicleType: value })}
+                  onValueChange={(value: 'standard' | 'sleeper' | 'limousine') => setFormData({ ...formData, vehicleType: value })}
                   disabled={isEditing}
                 >
                   <SelectTrigger className={isEditing ? "bg-slate-100 cursor-not-allowed" : ""}>
                     <SelectValue placeholder="Chọn loại xe" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="standard">Tiêu chuẩn</SelectItem>
-                    <SelectItem value="vip">VIP</SelectItem>
+                    <SelectItem value="standard">Ghế ngồi</SelectItem>
                     <SelectItem value="sleeper">Giường nằm</SelectItem>
+                    <SelectItem value="limousine">Limousine</SelectItem>
                   </SelectContent>
                 </Select>
                 {isEditing && (

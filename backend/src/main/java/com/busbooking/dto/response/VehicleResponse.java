@@ -16,6 +16,7 @@ public class VehicleResponse {
     private Integer totalSeats;
     private String seatsLayout;
     private String vehicleType;
+    private String vehicleTypeDisplay;
     private Boolean isActive;
     private LocalDateTime createdAt;
 }

@@ -40,6 +40,7 @@ public class TripSeatService {
                 .map(seat -> {
                     TripSeat tripSeat = new TripSeat();
                     tripSeat.setTrip(trip);
+                    tripSeat.setSeat(seat); // ⭐ IMPORTANT: Link to Seat entity
                     tripSeat.setSeatNumber(seat.getSeatNumber());
                     tripSeat.setSeatType(TripSeat.SeatType.valueOf(seat.getSeatType().name()));
                     tripSeat.setStatus(TripSeat.SeatStatus.available);
@@ -121,9 +122,13 @@ public class TripSeatService {
     }
     
     private TripSeatResponse toResponse(TripSeat tripSeat) {
+        // Get Seat ID directly from relationship (much simpler!)
+        Integer seatId = tripSeat.getSeat() != null ? tripSeat.getSeat().getId() : null;
+
         return new TripSeatResponse(
                 tripSeat.getId(),
                 tripSeat.getTrip().getId(),
+                seatId, // Seat ID for booking creation
                 tripSeat.getSeatNumber(),
                 tripSeat.getSeatType().name(),
                 tripSeat.getStatus().name()

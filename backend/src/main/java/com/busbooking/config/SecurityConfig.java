@@ -25,7 +25,7 @@ public class SecurityConfig {
     
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -43,30 +43,48 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
-    
+
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> {})
+            // Removed explicit CORS config - let CorsConfigurationSource bean handle it automatically
             .authorizeHttpRequests(auth -> auth
+                // CORS preflight requests - must be first!
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+
                 // Public endpoints - no authentication required
                 .requestMatchers("/auth/**").permitAll()  // Authentication endpoints
+                .requestMatchers("/test/**").permitAll()  // Test endpoints (DEVELOPMENT ONLY)
+                .requestMatchers("/api/debug/**").permitAll()  // Debug endpoints (DEVELOPMENT ONLY - REMOVE IN PRODUCTION!)
                 .requestMatchers("/util/**").permitAll()  // Utility endpoints (development only)
                 .requestMatchers("/upload/**").permitAll()  // Image upload endpoints (for testing)
-                
-                // Public read-only endpoints for browsing
-                .requestMatchers("/routes/**").permitAll()  // Browse routes
-                .requestMatchers("/trips/**").permitAll()   // Browse trips
-                .requestMatchers("/promotions/**").permitAll()  // View promotions
-                .requestMatchers("/seats/**").permitAll()     // Seat management (TEMPORARY - FOR DEVELOPMENT)
-                .requestMatchers("/vehicles/**").permitAll()  // Vehicle info (TEMPORARY - FOR DEVELOPMENT)
-                
+                .requestMatchers("/payment/**").permitAll()  // Payment gateway endpoints (VNPay, MoMo callbacks)
+                .requestMatchers("/api/payment/**").permitAll()  // Payment callback endpoints
+
+                // Public read-only endpoints for browsing (note: context-path is /api)
+                .requestMatchers("/routes/**").permitAll()  // Browse routes (maps to /api/routes)
+                .requestMatchers("/trips/**").permitAll()   // Browse trips (maps to /api/trips)
+                .requestMatchers("/trip-seats/**").permitAll()  // Browse trip seats (maps to /api/trip-seats)
+                .requestMatchers("/promotions/**").permitAll()  // View promotions (maps to /api/promotions)
+                .requestMatchers("/stations/**").permitAll()  // Station endpoints (maps to /api/stations)
+                .requestMatchers("/seats/**").permitAll()     // Seat management (maps to /api/seats)
+                .requestMatchers("/vehicles/**").permitAll()  // Vehicle info (maps to /api/vehicles)
+
+                // Ticket endpoints - TEMPORARY: Allow all for testing
+                .requestMatchers("/tickets/**").permitAll()  // TEMPORARY - FOR DEVELOPMENT (maps to /api/tickets)
+                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/tickets/**").permitAll()  // Allow DELETE
+                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/tickets/**").permitAll()  // Allow PUT
+                .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/tickets/**").permitAll()  // Allow PATCH
+
+                // Admin endpoints - require ADMIN role
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")  // All admin endpoints
+
                 // Protected endpoints - require authentication
                 .requestMatchers("/users/**").authenticated()     // User management
                 .requestMatchers("/drivers/**").authenticated()   // Driver management
-                .requestMatchers("/tickets/**").authenticated()   // Ticket booking/management
-                
+
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> 
@@ -74,7 +92,7 @@ public class SecurityConfig {
             )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        
+
         return http.build();
     }
 }

@@ -1,91 +1,250 @@
-# 🚌 Bus Booking System
+# 🚌 TPT Bus Booking System
 
-Hệ thống đặt vé xe khách trực tuyến được xây dựng với Spring Boot (Backend) và React + Vite (Frontend).
-
-## 📋 Mục lục
-
-- [Tổng quan](#tổng-quan)
-- [Công nghệ sử dụng](#công-nghệ-sử-dụng)
-- [Kiến trúc hệ thống](#kiến-trúc-hệ-thống)
-- [Cài đặt và chạy dự án](#cài-đặt-và-chạy-dự-án)
-- [Cấu trúc thư mục](#cấu-trúc-thư-mục)
-- [API Documentation](#api-documentation)
-- [Database Schema](#database-schema)
-- [Tính năng](#tính-năng)
+> **Clone của FUTA Phương Trang Bus** - Hệ thống đặt vé xe khách trực tuyến  
+> **Tech Stack:** Spring Boot 3.4.1 + React 19 + MySQL 8.0
 
 ---
 
-## 🎯 Tổng quan
+## 🚀 QUICK START
 
-Bus Booking System là một ứng dụng web full-stack cho phép người dùng:
-- Tìm kiếm và đặt vé xe khách trực tuyến
-- Quản lý thông tin người dùng, xe, tài xế, tuyến đường
-- Quản lý chuyến đi và ghế ngồi
-- Áp dụng mã khuyến mãi khi đặt vé
-- Theo dõi lịch sử đặt vé
+### Khởi động nhanh (3 bước)
 
----
+```bash
+# Bước 1: Mở XAMPP, start MySQL
+# Bước 2: Import database current_dtb.sql vào database "bus_booking"
+# Bước 3: Chạy batch file
+START_ALL.bat
+```
 
-## 🛠️ Công nghệ sử dụng
+### 📍 Truy cập sau khi start
 
-### Backend
-- **Java** 25.0.1
-- **Spring Boot** 3.4.1
-- **Spring Data JPA** - ORM và database operations
-- **Hibernate** 6.6.4 - JPA implementation
-- **MySQL** 8.0 - Database
-- **Lombok** (edge-SNAPSHOT) - Reduce boilerplate code
-- **Maven** 3.9.11 - Build tool
-- **Jakarta Bean Validation** - Request validation
-
-### Frontend
-- **React** 19.2.0
-- **Vite** 7.1.9 - Build tool và dev server
-- **TypeScript** 5.7.3
-- **Tailwind CSS** 3.4.17 - Styling
-- **Shadcn/ui** - UI component library
-- **React Router DOM** - Routing
-- **pnpm** 10.19.0 - Package manager
-
-### Database
-- **MySQL** 8.0 (XAMPP)
-- **Port:** 3307
-- **Database:** bus_booking
+| Service | URL | Tài khoản |
+|---------|-----|-----------|
+| **Customer** | http://localhost:5173 | LNNT / 123456 |
+| **Admin** | http://localhost:5173/admin/login | admin / admin123 |
+| **Backend API** | http://localhost:8080/api | - |
 
 ---
 
-## 🏗️ Kiến trúc hệ thống
+## 📚 DOCUMENTATION
 
-### Backend Architecture (MVC Pattern)
+### 📖 Đọc tài liệu chi tiết
+
+- **[INTERNAL_README.md](./INTERNAL_README.md)** ← 📌 **ĐỌC FILE NÀY** cho tài liệu đầy đủ
+  - Kiến trúc hệ thống
+  - API Endpoints
+  - Database Schema
+  - Troubleshooting
+  - Development workflow
+
+### 📂 Các file quan trọng
+
+```
+ProjectBusBooking/
+├── README.md                  # File này - Quick start
+├── INTERNAL_README.md         # 📌 Tài liệu đầy đủ cho team
+├── current_dtb.sql           # Database chính
+├── bus_booking.sql           # Backup database
+├── START_ALL.bat             # Start backend + frontend
+├── backend/                  # Spring Boot API
+└── frontend-react/           # React + Vite
+```
+
+---
+
+## 🛠️ TECH STACK
+
+**Backend:**
+- ☕ Java 25.0.1
+- 🍃 Spring Boot 3.4.1
+- 🔐 Spring Security + JWT
+- 🗄️ MySQL 8.0
+- 📦 Maven 3.9.11
+
+**Frontend:**
+- ⚛️ React 19.2.0
+- ⚡ Vite 7.1.9
+- 🎨 TypeScript 5.7.3
+- 💅 Tailwind CSS + Shadcn/ui
+- 📦 pnpm 10.19.0
+
+---
+
+## ✨ TÍNH NĂNG CHÍNH
+
+### ✅ Đã hoàn thành
+
+#### Customer Features
+- ✅ Tìm kiếm chuyến xe theo tuyến đường và ngày
+- ✅ **Đặt vé 1 chiều**
+- ✅ **Đặt vé khứ hồi** (giảm 10%)
+- ✅ Chọn ghế ngồi interactive
+- ✅ Chọn điểm đón/trả khách
+- ✅ In vé PDF
+- ✅ Xem lịch sử đặt vé
+- ✅ Thanh toán online (VNPay - đã có code)
+
+#### Admin Features
+- ✅ **Dashboard** - Tổng quan hệ thống
+- ✅ **Quản lý Trạm xe** - CRUD với OpenStreetMap
+- ✅ **Quản lý Tuyến đường** - Auto calculate khoảng cách, giá vé
+- ✅ **Quản lý Vé** - CRUD, delete vé khứ hồi
+- ✅ **Quản lý Chuyến xe** - Thêm/sửa/xóa chuyến
+- ✅ **Quản lý Ghế** - Bộ lọc, tìm kiếm
+- ✅ **Quản lý Xe** - CRUD vehicles
+- ✅ **Quản lý Tài xế** - CRUD drivers
+- ✅ **Quản lý Khuyến mãi** - CRUD promotions
+
+### 🎯 Điểm nổi bật
+
+#### 🎫 Round Trip Booking System
+- Chọn 2 chuyến (đi + về) cùng lúc
+- Tự động link vé đi ↔ vé về
+- Auto apply 10% discount
+- Delete smart: xóa 1 vé → auto xóa vé liên quan
+
+#### 🗺️ Smart Route Calculation
+- Tích hợp **OpenStreetMap API**
+- Auto calculate:
+  - Khoảng cách thực tế (km)
+  - Thời gian di chuyển (giờ, phút)
+  - Giá vé dựa trên khoảng cách
+- Example: HCM → Nha Trang = 414km, 4h53m, 437,000đ
+
+#### 🏢 Station Management
+- Lưu tọa độ GPS chính xác
+- Autocomplete địa chỉ với OpenStreetMap
+- Hỗ trợ 3 loại trạm: Đi / Đến / Cả 2
+- Filter theo thành phố, trạng thái
+
+---
+
+## 🔧 DEVELOPMENT
+
+### Start riêng lẻ
+
+```bash
+# Backend only
+START_BACKEND.bat
+
+# Frontend only
+START_FRONTEND.bat
+
+# Restart backend (nếu crash)
+RESTART_BACKEND.bat
+```
+
+### Cấu trúc Project
 
 ```
 backend/
-├── controller/     # REST API endpoints (@RestController)
-├── service/        # Business logic (@Service)
-├── repository/     # Data access layer (JPA Repository)
-├── model/          # Entity classes (JPA @Entity)
-├── dto/           
-│   ├── request/    # Request DTOs với validation
-│   └── response/   # Response DTOs
-├── mapper/         # Entity ↔ DTO converters (@Component)
-├── exception/      # Custom exceptions
-└── config/         # Spring configuration (Security, CORS)
-```
+├── controller/          # REST API endpoints
+├── service/            # Business logic
+├── repository/         # JPA repositories
+├── model/             # Entity classes
+├── dto/               # Request/Response DTOs
+└── config/            # Security, CORS config
 
-### Frontend Architecture
-
-```
 frontend-react/
 ├── src/
-│   ├── components/   # Reusable UI components
-│   ├── pages/        # Page components (routes)
-│   ├── hooks/        # Custom React hooks
-│   ├── lib/          # Utilities
-│   └── assets/       # Static assets
+│   ├── pages/              # Page components
+│   │   ├── BookingSeat.tsx    # ✅ Round trip booking
+│   │   ├── Invoice.tsx        # ✅ Print tickets
+│   │   └── Adminpage/         # ✅ Admin dashboard
+│   ├── services/           # API clients
+│   ├── components/         # Reusable components
+│   └── config/            # API base URL
 ```
 
-### Design Patterns
-- **MVC (Model-View-Controller)** - Backend structure
+---
+
+## ⚠️ QUAN TRỌNG
+
+### 🔴 Backend Context Path = `/api`
+
+**Tất cả API endpoints đều có prefix `/api`**
+
+```
+Controller mapping: /stations   →  Actual endpoint: /api/stations ✅
+Controller mapping: /routes     →  Actual endpoint: /api/routes ✅
+Controller mapping: /tickets    →  Actual endpoint: /api/tickets ✅
+```
+
+**❌ KHÔNG THÊM `/api` vào `@RequestMapping`!**
+
+### 🔴 CORS Configuration
+
+- ✅ Chỉ config CORS ở `CorsConfig.java`
+- ❌ **KHÔNG dùng** `@CrossOrigin` trên controllers
+- ❌ **KHÔNG thêm** manual CORS headers
+
+### 🔴 Database
+
+- **File chính:** `current_dtb.sql` (luôn update file này)
+- **Backup:** `bus_booking.sql`
+- Import vào database: `bus_booking`
+
+---
+
+## 🐛 TROUBLESHOOTING
+
+### Backend không start
+
+```bash
+# Kill Java process và restart
+RESTART_BACKEND.bat
+```
+
+### Frontend lỗi CORS
+
+- Check `API_BASE_URL` trong `frontend-react/src/config/constants.ts`
+- Phải là: `http://localhost:8080/api`
+
+### Database lỗi
+
+```bash
+# Re-import database
+mysql -u root bus_booking < current_dtb.sql
+```
+
+### Xem logs chi tiết
+
+- **Backend logs:** Terminal chạy backend
+- **Frontend logs:** Browser DevTools Console
+- **Database:** phpMyAdmin (http://localhost/phpmyadmin)
+
+---
+
+## 📞 TEAM & SUPPORT
+
+**Nếu gặp vấn đề:**
+1. ✅ Đọc [INTERNAL_README.md](./INTERNAL_README.md) section TROUBLESHOOTING
+2. ✅ Check console logs (backend + frontend)
+3. ✅ Check database qua phpMyAdmin
+4. ✅ Hỏi team members
+
+---
+
+## 📝 CHECKLIST TRƯỚC KHI DEMO
+
+- [ ] Import `current_dtb.sql` thành công
+- [ ] Backend start không lỗi (`http://localhost:8080/api`)
+- [ ] Frontend start không lỗi (`http://localhost:5173`)
+- [ ] Login admin thành công
+- [ ] Đặt vé 1 chiều OK
+- [ ] Đặt vé khứ hồi OK (discount 10%)
+- [ ] In vé OK
+- [ ] Admin CRUD stations OK
+- [ ] Admin auto calculate route OK
+- [ ] Admin delete round trip ticket OK
+- [ ] Không có CORS errors
+- [ ] Không có 404/500 errors
+
+---
+
+**📚 Xem thêm:** [INTERNAL_README.md](./INTERNAL_README.md) - Tài liệu đầy đủ
+
+**🎉 Chúc các bạn thành công với project!**
 - **Repository Pattern** - Data access abstraction
 - **DTO Pattern** - Request/Response separation
 - **Mapper Pattern** - Entity-DTO conversion
@@ -135,9 +294,25 @@ USE bus_booking;
 mysql -u root -P 3307 -p bus_booking < bus_booking.sql
 ```
 
-### 3. Cấu hình Backend
+### 3. Cách nhanh nhất - Chạy tất cả
 
-#### 3.1. Cập nhật `backend/src/main/resources/application.properties`
+**🚀 Chạy 1 lệnh duy nhất:**
+
+```bash
+# Windows
+START_ALL.bat
+```
+
+Script này sẽ:
+1. ✅ Kiểm tra MySQL đã chạy chưa
+2. ✅ Khởi động Backend (Spring Boot) - port 8080
+3. ✅ Khởi động Frontend (React + Vite) - port 5173
+
+---
+
+### 4. Cấu hình Backend (nếu chạy riêng lẻ)
+
+#### 4.1. Cập nhật `backend/src/main/resources/application.properties`
 
 ```properties
 spring.application.name=BusBooking
@@ -175,9 +350,9 @@ mvn spring-boot:run
 
 **Backend sẽ chạy tại:** `http://localhost:8080/api`
 
-### 4. Cấu hình Frontend
+### 5. Cấu hình Frontend (nếu chạy riêng lẻ)
 
-#### 4.1. Cài đặt dependencies
+#### 5.1. Cài đặt dependencies
 
 ```bash
 cd frontend-react

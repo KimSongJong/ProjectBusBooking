@@ -21,4 +21,7 @@ public interface TripSeatRepository extends JpaRepository<TripSeat, Integer> {
     
     @Query("SELECT ts FROM TripSeat ts WHERE ts.trip.id = :tripId AND ts.seatNumber = :seatNumber")
     TripSeat findByTripIdAndSeatNumber(@Param("tripId") Integer tripId, @Param("seatNumber") String seatNumber);
+
+    @Query("SELECT ts FROM TripSeat ts WHERE ts.trip.id = :tripId AND ts.seat.id = :seatId")
+    java.util.Optional<TripSeat> findByTripIdAndSeatId(@Param("tripId") Integer tripId, @Param("seatId") Integer seatId);
 }

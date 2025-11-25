@@ -11,7 +11,14 @@ interface ProtectedRouteProps {
  * Protected Route component that checks authentication and role
  */
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated, user, isLoading } = useAuth()
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">
+      <div className="text-lg">Đang tải...</div>
+    </div>
+  }
 
   // Not authenticated - redirect to login
   if (!isAuthenticated || !user) {
@@ -31,7 +38,14 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
  * Admin Protected Route - requires admin or staff role
  */
 export function AdminProtectedRoute({ children }: { children: ReactNode }) {
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated, user, isLoading } = useAuth()
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">
+      <div className="text-lg">Đang tải...</div>
+    </div>
+  }
 
   // Not authenticated - redirect to admin login
   if (!isAuthenticated || !user) {

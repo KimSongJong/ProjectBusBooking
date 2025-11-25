@@ -22,6 +22,7 @@ function AdminDriver() {
   const [drivers, setDrivers] = useState<Driver[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [currentDriver, setCurrentDriver] = useState<Driver | null>(null)
@@ -144,11 +145,29 @@ function AdminDriver() {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  const filteredDrivers = drivers.filter((driver) =>
-    driver.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    driver.phone.includes(searchTerm) ||
-    driver.licenseNumber.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredDrivers = drivers.filter((driver) => {
+    const matchesSearch =
+      driver.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      driver.phone.includes(searchTerm) ||
+      driver.licenseNumber.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "active" && driver.isActive) ||
+      (statusFilter === "inactive" && !driver.isActive);
+
+    return matchesSearch && matchesStatus;
+  })
+
+  const getExperienceBadge = (years: number) => {
+    if (years >= 5) {
+      return { className: "bg-green-100 text-green-700", label: `${years} năm`, level: "Dày dặn" };
+    } else if (years >= 3) {
+      return { className: "bg-yellow-100 text-yellow-700", label: `${years} năm`, level: "Có kinh nghiệm" };
+    } else {
+      return { className: "bg-slate-100 text-slate-700", label: `${years} năm`, level: "Mới" };
+    }
+  }
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -165,22 +184,55 @@ function AdminDriver() {
         <div className="p-8">
           <Card className="p-6">
             {/* Toolbar */}
-            <div className="flex justify-between items-center mb-6">
-              <div className="relative flex-1 max-w-md">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                <Input
-                  placeholder="Tìm kiếm theo tên, số điện thoại, GPLX..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+            <div className="space-y-4 mb-6">
+              <div className="flex justify-between items-center">
+                <div className="relative flex-1 max-w-md">
+                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+                  <Input
+                    placeholder="Tìm kiếm theo tên, số điện thoại, GPLX..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Button
+                  onClick={handleCreate}
+                  className="bg-blue-950 hover:bg-blue-900 text-white flex items-center gap-2"
+                >
+                  <FaPlus /> Thêm tài xế
+                </Button>
               </div>
-              <Button
-                onClick={handleCreate}
-                className="bg-blue-950 hover:bg-blue-900 text-white flex items-center gap-2"
-              >
-                <FaPlus /> Thêm tài xế
-              </Button>
+
+              {/* Filters Row */}
+              <div className="flex gap-3 items-center">
+                <span className="text-sm font-medium text-slate-700">Lọc:</span>
+
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
+                  className="px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">Tất cả trạng thái</option>
+                  <option value="active">Đang hoạt động</option>
+                  <option value="inactive">Đang nghỉ</option>
+                </select>
+
+                {(statusFilter !== "all" || searchTerm) && (
+                  <button
+                    onClick={() => {
+                      setStatusFilter("all");
+                      setSearchTerm("");
+                    }}
+                    className="px-3 py-1.5 text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-md"
+                  >
+                    Xóa bộ lọc
+                  </button>
+                )}
+
+                <div className="ml-auto text-sm text-slate-600">
+                  Tổng: <span className="font-bold">{filteredDrivers.length}</span> tài xế
+                </div>
+              </div>
             </div>
 
             {/* Table */}
@@ -229,9 +281,17 @@ function AdminDriver() {
                           <TableCell>{driver.phone}</TableCell>
                           <TableCell>{driver.licenseNumber}</TableCell>
                           <TableCell>
-                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-900">
-                              {driver.experienceYears} năm
-                            </span>
+                            {(() => {
+                              const badge = getExperienceBadge(driver.experienceYears);
+                              return (
+                                <div className="flex flex-col gap-1">
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${badge.className}`}>
+                                    {badge.label}
+                                  </span>
+                                  <span className="text-[10px] text-slate-500">{badge.level}</span>
+                                </div>
+                              );
+                            })()}
                           </TableCell>
                           <TableCell>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${

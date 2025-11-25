@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/table"
 import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
-import { FaPlus, FaEdit, FaSearch, FaSave, FaTimes, FaTag, FaPercent } from "react-icons/fa"
+import { FaPlus, FaEdit, FaSearch, FaSave, FaTimes, FaTag, FaPercent, FaTrash } from "react-icons/fa"
 import promotionService from "@/services/promotion.service"
 import type { Promotion, CreatePromotionRequest, UpdatePromotionRequest } from "@/types/promotion.types"
 
@@ -34,11 +34,16 @@ function AdminPromotions() {
   const [currentPromotion, setCurrentPromotion] = useState<Promotion | null>(null)
   const [formData, setFormData] = useState<CreatePromotionRequest | UpdatePromotionRequest>({
     code: "",
-    discountPercentage: undefined,
-    discountAmount: undefined,
+    description: "",
+    discountType: "percentage",
+    discountValue: 0,
+    minAmount: 0,
+    maxDiscount: undefined,
     startDate: "",
     endDate: "",
-    maxUses: 0,
+    usageLimit: 0,
+    isActive: true,
+    applicableToRoundTrip: false,
   })
 
   useEffect(() => {
@@ -65,11 +70,16 @@ function AdminPromotions() {
     setCurrentPromotion(null)
     setFormData({
       code: "",
-      discountPercentage: undefined,
-      discountAmount: undefined,
+      description: "",
+      discountType: "percentage",
+      discountValue: 0,
+      minAmount: 0,
+      maxDiscount: undefined,
       startDate: "",
       endDate: "",
-      maxUses: 0,
+      usageLimit: 0,
+      isActive: true,
+      applicableToRoundTrip: false,
     })
     setIsDialogOpen(true)
   }
@@ -79,11 +89,16 @@ function AdminPromotions() {
     setCurrentPromotion(promotion)
     setFormData({
       code: promotion.code,
-      discountPercentage: promotion.discountPercentage,
-      discountAmount: promotion.discountAmount,
+      description: promotion.description || "",
+      discountType: promotion.discountType,
+      discountValue: promotion.discountValue,
+      minAmount: promotion.minAmount,
+      maxDiscount: promotion.maxDiscount,
       startDate: promotion.startDate.split('T')[0],
       endDate: promotion.endDate.split('T')[0],
-      maxUses: promotion.maxUses,
+      usageLimit: promotion.usageLimit,
+      isActive: promotion.isActive ?? true,
+      applicableToRoundTrip: promotion.applicableToRoundTrip || false,
     })
     setIsDialogOpen(true)
   }
@@ -91,9 +106,9 @@ function AdminPromotions() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validation: Phải có ít nhất discountPercentage hoặc discountAmount
-    if (!formData.discountPercentage && !formData.discountAmount) {
-      toast.error("Vui lòng nhập % giảm giá hoặc số tiền giảm")
+    // Validation
+    if (!formData.discountValue || formData.discountValue <= 0) {
+      toast.error("Vui lòng nhập giá trị giảm giá")
       return
     }
 
@@ -127,6 +142,24 @@ function AdminPromotions() {
     }
   }
 
+  const handleDelete = async (promotion: Promotion) => {
+    if (!confirm(`Bạn có chắc chắn muốn xóa khuyến mãi "${promotion.code}"?`)) {
+      return
+    }
+
+    try {
+      const response = await promotionService.deletePromotion(promotion.id)
+      if (response.success) {
+        toast.success("Xóa khuyến mãi thành công")
+        fetchPromotions()
+      } else {
+        toast.error(response.message || "Xóa khuyến mãi thất bại")
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Lỗi khi xóa khuyến mãi")
+    }
+  }
+
   const filteredPromotions = promotions.filter((promotion) =>
     promotion.code.toLowerCase().includes(searchTerm.toLowerCase())
   )
@@ -140,6 +173,23 @@ function AdminPromotions() {
     const start = new Date(promotion.startDate)
     const end = new Date(promotion.endDate)
     return now >= start && now <= end && promotion.usedCount < promotion.maxUses
+  }
+
+  const formatDiscount = (promotion: Promotion) => {
+    if (promotion.discountType === 'percentage') {
+      return (
+        <span className="flex items-center gap-1 text-green-600 font-semibold">
+          <FaPercent className="text-xs" />
+          {promotion.discountValue}%
+        </span>
+      )
+    } else {
+      return (
+        <span className="text-green-600 font-semibold">
+          {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(promotion.discountValue)}
+        </span>
+      )
+    }
   }
 
   return (
@@ -188,6 +238,7 @@ function AdminPromotions() {
                       <TableHead className="font-semibold">Giảm giá</TableHead>
                       <TableHead className="font-semibold">Thời gian</TableHead>
                       <TableHead className="font-semibold">Lượt dùng</TableHead>
+                      <TableHead className="font-semibold">Vé khứ hồi</TableHead>
                       <TableHead className="font-semibold">Trạng thái</TableHead>
                       <TableHead className="font-semibold text-center">Thao tác</TableHead>
                     </TableRow>
@@ -195,7 +246,7 @@ function AdminPromotions() {
                   <TableBody>
                     {filteredPromotions.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-slate-400">
+                        <TableCell colSpan={8} className="text-center py-8 text-slate-400">
                           Không tìm thấy khuyến mãi nào
                         </TableCell>
                       </TableRow>
@@ -210,17 +261,7 @@ function AdminPromotions() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            {promotion.discountPercentage && (
-                              <span className="flex items-center gap-1 text-green-600 font-semibold">
-                                <FaPercent className="text-xs" />
-                                {promotion.discountPercentage}%
-                              </span>
-                            )}
-                            {promotion.discountAmount && (
-                              <span className="text-green-600 font-semibold">
-                                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(promotion.discountAmount)}
-                              </span>
-                            )}
+                            {formatDiscount(promotion)}
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">
@@ -232,6 +273,17 @@ function AdminPromotions() {
                             <span className="text-sm">
                               {promotion.usedCount} / {promotion.maxUses}
                             </span>
+                          </TableCell>
+                          <TableCell>
+                            {promotion.applicableToRoundTrip ? (
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                                ✓ Khứ hồi
+                              </span>
+                            ) : (
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                                Không
+                              </span>
+                            )}
                           </TableCell>
                           <TableCell>
                             {isActive(promotion) ? (
@@ -254,6 +306,15 @@ function AdminPromotions() {
                                 title="Chỉnh sửa"
                               >
                                 <FaEdit />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDelete(promotion)}
+                                className="text-red-600 hover:text-red-500 hover:bg-red-50"
+                                title="Xóa"
+                              >
+                                <FaTrash />
                               </Button>
                             </div>
                           </TableCell>
@@ -294,38 +355,70 @@ function AdminPromotions() {
               />
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="description">Mô tả</Label>
+              <Input
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Nhập mô tả khuyến mãi (tuỳ chọn)"
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="discountPercentage">% Giảm giá</Label>
+                <Label htmlFor="discountType">Loại giảm giá</Label>
+                <select
+                  id="discountType"
+                  value={formData.discountType}
+                  onChange={(e) => setFormData({ ...formData, discountType: e.target.value })}
+                  className="block w-full p-2 border rounded-md focus:ring focus:ring-blue-500"
+                >
+                  <option value="percentage">Giảm theo phần trăm</option>
+                  <option value="amount">Giảm theo số tiền</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="discountValue">Giá trị giảm giá</Label>
                 <Input
-                  id="discountPercentage"
+                  id="discountValue"
                   type="number"
                   min="0"
-                  max="100"
-                  step="0.1"
-                  value={formData.discountPercentage || ""}
-                  onChange={(e) => setFormData({ 
+                  value={formData.discountValue || ""}
+                  onChange={(e) => setFormData({
                     ...formData, 
-                    discountPercentage: e.target.value ? parseFloat(e.target.value) : undefined,
-                    discountAmount: undefined // Clear amount khi nhập %
+                    discountValue: e.target.value ? parseFloat(e.target.value) : undefined,
                   })}
                   placeholder="20"
+                  required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="discountAmount">Hoặc số tiền giảm (VND)</Label>
+                <Label htmlFor="minAmount">Số tiền tối thiểu áp dụng</Label>
                 <Input
-                  id="discountAmount"
+                  id="minAmount"
                   type="number"
                   min="0"
-                  value={formData.discountAmount || ""}
-                  onChange={(e) => setFormData({ 
+                  value={formData.minAmount}
+                  onChange={(e) => setFormData({ ...formData, minAmount: parseInt(e.target.value) || 0 })}
+                  placeholder="0"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="maxDiscount">Giảm giá tối đa (VND)</Label>
+                <Input
+                  id="maxDiscount"
+                  type="number"
+                  min="0"
+                  value={formData.maxDiscount || ""}
+                  onChange={(e) => setFormData({
                     ...formData, 
-                    discountAmount: e.target.value ? parseFloat(e.target.value) : undefined,
-                    discountPercentage: undefined // Clear % khi nhập amount
+                    maxDiscount: e.target.value ? parseFloat(e.target.value) : undefined,
                   })}
-                  placeholder="50000"
+                  placeholder="Không giới hạn"
                 />
               </div>
 
@@ -356,19 +449,33 @@ function AdminPromotions() {
               </div>
 
               <div className="space-y-2 col-span-2">
-                <Label htmlFor="maxUses">
+                <Label htmlFor="usageLimit">
                   Số lượt sử dụng tối đa <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  id="maxUses"
+                  id="usageLimit"
                   type="number"
                   min="1"
-                  value={formData.maxUses}
-                  onChange={(e) => setFormData({ ...formData, maxUses: parseInt(e.target.value) || 0 })}
+                  value={formData.usageLimit}
+                  onChange={(e) => setFormData({ ...formData, usageLimit: parseInt(e.target.value) || 0 })}
                   placeholder="100"
                   required
                 />
               </div>
+            </div>
+
+            {/* Round Trip Checkbox */}
+            <div className="flex items-center space-x-2 p-4 bg-purple-50 rounded-lg border border-purple-200">
+              <input
+                type="checkbox"
+                id="applicableToRoundTrip"
+                checked={formData.applicableToRoundTrip || false}
+                onChange={(e) => setFormData({ ...formData, applicableToRoundTrip: e.target.checked })}
+                className="w-4 h-4 text-purple-600 bg-white border-purple-300 rounded focus:ring-purple-500"
+              />
+              <Label htmlFor="applicableToRoundTrip" className="text-sm font-medium text-purple-900 cursor-pointer">
+                Áp dụng cho vé khứ hồi (khách đặt vé khứ hồi sẽ được giảm giá)
+              </Label>
             </div>
 
             <DialogFooter>
@@ -395,5 +502,4 @@ function AdminPromotions() {
 }
 
 export default AdminPromotions
-
 

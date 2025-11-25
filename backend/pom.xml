@@ -73,6 +73,13 @@
             <optional>true</optional>
         </dependency>
         
+        <!-- JSON Processing for Google Maps API -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20231013</version>
+        </dependency>
+
         <!-- JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

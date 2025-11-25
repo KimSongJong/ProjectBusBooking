@@ -29,10 +29,20 @@ function Login() {
         // Update auth context
         setAuthUser(response.data)
         toast.success(`Chào mừng ${response.data.fullName}!`)
-        // Redirect to home page after successful login
-        setTimeout(() => {
-          navigate("/")
-        }, 500)
+
+        // Check if there's a redirect URL from payment callback
+        const redirectUrl = sessionStorage.getItem("redirect_after_login")
+        if (redirectUrl) {
+          sessionStorage.removeItem("redirect_after_login")
+          setTimeout(() => {
+            window.location.href = redirectUrl // Use window.location to preserve query params
+          }, 500)
+        } else {
+          // Redirect to home page after successful login
+          setTimeout(() => {
+            navigate("/")
+          }, 500)
+        }
       } else {
         setError(response.message || "Đăng nhập thất bại")
         toast.error(response.message || "Đăng nhập thất bại")

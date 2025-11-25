@@ -6,6 +6,7 @@ import type { LoginResponse, UserResponse } from "@/types/auth.types"
 interface AuthContextType {
   user: LoginResponse | UserResponse | null
   isAuthenticated: boolean
+  isLoading: boolean
   login: (user: LoginResponse) => void
   logout: () => void
   updateUser: (user: LoginResponse | UserResponse) => void
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<LoginResponse | UserResponse | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   // Load user from localStorage on mount
   useEffect(() => {
@@ -26,6 +28,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(storedUser)
       setIsAuthenticated(true)
     }
+
+    setIsLoading(false)
   }, [])
 
   const login = (userData: LoginResponse) => {
@@ -48,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

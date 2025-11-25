@@ -4,7 +4,8 @@ export interface Vehicle {
   model: string
   totalSeats: number
   seatsLayout?: string
-  vehicleType: 'standard' | 'vip' | 'sleeper'
+  vehicleType: 'standard' | 'sleeper' | 'limousine'
+  vehicleTypeDisplay?: string
   isActive: boolean
   createdAt: string
 }
@@ -14,7 +15,7 @@ export interface CreateVehicleRequest {
   model: string
   totalSeats: number
   seatsLayout?: string
-  vehicleType: 'standard' | 'vip' | 'sleeper'
+  vehicleType: 'standard' | 'sleeper' | 'limousine'
 }
 
 export interface UpdateVehicleRequest {
@@ -22,5 +23,5 @@ export interface UpdateVehicleRequest {
   model: string
   totalSeats: number
   seatsLayout?: string
-  vehicleType: 'standard' | 'vip' | 'sleeper'
+  vehicleType: 'standard' | 'sleeper' | 'limousine'
 }

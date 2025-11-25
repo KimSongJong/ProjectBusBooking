@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -22,27 +21,46 @@ public class Promotion {
     @Column(nullable = false, unique = true)
     private String code;
     
-    @Column(name = "discount_percentage")
-    private BigDecimal discountPercentage;
-    
-    @Column(name = "discount_amount")
-    private BigDecimal discountAmount;
-    
-    @Column(name = "start_date")
-    private LocalDate startDate;
-    
-    @Column(name = "end_date")
-    private LocalDate endDate;
-    
-    @Column(name = "max_uses")
-    private Integer maxUses;
-    
+    private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "discount_type", nullable = false)
+    private DiscountType discountType;
+
+    @Column(name = "discount_value", nullable = false)
+    private BigDecimal discountValue;
+
+    @Column(name = "min_amount")
+    private BigDecimal minAmount;
+
+    @Column(name = "max_discount")
+    private BigDecimal maxDiscount;
+
+    @Column(name = "start_date", nullable = false)
+    private LocalDateTime startDate;
+
+    @Column(name = "end_date", nullable = false)
+    private LocalDateTime endDate;
+
+    @Column(name = "usage_limit")
+    private Integer usageLimit;
+
     @Column(name = "used_count")
     private Integer usedCount = 0;
     
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
+    @Column(name = "applicable_to_round_trip")
+    private Boolean applicableToRoundTrip = false;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
+    public enum DiscountType {
+        percentage, fixed
+    }
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

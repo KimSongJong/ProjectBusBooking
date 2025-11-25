@@ -8,5 +8,8 @@ import java.util.List;
 @Repository
 public interface SeatRepository extends JpaRepository<Seat, Integer> {
     List<Seat> findByVehicleId(Integer vehicleId);
-    List<Seat> findByVehicleIdAndStatus(Integer vehicleId, Seat.Status status);
+    List<Seat> findByVehicleIdAndIsAvailable(Integer vehicleId, Boolean isAvailable);
+
+    // Find seat by vehicle and seat number (for TripSeat to Seat mapping)
+    Seat findByVehicleIdAndSeatNumber(Integer vehicleId, String seatNumber);
 }

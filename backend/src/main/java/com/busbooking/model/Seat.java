@@ -27,15 +27,23 @@ public class Seat {
     @Column(name = "seat_type", nullable = false)
     private SeatType seatType;
     
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Status status = Status.available;
-    
+    @Column(name = "is_available", nullable = false)
+    private Boolean isAvailable = true;
+
+    @Column(name = "created_at")
+    private java.time.LocalDateTime createdAt;
+
     public enum SeatType {
         standard, vip, bed
     }
     
-    public enum Status {
-        available, booked, unavailable
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = java.time.LocalDateTime.now();
+        }
+        if (isAvailable == null) {
+            isAvailable = true;
+        }
     }
 }
