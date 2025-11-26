@@ -787,13 +787,24 @@ function BookingSeat() {
       return;
     }
 
-    // Extract userId
-    const userId = (user as any).userId || (user as any).id || null;
+    // Extract userId with detailed debugging
+    console.log("🔍 DEBUG user object:", user);
+    console.log("🔍 user.userId:", (user as any)?.userId);
+    console.log("🔍 user.id:", (user as any)?.id);
+    console.log("🔍 isAuthenticated:", isAuthenticated);
+
+    const userId = (user as any)?.userId || (user as any)?.id || null;
+
     if (!userId) {
-      console.error("❌ Cannot find userId in user object:", user);
-      toast.error("Không thể xác định ID người dùng. Vui lòng đăng nhập lại.");
+      console.error("❌ No userId found!");
+      console.error("   user object:", JSON.stringify(user, null, 2));
+      console.error("   isAuthenticated:", isAuthenticated);
+      toast.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+      navigate("/login", { state: { from: window.location.pathname + window.location.search } });
       return;
     }
+
+    console.log("✅ Found userId:", userId);
 
     // ⭐ ROUND TRIP: Call round trip API
     if (isRoundTrip && outboundTrip && returnTrip) {
@@ -832,11 +843,14 @@ function BookingSeat() {
         const response = await ticketService.createRoundTripBooking(roundTripRequest);
 
         console.log("📦 Round trip response:", response);
+        console.log("📦 Response type:", typeof response);
+        console.log("📦 Response keys:", response ? Object.keys(response) : 'null/undefined');
 
         toast.dismiss(loadingToast);
 
         // ✅ Check if response exists
         if (!response) {
+          console.error("❌ Response is null or undefined!");
           throw new Error("Không nhận được phản hồi từ server");
         }
 

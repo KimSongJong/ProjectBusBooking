@@ -49,8 +49,11 @@ class TicketService {
 
   // Create round trip or one-way booking
   async createRoundTripBooking(data: RoundTripBookingRequest): Promise<RoundTripBookingResponse> {
+    // Backend returns RoundTripBookingResponse directly (not wrapped in ApiResponse)
+    // Axios response structure: { data: RoundTripBookingResponse, status: 201, ... }
     const response = await api.post<RoundTripBookingResponse>("/tickets/round-trip", data);
-    return response.data;
+    console.log("🔍 Raw API response data:", response.data);
+    return response.data; // This is the actual RoundTripBookingResponse object
   }
 
   // Get all tickets by booking group ID

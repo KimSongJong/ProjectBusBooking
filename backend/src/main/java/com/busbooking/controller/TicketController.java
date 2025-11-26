@@ -93,6 +93,11 @@ public class TicketController {
         try {
             log.info("📥 Received round trip booking request: {}", request.getTripType());
             RoundTripBookingResponse response = ticketService.createRoundTripBooking(request);
+
+            // ⭐ ADD DEBUG LOG
+            log.info("✅ Sending response to frontend: success={}, bookingGroupId={}, totalSeats={}",
+                response.getSuccess(), response.getBookingGroupId(), response.getTotalSeats());
+
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
             log.error("❌ Error creating round trip booking: {}", e.getMessage(), e);
