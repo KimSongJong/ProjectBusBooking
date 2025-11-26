@@ -49,6 +49,17 @@ interface BookingData {
 
 type PaymentMethod = "momo" | "vnpay" | null;
 
+// ============================================
+// ⭐ HELPER: Generate UUID v4
+// ============================================
+function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 function Payment() {
   const navigate = useNavigate();
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
@@ -268,8 +279,9 @@ function Payment() {
         // ✅ VNPay: Redirect to VNPay payment gateway
         const finalAmount = calculateFinalTotal();
 
-        // Generate booking group ID if not exists
-        const bookingGroupId = bookingData.bookingGroupId || `BOOKING_${Date.now()}_${bookingData.userId}`;
+        // ⭐ Generate booking group ID if not exists
+        // ✅ Format: BOOKING-{UUID} (hyphen, not underscore)
+        const bookingGroupId = bookingData.bookingGroupId || `BOOKING-${generateUUID()}`;
 
         // Calculate ticket count
         const ticketCount = bookingData.tripType === 'roundTrip'
@@ -311,8 +323,9 @@ function Payment() {
         // ✅ MoMo: Redirect to MoMo payment gateway
         const finalAmount = calculateFinalTotal();
 
-        // Generate booking group ID if not exists
-        const bookingGroupId = bookingData.bookingGroupId || `BOOKING_${Date.now()}_${bookingData.userId}`;
+        // ⭐ Generate booking group ID if not exists
+        // ✅ Format: BOOKING-{UUID} (hyphen, not underscore)
+        const bookingGroupId = bookingData.bookingGroupId || `BOOKING-${generateUUID()}`;
 
         // Calculate ticket count
         const ticketCount = bookingData.tripType === 'roundTrip'

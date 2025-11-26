@@ -68,14 +68,16 @@ public class VNPayIntegrationTest {
     @Test
     public void testPaymentRequest() {
         PaymentRequest request = new PaymentRequest();
-        request.setTicketId(123L);
+        request.setBookingGroupId("BOOKING-test-uuid-123");
+        request.setTicketCount(1);
         request.setAmount(500000L);
-        request.setOrderInfo("Payment for ticket #123");
+        request.setOrderInfo("Payment for booking #BOOKING-test-uuid-123");
 
-        assertNotNull(request.getTicketId());
-        assertEquals(123L, request.getTicketId());
+        assertNotNull(request.getBookingGroupId());
+        assertEquals("BOOKING-test-uuid-123", request.getBookingGroupId());
+        assertEquals(1, request.getTicketCount());
         assertEquals(500000L, request.getAmount());
-        assertEquals("Payment for ticket #123", request.getOrderInfo());
+        assertEquals("Payment for booking #BOOKING-test-uuid-123", request.getOrderInfo());
 
         System.out.println("✅ PaymentRequest validated");
     }

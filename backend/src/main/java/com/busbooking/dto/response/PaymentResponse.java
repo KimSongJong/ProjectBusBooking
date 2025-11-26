@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -14,6 +15,7 @@ public class PaymentResponse {
     private Integer id;
     private String bookingGroupId;
     private Integer ticketCount;
+    private List<Integer> ticketIds; // ✅ Add ticket IDs list
     private BigDecimal amount;
     private String paymentMethod;
     private String paymentStatus;

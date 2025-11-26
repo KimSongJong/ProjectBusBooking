@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import LeftTaskBar from "@/components/LeftTaskBar";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,9 @@ import ticketService from "@/services/ticket.service";
 import type { Ticket, UpdateTicketRequest } from "@/types/ticket.types";
 
 function AdminTickets() {
+  // ⭐ NEW: Read search query from URL
+  const [searchParams] = useSearchParams();
+
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -50,6 +54,15 @@ function AdminTickets() {
 
   // Form state for editing status only
   const [editStatus, setEditStatus] = useState<"booked" | "confirmed" | "cancelled">("booked");
+
+  // ⭐ NEW: Read search query from URL and populate search field
+  useEffect(() => {
+    const urlSearch = searchParams.get("search");
+    if (urlSearch) {
+      console.log("🔍 Search query from URL:", urlSearch);
+      setSearchTerm(urlSearch);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     fetchTickets();

@@ -89,6 +89,7 @@ public class MoMoController {
         try {
             log.info("📞 MoMo callback received - OrderId: {}, ResultCode: {}", orderId, resultCode);
             log.info("💳 MoMo Transaction ID: {}", transId);
+            log.info("🕐 MoMo Response Time: {}", responseTime);
 
             // ⭐ STEP 1: Verify signature
             boolean isValid = moMoService.verifySignature(
@@ -104,12 +105,29 @@ public class MoMoController {
                 if (isValid && resultCode == 0) {
                     // ✅ Payment SUCCESS
                     payment.setPaymentStatus(Payment.PaymentStatus.completed);
-                    payment.setPaymentDate(LocalDateTime.now());
 
-                    // Store MoMo transaction ID for reference
-                    if (transId != null) {
-                        payment.setTransactionId(orderId + "|" + transId);
+                    // ⭐ Parse MoMo response time (Unix timestamp in milliseconds → LocalDateTime)
+                    if (responseTime != null && responseTime > 0) {
+                        try {
+                            LocalDateTime paymentTime = LocalDateTime.ofInstant(
+                                java.time.Instant.ofEpochMilli(responseTime),
+                                java.time.ZoneId.systemDefault()
+                            );
+                            payment.setPaymentDate(paymentTime);
+                            log.info("✅ Payment date from MoMo: {}", paymentTime);
+                        } catch (Exception e) {
+                            log.warn("⚠️ Failed to parse responseTime, using server time: {}", e.getMessage());
+                            payment.setPaymentDate(LocalDateTime.now());
+                        }
+                    } else {
+                        log.warn("⚠️ No responseTime provided, using server time");
+                        payment.setPaymentDate(LocalDateTime.now());
                     }
+
+                    // ⭐ NOTE: Don't overwrite transaction_id!
+                    // transaction_id is used to find payment record, keep it unchanged
+                    // MoMo transaction ID is logged for debugging but not stored in DB
+                    log.info("💳 MoMo Transaction ID: {}", transId);
 
                     log.info("✅ Updated payment ID {} to COMPLETED", payment.getId());
                 } else {

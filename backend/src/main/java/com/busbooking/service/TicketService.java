@@ -61,9 +61,20 @@ public class TicketService {
                 .collect(Collectors.toList());
     }
     
+    @Transactional
     public TicketResponse createTicket(TicketRequest request) {
         Ticket ticket = ticketMapper.toEntity(request);
+
+        // ⭐ Generate booking_group_id if not provided (for one-way tickets)
+        // ✅ Format: BOOKING-{UUID} (hyphen, not underscore)
+        if (ticket.getBookingGroupId() == null || ticket.getBookingGroupId().isEmpty()) {
+            String bookingGroupId = "BOOKING-" + UUID.randomUUID();
+            ticket.setBookingGroupId(bookingGroupId);
+            log.info("🆕 Generated booking_group_id for one-way ticket: {}", bookingGroupId);
+        }
+
         Ticket savedTicket = ticketRepository.save(ticket);
+        log.info("✅ Created ticket {} with booking_group_id: {}", savedTicket.getId(), savedTicket.getBookingGroupId());
         return ticketMapper.toResponse(savedTicket);
     }
     
@@ -215,8 +226,9 @@ public class TicketService {
             User user = userRepository.findById(request.getUserId().intValue())
                     .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-            // Generate booking group ID
-            String bookingGroupId = "BOOKING_" + UUID.randomUUID().toString();
+            // ⭐ Generate booking group ID
+            // ✅ Format: BOOKING-{UUID} (hyphen, not underscore)
+            String bookingGroupId = "BOOKING-" + UUID.randomUUID();
 
             // Create outbound tickets (vé đi)
             List<TicketResponse> outboundTickets = createTicketsForTrip(

@@ -968,6 +968,7 @@ function BookingSeat() {
 
       const allSeats = seatsResponse.data;
       const ticketIds: number[] = [];
+      let firstTicketBookingGroupId: string | null = null; // ⭐ Track booking_group_id from first ticket
 
       // Create tickets for each selected seat with status='booked'
       console.log("🎫 Creating tickets with status='booked' for seats:", selectedSeats);
@@ -1010,6 +1011,13 @@ function BookingSeat() {
 
         if (result.success && result.data?.id) {
           ticketIds.push(result.data.id);
+
+          // ⭐ NEW: Capture booking_group_id from first ticket
+          if (!firstTicketBookingGroupId && result.data.bookingGroupId) {
+            firstTicketBookingGroupId = result.data.bookingGroupId;
+            console.log("📦 Captured booking_group_id from ticket:", firstTicketBookingGroupId);
+          }
+
           console.log("✅ Ticket created with ID:", result.data.id, "status:", result.data.status);
         } else {
           throw new Error(`Không thể tạo vé cho ghế ${seatNumber}`);
@@ -1021,6 +1029,7 @@ function BookingSeat() {
 
       // Lưu thông tin để thanh toán và update status sau
       const paymentData = {
+        bookingGroupId: firstTicketBookingGroupId, // ⭐ NEW: Include booking_group_id for payment matching
         ticketIds, // ⭐ Lưu ticket IDs để update status sau khi thanh toán
         userId: Number(userId),
         tripId: Number(tripId),
@@ -1036,6 +1045,12 @@ function BookingSeat() {
       };
 
       console.log("💾 Payment data to save:", paymentData);
+      console.log("📦 Booking Group ID being saved:", firstTicketBookingGroupId);
+
+      if (!firstTicketBookingGroupId) {
+        console.warn("⚠️ WARNING: No booking_group_id captured! This will cause payment-ticket mismatch!");
+      }
+
       sessionStorage.setItem("bookingData", JSON.stringify(paymentData));
 
       // Chuyển sang trang thanh toán

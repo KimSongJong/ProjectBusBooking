@@ -352,13 +352,13 @@ function AdminPayments() {
                   <thead>
                     <tr className="border-b border-slate-200">
                       <th className="text-left py-3 px-4 font-semibold text-slate-700">ID</th>
-                      <th className="text-left py-3 px-4 font-semibold text-slate-700">Khách hàng</th>
-                      <th className="text-left py-3 px-4 font-semibold text-slate-700">Vé</th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700">Booking ID</th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700">Loại vé</th>
                       <th className="text-left py-3 px-4 font-semibold text-slate-700">Số tiền</th>
                       <th className="text-left py-3 px-4 font-semibold text-slate-700">Phương thức</th>
                       <th className="text-left py-3 px-4 font-semibold text-slate-700">Trạng thái</th>
                       <th className="text-left py-3 px-4 font-semibold text-slate-700">Transaction ID</th>
-                      <th className="text-left py-3 px-4 font-semibold text-slate-700">Ngày thanh toán</th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700">Ngày xác nhận</th>
                       <th className="text-left py-3 px-4 font-semibold text-slate-700">Hành động</th>
                     </tr>
                   </thead>
@@ -367,24 +367,50 @@ function AdminPayments() {
                       <tr key={payment.id} className="border-b border-slate-100 hover:bg-slate-50">
                         <td className="py-3 px-4 font-medium">#{payment.id}</td>
                         <td className="py-3 px-4">
-                          {payment.ticket ? (
-                            <div>
-                              <div className="font-medium">{payment.ticket.user.fullName}</div>
-                              <div className="text-xs text-slate-500">{payment.ticket.user.email}</div>
-                            </div>
-                          ) : (
-                            <span className="text-slate-400 text-xs">N/A</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4">
                           <div className="text-sm">
-                            <div className="font-medium">Vé #{payment.ticketId}</div>
-                            {payment.ticket && (
-                              <div className="text-xs text-slate-500">
-                                {payment.ticket.trip.route.fromLocation} → {payment.ticket.trip.route.toLocation}
+                            {payment.bookingGroupId ? (
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-slate-500" title="Booking Group ID">📦</span>
+                                  <a
+                                    href={`/admin/tickets?search=${payment.bookingGroupId}`}
+                                    className="font-mono text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                                    title={`Click để xem vé | Full ID: ${payment.bookingGroupId}`}
+                                  >
+                                    {payment.bookingGroupId.substring(0, 20)}...
+                                  </a>
+                                </div>
+                                {payment.ticketIds && payment.ticketIds.length > 0 ? (
+                                  <div className="text-xs text-green-600 font-medium">
+                                    ✓ {payment.ticketIds.length} vé: #{payment.ticketIds.join(', #')}
+                                  </div>
+                                ) : (
+                                  <div className="text-xs text-orange-500">
+                                    ⚠️ Chưa có vé nào
+                                  </div>
+                                )}
                               </div>
+                            ) : (
+                              <span className="text-xs text-slate-400 italic">
+                                Chưa có booking ID
+                              </span>
                             )}
                           </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          {payment.ticketCount === 1 ? (
+                            <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">
+                              🎫 Một chiều
+                            </span>
+                          ) : payment.ticketCount === 2 ? (
+                            <span className="px-2 py-1 bg-purple-50 text-purple-700 rounded text-xs font-medium">
+                              🔄 Khứ hồi
+                            </span>
+                          ) : (
+                            <span className="px-2 py-1 bg-gray-50 text-gray-700 rounded text-xs font-medium">
+                              🎫 {payment.ticketCount} vé
+                            </span>
+                          )}
                         </td>
                         <td className="py-3 px-4 font-bold text-green-600">
                           {formatCurrency(payment.amount)}
@@ -397,11 +423,19 @@ function AdminPayments() {
                         </td>
                         <td className="py-3 px-4">
                           {payment.transactionId ? (
-                            <span className="text-xs font-mono text-slate-600">
-                              {payment.transactionId.substring(0, 12)}...
-                            </span>
+                            <div className="space-y-0.5">
+                              <div className="text-xs font-mono text-slate-600">
+                                {payment.transactionId.length > 20
+                                  ? `${payment.transactionId.substring(0, 20)}...`
+                                  : payment.transactionId
+                                }
+                              </div>
+                              <div className="text-[10px] text-slate-400">
+                                VNPay/MoMo Order ID
+                              </div>
+                            </div>
                           ) : (
-                            <span className="text-slate-400 text-xs">N/A</span>
+                            <span className="text-slate-400 text-xs">Chưa có</span>
                           )}
                         </td>
                         <td className="py-3 px-4 text-sm text-slate-600">
@@ -414,10 +448,11 @@ function AdminPayments() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleRefund(payment)}
-                                className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                                title="Hoàn tiền"
+                                className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 flex items-center gap-1 text-xs"
+                                title="Hoàn tiền cho khách hàng"
                               >
-                                <FaUndo />
+                                <FaUndo className="text-xs" />
+                                <span>Hoàn tiền</span>
                               </Button>
                             )}
                             {payment.paymentStatus === "pending" && (
@@ -425,10 +460,17 @@ function AdminPayments() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleUpdateStatus(payment, "completed")}
-                                className="text-green-600 hover:text-green-700 hover:bg-green-50 text-xs px-2"
+                                className="text-green-600 hover:text-green-700 hover:bg-green-50 text-xs flex items-center gap-1"
+                                title="Xác nhận thanh toán thành công (dùng khi VNPay callback failed)"
                               >
-                                Xác nhận
+                                ✅ <span className="font-medium">Xác nhận</span>
                               </Button>
+                            )}
+                            {payment.paymentStatus === "refunded" && (
+                              <span className="text-xs text-purple-600 italic">Đã xử lý</span>
+                            )}
+                            {payment.paymentStatus === "failed" && (
+                              <span className="text-xs text-red-600 italic">Không khả dụng</span>
                             )}
                           </div>
                         </td>

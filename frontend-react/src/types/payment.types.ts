@@ -3,6 +3,7 @@ export interface Payment {
   id: number;
   bookingGroupId: string;
   ticketCount: number;
+  ticketIds: number[]; // ✅ Add ticket IDs array
   amount: number;
   paymentMethod: 'credit_card' | 'debit_card' | 'cash' | 'vnpay' | 'momo' | 'zalopay';
   paymentStatus: 'pending' | 'completed' | 'failed' | 'refunded';
