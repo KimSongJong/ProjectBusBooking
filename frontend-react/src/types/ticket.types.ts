@@ -59,7 +59,8 @@ export interface Ticket {
 export interface CreateTicketRequest {
   userId: number;
   tripId: number;
-  seatId: number;
+  tripSeatId: number;    // ⭐ Required: ID from trip_seats table
+  seatId?: number;       // ✅ Optional: ID from seats table (may be null)
   promotionId?: number;
   pickupPoint?: string;
   dropoffPoint?: string;

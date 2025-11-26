@@ -74,39 +74,92 @@ function Payment() {
 
     try {
       const data = JSON.parse(storedData);
+      console.log("📦 Payment page - Loaded booking data:", data);
+      console.log("📦 Trip type:", data.tripType);
+      console.log("📦 Has trip?", !!data.trip);
+      console.log("📦 Has outboundTrip?", !!data.outboundTrip);
+      console.log("📦 Has returnTrip?", !!data.returnTrip);
+
       setBookingData(data);
 
-      // ⭐ Parse pickup/dropoff points from route
-      if (data.trip?.route) {
-        const route = data.trip.route;
+      // ⭐ Parse pickup/dropoff points - Handle BOTH one-way and round trip
+      const isRoundTrip = data.tripType === 'roundTrip' || data.bookingGroupId;
 
-        // Parse pickupPoints
-        if (route.pickupPoints && Array.isArray(route.pickupPoints)) {
-          setPickupOptions(route.pickupPoints);
-        } else if (typeof route.pickupPoints === 'string') {
-          try {
-            const parsed = JSON.parse(route.pickupPoints);
-            setPickupOptions(Array.isArray(parsed) ? parsed : []);
-          } catch {
-            setPickupOptions([]);
+      if (isRoundTrip) {
+        console.log("🔄 Round trip detected - parsing outbound trip route");
+        // Round trip: use outboundTrip
+        if (data.outboundTrip?.route) {
+          const route = data.outboundTrip.route;
+
+          // Parse pickupPoints
+          if (route.pickupPoints && Array.isArray(route.pickupPoints)) {
+            setPickupOptions(route.pickupPoints);
+          } else if (typeof route.pickupPoints === 'string') {
+            try {
+              const parsed = JSON.parse(route.pickupPoints);
+              setPickupOptions(Array.isArray(parsed) ? parsed : []);
+            } catch {
+              setPickupOptions([]);
+            }
+          }
+
+          // Parse dropoffPoints
+          if (route.dropoffPoints && Array.isArray(route.dropoffPoints)) {
+            setDropoffOptions(route.dropoffPoints);
+          } else if (typeof route.dropoffPoints === 'string') {
+            try {
+              const parsed = JSON.parse(route.dropoffPoints);
+              setDropoffOptions(Array.isArray(parsed) ? parsed : []);
+            } catch {
+              setDropoffOptions([]);
+            }
           }
         }
 
-        // Parse dropoffPoints
-        if (route.dropoffPoints && Array.isArray(route.dropoffPoints)) {
-          setDropoffOptions(route.dropoffPoints);
-        } else if (typeof route.dropoffPoints === 'string') {
-          try {
-            const parsed = JSON.parse(route.dropoffPoints);
-            setDropoffOptions(Array.isArray(parsed) ? parsed : []);
-          } catch {
-            setDropoffOptions([]);
+        // Load seats for BOTH trips (if needed for display)
+        if (data.outboundTrip?.id) {
+          console.log("📡 Loading outbound seats for trip:", data.outboundTrip.id);
+          fetchSeats(data.outboundTrip.id);
+        }
+      } else {
+        console.log("➡️ One-way trip detected - parsing trip route");
+        // One-way: use trip
+        if (data.trip?.route) {
+          const route = data.trip.route;
+
+          // Parse pickupPoints
+          if (route.pickupPoints && Array.isArray(route.pickupPoints)) {
+            setPickupOptions(route.pickupPoints);
+          } else if (typeof route.pickupPoints === 'string') {
+            try {
+              const parsed = JSON.parse(route.pickupPoints);
+              setPickupOptions(Array.isArray(parsed) ? parsed : []);
+            } catch {
+              setPickupOptions([]);
+            }
           }
+
+          // Parse dropoffPoints
+          if (route.dropoffPoints && Array.isArray(route.dropoffPoints)) {
+            setDropoffOptions(route.dropoffPoints);
+          } else if (typeof route.dropoffPoints === 'string') {
+            try {
+              const parsed = JSON.parse(route.dropoffPoints);
+              setDropoffOptions(Array.isArray(parsed) ? parsed : []);
+            } catch {
+              setDropoffOptions([]);
+            }
+          }
+        }
+
+        // Load danh sách ghế của chuyến xe
+        if (data.tripId) {
+          console.log("📡 Loading seats for trip:", data.tripId);
+          fetchSeats(data.tripId);
+        } else {
+          console.warn("⚠️ No tripId found in booking data!");
         }
       }
-
-      // Load danh sách ghế của chuyến xe
-      fetchSeats(data.tripId);
     } catch (error) {
       console.error("Error parsing booking data:", error);
       toast.error("Dữ liệu không hợp lệ");
@@ -495,14 +548,24 @@ function Payment() {
                         </select>
                       ) : (
                         <select className="w-full bg-white border rounded px-3 py-2">
-                          <option>BX {bookingData.trip.route.fromLocation}</option>
+                          <option>
+                            BX {bookingData.trip?.route?.fromLocation ||
+                                bookingData.outboundTrip?.route?.fromLocation ||
+                                'Điểm đón'}
+                          </option>
                         </select>
                       )}
                       <p className="text-xs text-gray-600 mt-2">
                         Quý khách vui lòng có mặt tại Bến xe/Văn Phòng{" "}
                         <span className="font-semibold text-red-600">
-                          Trước {formatTime(bookingData.trip.departureTime)}{" "}
-                          {formatDate(bookingData.trip.departureTime)}
+                          Trước {formatTime(
+                            bookingData.trip?.departureTime ||
+                            bookingData.outboundTrip?.departureTime
+                          )}{" "}
+                          {formatDate(
+                            bookingData.trip?.departureTime ||
+                            bookingData.outboundTrip?.departureTime
+                          )}
                         </span>{" "}
                         để được trung chuyển hoặc kiểm tra thông tin trước khi
                         lên xe.
@@ -545,7 +608,11 @@ function Payment() {
                         </select>
                       ) : (
                         <select className="w-full bg-white border rounded px-3 py-2">
-                          <option>BX {bookingData.trip.route.toLocation}</option>
+                          <option>
+                            BX {bookingData.trip?.route?.toLocation ||
+                                bookingData.outboundTrip?.route?.toLocation ||
+                                'Điểm trả'}
+                          </option>
                         </select>
                       )}
                       <p className="text-xs text-gray-500 mt-2">

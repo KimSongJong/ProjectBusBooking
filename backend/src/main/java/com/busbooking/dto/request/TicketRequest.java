@@ -25,7 +25,12 @@ public class TicketRequest {
     @Positive(message = "Trip ID must be positive")
     private Integer tripId;
     
-    @NotNull(message = "Seat ID is required")
+    // ⭐ FIX: Use tripSeatId (from trip_seats.id) instead of seatId
+    @NotNull(message = "Trip Seat ID is required")
+    @Positive(message = "Trip Seat ID must be positive")
+    private Integer tripSeatId;
+
+    // ✅ Optional: seatId may be null in trip_seats table
     @Positive(message = "Seat ID must be positive")
     private Integer seatId;
     

@@ -99,26 +99,56 @@ function SearchTicket() {
       return b.id - a.id;
     });
 
-    // ⭐ Group filtered tickets into bookings
+    // ⭐ Group filtered tickets by booking_group_id (same logic as initial load)
     const groupedFiltered = filtered.reduce((groups: any[], ticket) => {
-      const existingGroup = groups.find(group => {
-        if (group.tickets[0].trip.id !== ticket.trip.id) return false;
+      const seatNumber = ticket.tripSeat?.seatNumber || ticket.seat?.seatNumber || 'N/A';
 
-        const time1 = new Date(group.tickets[0].bookedAt).getTime();
-        const time2 = new Date(ticket.bookedAt).getTime();
-        return Math.abs(time1 - time2) < 60000;
-      });
+      // Priority 1: Use booking_group_id if exists
+      if (ticket.bookingGroupId) {
+        const existingGroup = groups.find(group =>
+          group.bookingGroupId === ticket.bookingGroupId
+        );
 
-      if (existingGroup) {
-        existingGroup.tickets.push(ticket);
-        existingGroup.seats.push(ticket.tripSeat?.seatNumber || ticket.seat?.seatNumber);
+        if (existingGroup) {
+          existingGroup.tickets.push(ticket);
+          existingGroup.seats.push(seatNumber);
+          if (ticket.isReturnTrip || ticket.tripType === 'round_trip') {
+            existingGroup.isRoundTrip = true;
+          }
+        } else {
+          groups.push({
+            bookingId: ticket.bookingGroupId,
+            bookingGroupId: ticket.bookingGroupId,
+            tickets: [ticket],
+            seats: [seatNumber],
+            mainTicket: ticket,
+            isRoundTrip: ticket.isReturnTrip || ticket.tripType === 'round_trip' || false
+          });
+        }
       } else {
-        groups.push({
-          bookingId: `BOOKING_${ticket.trip.id}_${new Date(ticket.bookedAt).getTime()}`,
-          tickets: [ticket],
-          seats: [ticket.tripSeat?.seatNumber || ticket.seat?.seatNumber],
-          mainTicket: ticket
+        // Priority 2: Fallback to tripId+time for legacy tickets
+        const existingGroup = groups.find(group => {
+          if (group.bookingGroupId) return false;
+          if (group.tickets[0].trip.id !== ticket.trip.id) return false;
+
+          const time1 = new Date(group.tickets[0].bookedAt).getTime();
+          const time2 = new Date(ticket.bookedAt).getTime();
+          return Math.abs(time1 - time2) < 60000;
         });
+
+        if (existingGroup) {
+          existingGroup.tickets.push(ticket);
+          existingGroup.seats.push(seatNumber);
+        } else {
+          groups.push({
+            bookingId: `BOOKING_${ticket.trip.id}_${new Date(ticket.bookedAt).getTime()}`,
+            bookingGroupId: null,
+            tickets: [ticket],
+            seats: [seatNumber],
+            mainTicket: ticket,
+            isRoundTrip: false
+          });
+        }
       }
 
       return groups;
@@ -193,30 +223,57 @@ function SearchTicket() {
           console.warn(`⚠️ Removed ${duplicateCount} duplicate tickets`);
         }
 
-        // ⭐ NEW: Group tickets by booking session (same tripId + same bookedAt time within 1 minute)
+        // ⭐ NEW: Group tickets by booking_group_id (for round trip) or tripId+time (for same-trip multi-seats)
         const groupedTickets = sortedTickets.reduce((groups: any[], ticket) => {
-          // Find existing group with same trip and booked time (within 1 minute)
-          const existingGroup = groups.find(group => {
-            if (group.tickets[0].trip.id !== ticket.trip.id) return false;
-
-            const time1 = new Date(group.tickets[0].bookedAt).getTime();
-            const time2 = new Date(ticket.bookedAt).getTime();
-            return Math.abs(time1 - time2) < 60000; // Within 1 minute
-          });
-
-          // ⭐ FIX: Safe access to seat number (tripSeat or seat can be undefined)
           const seatNumber = ticket.tripSeat?.seatNumber || ticket.seat?.seatNumber || 'N/A';
 
-          if (existingGroup) {
-            existingGroup.tickets.push(ticket);
-            existingGroup.seats.push(seatNumber);
+          // ⭐ Priority 1: Check if ticket has booking_group_id (round trip indicator)
+          if (ticket.bookingGroupId) {
+            const existingGroup = groups.find(group =>
+              group.bookingGroupId === ticket.bookingGroupId
+            );
+
+            if (existingGroup) {
+              existingGroup.tickets.push(ticket);
+              existingGroup.seats.push(seatNumber);
+              // Update isRoundTrip flag if this ticket is marked as return trip
+              if (ticket.isReturnTrip || ticket.tripType === 'round_trip') {
+                existingGroup.isRoundTrip = true;
+              }
+            } else {
+              groups.push({
+                bookingId: ticket.bookingGroupId, // Use real booking group ID
+                bookingGroupId: ticket.bookingGroupId,
+                tickets: [ticket],
+                seats: [seatNumber],
+                mainTicket: ticket,
+                isRoundTrip: ticket.isReturnTrip || ticket.tripType === 'round_trip' || false
+              });
+            }
           } else {
-            groups.push({
-              bookingId: `BOOKING_${ticket.trip.id}_${new Date(ticket.bookedAt).getTime()}`,
-              tickets: [ticket],
-              seats: [seatNumber],
-              mainTicket: ticket // Use first ticket as main ticket for display
+            // ⭐ Priority 2: Fallback to old logic (same tripId + time) for legacy tickets
+            const existingGroup = groups.find(group => {
+              if (group.bookingGroupId) return false; // Don't mix with booking group
+              if (group.tickets[0].trip.id !== ticket.trip.id) return false;
+
+              const time1 = new Date(group.tickets[0].bookedAt).getTime();
+              const time2 = new Date(ticket.bookedAt).getTime();
+              return Math.abs(time1 - time2) < 60000; // Within 1 minute
             });
+
+            if (existingGroup) {
+              existingGroup.tickets.push(ticket);
+              existingGroup.seats.push(seatNumber);
+            } else {
+              groups.push({
+                bookingId: `BOOKING_${ticket.trip.id}_${new Date(ticket.bookedAt).getTime()}`,
+                bookingGroupId: null,
+                tickets: [ticket],
+                seats: [seatNumber],
+                mainTicket: ticket,
+                isRoundTrip: false
+              });
+            }
           }
 
           return groups;
@@ -322,33 +379,73 @@ function SearchTicket() {
     try {
       const allTickets = booking.tickets;
       const mainTicket = booking.mainTicket;
-
-      // ⭐ FIX: Get ALL ticket IDs and seats from booking
-      const ticketIds = allTickets.map((t: any) => t.id);
-      const selectedSeats = allTickets.map((t: any) =>
-        t.tripSeat?.seatNumber || t.seat?.seatNumber || 'N/A'
-      );
       const totalPrice = allTickets.reduce((sum: number, t: any) => sum + Number(t.price), 0);
 
-      // Prepare payment data with ALL tickets
-      const paymentData = {
-        ticketIds: ticketIds,
-        userId: mainTicket.user.id,
-        tripId: mainTicket.trip.id,
-        trip: mainTicket.trip,
-        selectedSeats: selectedSeats,
-        customerName: mainTicket.user.fullName,
-        customerPhone: mainTicket.user.phone,
-        customerEmail: mainTicket.user.email,
-        totalPrice: totalPrice,
-        price: totalPrice,
-      };
+      // ⭐ Check if this is a round trip booking
+      const isRoundTrip = booking.isRoundTrip || booking.bookingGroupId;
 
-      console.log(`🔄 Retry payment for ${allTickets.length} ticket(s):`, ticketIds);
-      console.log("💺 Seats:", selectedSeats);
-      console.log("💰 Total:", totalPrice);
+      if (isRoundTrip) {
+        // ⭐ ROUND TRIP: Separate outbound and return tickets
+        const outboundTickets = allTickets.filter((t: any) => !t.isReturnTrip);
+        const returnTickets = allTickets.filter((t: any) => t.isReturnTrip);
 
-      sessionStorage.setItem("bookingData", JSON.stringify(paymentData));
+        const paymentData = {
+          bookingGroupId: booking.bookingGroupId,
+          tripType: 'roundTrip',
+          outboundTrip: outboundTickets[0]?.trip,
+          returnTrip: returnTickets[0]?.trip,
+          outboundTickets: outboundTickets,
+          returnTickets: returnTickets,
+          selectedOutboundSeats: outboundTickets.map((t: any) =>
+            t.tripSeat?.seatNumber || t.seat?.seatNumber || 'N/A'
+          ),
+          selectedReturnSeats: returnTickets.map((t: any) =>
+            t.tripSeat?.seatNumber || t.seat?.seatNumber || 'N/A'
+          ),
+          outboundPickupLocation: outboundTickets[0]?.pickupPoint,
+          outboundDropoffLocation: outboundTickets[0]?.dropoffPoint,
+          returnPickupLocation: returnTickets[0]?.pickupPoint,
+          returnDropoffLocation: returnTickets[0]?.dropoffPoint,
+          customerName: mainTicket.user.fullName,
+          customerPhone: mainTicket.user.phone,
+          customerEmail: mainTicket.user.email,
+          totalPrice: totalPrice,
+          discountAmount: 0, // Already applied during booking
+          finalPrice: totalPrice,
+        };
+
+        console.log(`🔄 Retry payment for ROUND TRIP booking:`, booking.bookingGroupId);
+        console.log("💺 Outbound seats:", paymentData.selectedOutboundSeats);
+        console.log("💺 Return seats:", paymentData.selectedReturnSeats);
+        console.log("💰 Total:", totalPrice);
+
+        sessionStorage.setItem("bookingData", JSON.stringify(paymentData));
+      } else {
+        // ⭐ ONE-WAY: Original logic
+        const ticketIds = allTickets.map((t: any) => t.id);
+        const selectedSeats = allTickets.map((t: any) =>
+          t.tripSeat?.seatNumber || t.seat?.seatNumber || 'N/A'
+        );
+
+        const paymentData = {
+          ticketIds: ticketIds,
+          userId: mainTicket.user.id,
+          tripId: mainTicket.trip.id,
+          trip: mainTicket.trip,
+          selectedSeats: selectedSeats,
+          customerName: mainTicket.user.fullName,
+          customerPhone: mainTicket.user.phone,
+          customerEmail: mainTicket.user.email,
+          totalPrice: totalPrice,
+          price: totalPrice,
+        };
+
+        console.log(`🔄 Retry payment for ${allTickets.length} ticket(s):`, ticketIds);
+        console.log("💺 Seats:", selectedSeats);
+        console.log("💰 Total:", totalPrice);
+
+        sessionStorage.setItem("bookingData", JSON.stringify(paymentData));
+      }
 
       // Navigate to payment page
       navigate("/payment");
@@ -489,62 +586,181 @@ function SearchTicket() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Route Info */}
-                      <div className="flex items-start gap-3">
-                        <MapPin className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-600">Tuyến đường</p>
-                          <p className="font-semibold text-gray-800 flex items-center gap-1 flex-wrap">
-                            <span className="truncate">
-                              {mainTicket.trip.route.fromLocation}
-                            </span>
-                            <ArrowRight className="h-4 w-4 flex-shrink-0" />
-                            <span className="truncate">
-                              {mainTicket.trip.route.toLocation}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
+                    {/* ⭐ ROUND TRIP: Show both trips separately */}
+                    {isRoundTripBooking(booking) ? (
+                      <div className="space-y-4">
+                        {/* Outbound Trip */}
+                        <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-green-700 font-semibold">🚌 CHUYẾN ĐI</span>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Route */}
+                            <div className="flex items-start gap-3">
+                              <MapPin className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm text-gray-600">Tuyến đường</p>
+                                <p className="font-semibold text-gray-800 flex items-center gap-1 flex-wrap">
+                                  <span className="truncate">
+                                    {booking.tickets.find((t: any) => !t.isReturnTrip)?.trip.route.fromLocation}
+                                  </span>
+                                  <ArrowRight className="h-4 w-4 flex-shrink-0" />
+                                  <span className="truncate">
+                                    {booking.tickets.find((t: any) => !t.isReturnTrip)?.trip.route.toLocation}
+                                  </span>
+                                </p>
+                              </div>
+                            </div>
 
-                      {/* Date & Seat Info */}
-                      <div className="flex items-start gap-3">
-                        <Calendar className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
-                        <div className="flex-1">
-                          <p className="text-sm text-gray-600">Khởi hành</p>
-                          <p className="font-semibold text-gray-800">
-                            {formatDateTime(mainTicket.trip.departureTime)}
-                          </p>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Ghế: <span className="font-semibold text-blue-600">
-                              {booking.seats.join(", ")}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
+                            {/* Date & Seats */}
+                            <div className="flex items-start gap-3">
+                              <Calendar className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
+                              <div className="flex-1">
+                                <p className="text-sm text-gray-600">Khởi hành</p>
+                                <p className="font-semibold text-gray-800">
+                                  {formatDateTime(booking.tickets.find((t: any) => !t.isReturnTrip)?.trip.departureTime)}
+                                </p>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  Ghế: <span className="font-semibold text-green-600">
+                                    {booking.tickets
+                                      .filter((t: any) => !t.isReturnTrip)
+                                      .map((t: any) => t.tripSeat?.seatNumber || t.seat?.seatNumber || 'N/A')
+                                      .join(", ")}
+                                  </span>
+                                </p>
+                              </div>
+                            </div>
 
-                      {/* Price & Action */}
-                      <div className="flex items-center justify-between md:justify-end gap-4">
-                        <div className="text-right">
-                          <p className="text-sm text-gray-600">Tổng giá vé</p>
-                          <p className="text-xl font-bold text-orange-600">
-                            {formatPrice(totalPrice)}
-                          </p>
-                          {isRoundTripBooking(booking) && (
+                            {/* Vehicle */}
+                            <div className="text-sm text-gray-600">
+                              <p>Xe: {booking.tickets.find((t: any) => !t.isReturnTrip)?.trip.vehicle.licensePlate}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Return Trip */}
+                        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-blue-700 font-semibold">🔄 CHUYẾN VỀ</span>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Route */}
+                            <div className="flex items-start gap-3">
+                              <MapPin className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm text-gray-600">Tuyến đường</p>
+                                <p className="font-semibold text-gray-800 flex items-center gap-1 flex-wrap">
+                                  <span className="truncate">
+                                    {booking.tickets.find((t: any) => t.isReturnTrip)?.trip.route.fromLocation}
+                                  </span>
+                                  <ArrowRight className="h-4 w-4 flex-shrink-0" />
+                                  <span className="truncate">
+                                    {booking.tickets.find((t: any) => t.isReturnTrip)?.trip.route.toLocation}
+                                  </span>
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Date & Seats */}
+                            <div className="flex items-start gap-3">
+                              <Calendar className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                              <div className="flex-1">
+                                <p className="text-sm text-gray-600">Khởi hành</p>
+                                <p className="font-semibold text-gray-800">
+                                  {formatDateTime(booking.tickets.find((t: any) => t.isReturnTrip)?.trip.departureTime)}
+                                </p>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  Ghế: <span className="font-semibold text-blue-600">
+                                    {booking.tickets
+                                      .filter((t: any) => t.isReturnTrip)
+                                      .map((t: any) => t.tripSeat?.seatNumber || t.seat?.seatNumber || 'N/A')
+                                      .join(", ")}
+                                  </span>
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Vehicle */}
+                            <div className="text-sm text-gray-600">
+                              <p>Xe: {booking.tickets.find((t: any) => t.isReturnTrip)?.trip.vehicle.licensePlate}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Price & Action for Round Trip */}
+                        <div className="flex items-center justify-between pt-2">
+                          <div>
+                            <p className="text-sm text-gray-600">Tổng giá vé (2 chiều)</p>
+                            <p className="text-2xl font-bold text-orange-600">
+                              {formatPrice(totalPrice)}
+                            </p>
                             <p className="text-xs text-green-600 font-semibold">
                               🎉 Đã giảm 10%
                             </p>
-                          )}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => handleViewDetails(booking, e)}
+                          >
+                            Xem chi tiết
+                          </Button>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => handleViewDetails(booking, e)}
-                        >
-                          Xem chi tiết
-                        </Button>
                       </div>
-                    </div>
+                    ) : (
+                      /* ⭐ ONE-WAY: Original display */
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Route Info */}
+                        <div className="flex items-start gap-3">
+                          <MapPin className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-gray-600">Tuyến đường</p>
+                            <p className="font-semibold text-gray-800 flex items-center gap-1 flex-wrap">
+                              <span className="truncate">
+                                {mainTicket.trip.route.fromLocation}
+                              </span>
+                              <ArrowRight className="h-4 w-4 flex-shrink-0" />
+                              <span className="truncate">
+                                {mainTicket.trip.route.toLocation}
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Date & Seat Info */}
+                        <div className="flex items-start gap-3">
+                          <Calendar className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                          <div className="flex-1">
+                            <p className="text-sm text-gray-600">Khởi hành</p>
+                            <p className="font-semibold text-gray-800">
+                              {formatDateTime(mainTicket.trip.departureTime)}
+                            </p>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Ghế: <span className="font-semibold text-blue-600">
+                                {booking.seats.join(", ")}
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Price & Action */}
+                        <div className="flex items-center justify-between md:justify-end gap-4">
+                          <div className="text-right">
+                            <p className="text-sm text-gray-600">Tổng giá vé</p>
+                            <p className="text-xl font-bold text-orange-600">
+                              {formatPrice(totalPrice)}
+                            </p>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => handleViewDetails(booking, e)}
+                          >
+                            Xem chi tiết
+                          </Button>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Additional Info */}
                     <div className="mt-4 pt-4 border-t flex items-center justify-between text-sm text-gray-600">

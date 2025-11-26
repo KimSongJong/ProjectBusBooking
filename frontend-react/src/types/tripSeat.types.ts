@@ -1,6 +1,7 @@
 export interface TripSeat {
   id: number;
   tripId: number;
+  seatId?: number; // ⭐ ADDED: Seat ID from backend (optional for backward compatibility)
   seatNumber: string;
   seatType: 'standard' | 'vip' | 'bed';
   status: 'available' | 'booked' | 'locked';

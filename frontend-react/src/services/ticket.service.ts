@@ -49,11 +49,46 @@ class TicketService {
 
   // Create round trip or one-way booking
   async createRoundTripBooking(data: RoundTripBookingRequest): Promise<RoundTripBookingResponse> {
-    // Backend returns RoundTripBookingResponse directly (not wrapped in ApiResponse)
-    // Axios response structure: { data: RoundTripBookingResponse, status: 201, ... }
-    const response = await api.post<RoundTripBookingResponse>("/tickets/round-trip", data);
-    console.log("🔍 Raw API response data:", response.data);
-    return response.data; // This is the actual RoundTripBookingResponse object
+    try {
+      console.log("📤 [SERVICE] Sending round trip booking request:", data);
+
+      // ⚠️ IMPORTANT: Custom axios wrapper (src/config/axios.ts) returns response DIRECTLY
+      // NOT wrapped in { data: ... } like standard axios!
+      // api.post() -> returns RoundTripBookingResponse directly (not { data: RoundTripBookingResponse })
+      const bookingResponse = await api.post<RoundTripBookingResponse>("/tickets/round-trip", data);
+
+      console.log("📦 [SERVICE] Raw response (already unwrapped):", bookingResponse);
+      console.log("📦 [SERVICE] Response type:", typeof bookingResponse);
+      console.log("📦 [SERVICE] Response keys:", bookingResponse ? Object.keys(bookingResponse) : 'null');
+
+      // ⚠️ CRITICAL CHECK: Ensure response exists
+      if (!bookingResponse) {
+        console.error("❌ [SERVICE] CRITICAL: response is null/undefined!");
+        throw new Error("Backend returned empty response");
+      }
+
+      console.log("✅ [SERVICE] Success:", bookingResponse.success, "(type:", typeof bookingResponse.success, ")");
+      console.log("✅ [SERVICE] BookingGroupId:", bookingResponse.bookingGroupId);
+      console.log("✅ [SERVICE] Message:", bookingResponse.message);
+      console.log("✅ [SERVICE] Total Price:", bookingResponse.totalPrice);
+      console.log("✅ [SERVICE] Outbound Tickets Count:", bookingResponse.outboundTickets?.length);
+      console.log("✅ [SERVICE] Return Tickets Count:", bookingResponse.returnTickets?.length);
+
+      // Final check before returning
+      if (!bookingResponse.bookingGroupId) {
+        console.error("⚠️ [SERVICE] WARNING: Response missing bookingGroupId!");
+        console.error("⚠️ [SERVICE] Full response:", JSON.stringify(bookingResponse, null, 2));
+      }
+
+      console.log("✅ [SERVICE] Returning booking response to component...");
+      return bookingResponse;
+    } catch (error: any) {
+      console.error("❌ [SERVICE] Error in createRoundTripBooking service:", error);
+      console.error("❌ [SERVICE] Error response:", error.response?.data);
+      console.error("❌ [SERVICE] Error status:", error.response?.status);
+      console.error("❌ [SERVICE] Error message:", error.message);
+      throw error;
+    }
   }
 
   // Get all tickets by booking group ID

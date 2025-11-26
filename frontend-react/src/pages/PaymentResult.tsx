@@ -62,16 +62,42 @@ function PaymentResult() {
 
         const paymentData = JSON.parse(paymentDataStr);
         console.log("📦 Payment data from sessionStorage:", paymentData);
-        console.log("🎫 Ticket IDs to update:", paymentData.ticketIds);
+        console.log("📦 Trip type:", paymentData.tripType);
+        console.log("🎫 Ticket IDs (one-way):", paymentData.ticketIds);
+        console.log("🎫 Outbound tickets (round trip):", paymentData.outboundTickets);
+        console.log("🎫 Return tickets (round trip):", paymentData.returnTickets);
 
-        if (!paymentData.ticketIds || paymentData.ticketIds.length === 0) {
+        // ⭐ Extract ticket IDs based on trip type
+        let ticketIdsToUpdate: number[] = [];
+
+        if (paymentData.tripType === 'roundTrip') {
+          // Round trip: Extract IDs from outboundTickets and returnTickets
+          console.log("🔄 Round trip detected - extracting ticket IDs from ticket objects");
+
+          const outboundIds = (paymentData.outboundTickets || []).map((t: any) => t.id);
+          const returnIds = (paymentData.returnTickets || []).map((t: any) => t.id);
+
+          ticketIdsToUpdate = [...outboundIds, ...returnIds];
+
+          console.log("✅ Extracted outbound ticket IDs:", outboundIds);
+          console.log("✅ Extracted return ticket IDs:", returnIds);
+          console.log("✅ Total ticket IDs to update:", ticketIdsToUpdate);
+        } else {
+          // One-way: Use ticketIds directly
+          console.log("➡️ One-way trip detected - using ticketIds directly");
+          ticketIdsToUpdate = paymentData.ticketIds || [];
+        }
+
+        if (!ticketIdsToUpdate || ticketIdsToUpdate.length === 0) {
+          console.error("❌ No ticket IDs found!");
+          console.error("❌ Payment data structure:", JSON.stringify(paymentData, null, 2));
           throw new Error("Không tìm thấy thông tin vé cần cập nhật");
         }
 
-        // ⭐ UPDATE ticket status from 'booked' to 'confirmed'
-        console.log("🔄 Updating ticket status to 'confirmed'...");
+        console.log(`🔄 Updating ${ticketIdsToUpdate.length} ticket(s) to 'confirmed'...`);
 
-        const updatePromises = paymentData.ticketIds.map(async (ticketId: number) => {
+        // ⭐ UPDATE ticket status from 'booked' to 'confirmed'
+        const updatePromises = ticketIdsToUpdate.map(async (ticketId: number) => {
           try {
             const result = await ticketService.updateTicketStatus(ticketId, "confirmed");
             console.log(`✅ Ticket ${ticketId} updated to 'confirmed'`);
@@ -85,21 +111,40 @@ function PaymentResult() {
         await Promise.all(updatePromises);
 
         console.log("✅ All tickets updated successfully");
-        toast.success(`Đã xác nhận ${paymentData.ticketIds.length} vé!`);
+        toast.success(`Đã xác nhận ${ticketIdsToUpdate.length} vé!`);
 
         // Clear payment data
         sessionStorage.removeItem("pendingBookingData");
         sessionStorage.removeItem("bookingData");
 
         // Set transaction info for display
+        let routeInfo = '';
+        let seatsInfo = '';
+
+        if (paymentData.tripType === 'roundTrip') {
+          // Round trip: Show both routes
+          const outboundRoute = `${paymentData.outboundTrip?.route?.fromLocation} → ${paymentData.outboundTrip?.route?.toLocation}`;
+          const returnRoute = `${paymentData.returnTrip?.route?.fromLocation} → ${paymentData.returnTrip?.route?.toLocation}`;
+          routeInfo = `🔄 Khứ hồi: ${outboundRoute} | ${returnRoute}`;
+
+          const outboundSeats = paymentData.selectedOutboundSeats?.join(", ") || '';
+          const returnSeats = paymentData.selectedReturnSeats?.join(", ") || '';
+          seatsInfo = `Đi: ${outboundSeats} | Về: ${returnSeats}`;
+        } else {
+          // One-way: Show single route
+          routeInfo = `${paymentData.trip?.route?.fromLocation} → ${paymentData.trip?.route?.toLocation}`;
+          seatsInfo = paymentData.selectedSeats?.join(", ") || '';
+        }
+
         setTransactionInfo({
           transactionId: txnRef,
           amount: amount,
           payDate: payDate,
-          route: `${paymentData.trip?.route?.fromLocation} - ${paymentData.trip?.route?.toLocation}`,
-          seats: paymentData.selectedSeats?.join(", "),
+          route: routeInfo,
+          seats: seatsInfo,
           customerName: paymentData.customerName,
-          ticketIds: paymentData.ticketIds,
+          ticketIds: ticketIdsToUpdate,
+          isRoundTrip: paymentData.tripType === 'roundTrip',
         });
 
         // Auto redirect after 3 seconds
@@ -146,11 +191,38 @@ function PaymentResult() {
           const paymentData = JSON.parse(paymentDataStr);
           toast.warning(`Vé đã được tạo với trạng thái 'Đã đặt'. Bạn có thể thanh toán lại sau.`);
 
+          // Extract ticket IDs for failed payment too
+          let failedTicketIds: number[] = [];
+          if (paymentData.tripType === 'roundTrip') {
+            const outboundIds = (paymentData.outboundTickets || []).map((t: any) => t.id);
+            const returnIds = (paymentData.returnTickets || []).map((t: any) => t.id);
+            failedTicketIds = [...outboundIds, ...returnIds];
+          } else {
+            failedTicketIds = paymentData.ticketIds || [];
+          }
+
+          let routeInfo = '';
+          let seatsInfo = '';
+
+          if (paymentData.tripType === 'roundTrip') {
+            const outboundRoute = `${paymentData.outboundTrip?.route?.fromLocation} → ${paymentData.outboundTrip?.route?.toLocation}`;
+            const returnRoute = `${paymentData.returnTrip?.route?.fromLocation} → ${paymentData.returnTrip?.route?.toLocation}`;
+            routeInfo = `🔄 Khứ hồi: ${outboundRoute} | ${returnRoute}`;
+
+            const outboundSeats = paymentData.selectedOutboundSeats?.join(", ") || '';
+            const returnSeats = paymentData.selectedReturnSeats?.join(", ") || '';
+            seatsInfo = `Đi: ${outboundSeats} | Về: ${returnSeats}`;
+          } else {
+            routeInfo = `${paymentData.trip?.route?.fromLocation} → ${paymentData.trip?.route?.toLocation}`;
+            seatsInfo = paymentData.selectedSeats?.join(", ") || '';
+          }
+
           setTransactionInfo({
             transactionId: txnRef,
-            ticketIds: paymentData.ticketIds,
-            route: `${paymentData.trip?.route?.fromLocation} - ${paymentData.trip?.route?.toLocation}`,
-            seats: paymentData.selectedSeats?.join(", "),
+            ticketIds: failedTicketIds,
+            route: routeInfo,
+            seats: seatsInfo,
+            isRoundTrip: paymentData.tripType === 'roundTrip',
           });
         }
       }

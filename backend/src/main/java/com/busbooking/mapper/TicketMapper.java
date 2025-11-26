@@ -41,57 +41,57 @@ public class TicketMapper {
             .orElseThrow(() -> new RuntimeException("Trip not found"));
         ticket.setTrip(trip);
         
-        // Find the Seat entity and TripSeat
-        Seat seat = null;
+        // ⭐ FIX: Use tripSeatId directly from request (NEW APPROACH)
         TripSeat tripSeat = null;
+        Seat seat = null;
 
-        if (request.getSeatId() != null) {
-            // Try to find by seatId first
-            log.info("🔍 Looking for Seat with ID: {}", request.getSeatId());
-            try {
-                seat = seatRepository.findById(request.getSeatId())
-                    .orElse(null);
+        if (request.getTripSeatId() != null) {
+            // NEW: Find TripSeat directly by ID (fastest and most reliable)
+            log.info("🔍 Looking for TripSeat with ID: {}", request.getTripSeatId());
+            tripSeat = tripSeatRepository.findById(request.getTripSeatId())
+                .orElseThrow(() -> new RuntimeException("TripSeat not found with ID: " + request.getTripSeatId()));
 
-                if (seat != null) {
-                    log.info("✅ Found Seat: {} (Number: {})", seat.getId(), seat.getSeatNumber());
-                    ticket.setSeat(seat);
+            log.info("✅ Found TripSeat: {} (Number: {}, Status: {})",
+                tripSeat.getId(), tripSeat.getSeatNumber(), tripSeat.getStatus());
 
-                    // Find the TripSeat for this trip and seat
-                    log.info("🔍 Looking for TripSeat - TripID: {}, SeatID: {}", trip.getId(), seat.getId());
-                    tripSeat = tripSeatRepository.findByTripIdAndSeatId(trip.getId(), seat.getId())
-                        .orElse(null);
-                }
-            } catch (Exception e) {
-                log.warn("⚠️ Could not find Seat with ID {}: {}", request.getSeatId(), e.getMessage());
-            }
-        }
-
-        // If seat or tripSeat not found, try alternative approach
-        if (tripSeat == null) {
-            log.warn("⚠️ TripSeat not found via seatId, trying to find by tripId only");
-            // List all available trip seats for this trip
-            var availableTripSeats = tripSeatRepository.findAvailableSeatsByTripId(trip.getId());
-
-            if (availableTripSeats.isEmpty()) {
-                log.error("❌ No available seats for trip {}", trip.getId());
-                throw new RuntimeException("No available seats for trip " + trip.getId());
+            // Verify trip matches
+            if (tripSeat.getTrip() == null || !tripSeat.getTrip().getId().equals(trip.getId())) {
+                log.error("❌ TripSeat {} belongs to trip {}, but request is for trip {}",
+                    tripSeat.getId(),
+                    tripSeat.getTrip() != null ? tripSeat.getTrip().getId() : "null",
+                    trip.getId());
+                throw new RuntimeException("TripSeat does not belong to the requested trip");
             }
 
-            // Take the first available seat
-            tripSeat = availableTripSeats.get(0);
-            log.info("✅ Using first available TripSeat: {} (seat: {})",
-                tripSeat.getId(), tripSeat.getSeatNumber());
-
-            // Get the actual Seat from TripSeat
+            // Get Seat reference if exists (optional)
             if (tripSeat.getSeat() != null) {
                 seat = tripSeat.getSeat();
                 ticket.setSeat(seat);
-                log.info("✅ Found Seat from TripSeat: {} (Number: {})", seat.getId(), seat.getSeatNumber());
+                log.info("✅ Found linked Seat: {} (Number: {})", seat.getId(), seat.getSeatNumber());
+            } else if (request.getSeatId() != null) {
+                // Fallback: try to link Seat from request
+                seat = seatRepository.findById(request.getSeatId()).orElse(null);
+                if (seat != null) {
+                    ticket.setSeat(seat);
+                    log.info("✅ Linked Seat from request: {} (Number: {})", seat.getId(), seat.getSeatNumber());
+                }
             }
-        }
+        } else if (request.getSeatId() != null) {
+            // LEGACY: Old flow using seatId (kept for backward compatibility)
+            log.warn("⚠️ Using legacy seatId flow (should use tripSeatId instead)");
+            final Integer seatIdToFind = request.getSeatId();
+            seat = seatRepository.findById(seatIdToFind)
+                .orElseThrow(() -> new RuntimeException("Seat not found with ID: " + seatIdToFind));
+            ticket.setSeat(seat);
 
-        if (tripSeat == null) {
-            throw new RuntimeException("Could not find available seat for trip " + trip.getId());
+            // Find TripSeat by trip + seat
+            final Integer finalSeatId = seat.getId();
+            tripSeat = tripSeatRepository.findByTripIdAndSeatId(trip.getId(), finalSeatId)
+                .orElseThrow(() -> new RuntimeException("TripSeat not found for trip " + trip.getId() + " and seat " + finalSeatId));
+
+            log.info("✅ Found TripSeat via seatId: {} (Number: {})", tripSeat.getId(), tripSeat.getSeatNumber());
+        } else {
+            throw new RuntimeException("Either tripSeatId or seatId must be provided");
         }
 
         ticket.setTripSeat(tripSeat);

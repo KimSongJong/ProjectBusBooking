@@ -479,8 +479,8 @@ function BookingSeat() {
   };
 
   const handleSeatClick = async (seat: TripSeat) => {
-    // ⭐ FIX: Get userId with fallback
-    const userId = user?.id;
+    // ⭐ FIX: Get userId with fallback (support both LoginResponse.userId and UserResponse.id)
+    const userId = (user as any)?.userId || (user as any)?.id;
 
     console.log("🔍 DEBUG handleSeatClick:");
     console.log("  user object:", user);
@@ -839,22 +839,42 @@ function BookingSeat() {
         };
 
         console.log("🎫 Creating round trip booking:", roundTripRequest);
+        console.log("⏰ [STEP 1] Sending request to backend...");
 
         const response = await ticketService.createRoundTripBooking(roundTripRequest);
 
+        console.log("⏰ [STEP 2] Received response from backend");
         console.log("📦 Round trip response:", response);
         console.log("📦 Response type:", typeof response);
         console.log("📦 Response keys:", response ? Object.keys(response) : 'null/undefined');
+        console.log("📦 Response.success:", response?.success, "(type:", typeof response?.success, ")");
+        console.log("📦 Response.bookingGroupId:", response?.bookingGroupId);
 
         toast.dismiss(loadingToast);
 
-        // ✅ Check if response exists
-        if (!response) {
-          console.error("❌ Response is null or undefined!");
-          throw new Error("Không nhận được phản hồi từ server");
+        // ✅ Check if response exists and has bookingGroupId (most important indicator)
+        if (!response || !response.bookingGroupId) {
+          console.error("❌ [STEP 3] Response invalid - Missing bookingGroupId!");
+          console.error("❌ Full response:", JSON.stringify(response, null, 2));
+          throw new Error(response?.message || "Không nhận được phản hồi từ server");
         }
 
-        if (response.success) {
+        console.log("✅ [STEP 3] Response valid - Has bookingGroupId:", response.bookingGroupId);
+
+        // ✅ Check success flag (can be boolean true or string 'true')
+        const isSuccess = response.success === true ||
+                         response.success === 'true' ||
+                         Boolean(response.bookingGroupId); // If has bookingGroupId, consider success
+
+        console.log("🔍 [STEP 4] Is Success?", isSuccess);
+        console.log("🔍   - response.success === true:", response.success === true);
+        console.log("🔍   - response.success === 'true':", response.success === 'true');
+        console.log("🔍   - Boolean(bookingGroupId):", Boolean(response.bookingGroupId));
+        console.log("🔍   - BookingGroupId:", response.bookingGroupId);
+
+        if (isSuccess) {
+          console.log("✅ [STEP 5] Success condition met! Preparing navigation...");
+
           toast.success(`Đã tạo vé khứ hồi thành công! Giảm ${formatPrice(response.discountAmount || 0)}đ`);
 
           // Save booking data for payment
@@ -880,13 +900,35 @@ function BookingSeat() {
             finalPrice: response.finalPrice || response.totalPrice,
           };
 
+          console.log("💾 [STEP 6] Saving payment data to sessionStorage...");
+          console.log("💾 Payment data:", paymentData);
           sessionStorage.setItem("bookingData", JSON.stringify(paymentData));
+
+          console.log("✅ [STEP 7] Payment data saved. Navigating to /payment in 2 seconds...");
+          console.log("🚀 ABOUT TO NAVIGATE TO /payment");
+
+          // Add delay to see logs
+          await new Promise(resolve => setTimeout(resolve, 2000));
+
+          console.log("🚀🚀🚀 NAVIGATING NOW! Current URL:", window.location.href);
           navigate("/payment");
+          console.log("🚀🚀🚀 navigate() called. New URL should be:", window.location.origin + "/payment");
         } else {
+          console.error("❌ [STEP 5] Success condition NOT met!");
+          console.error("❌ This should NOT happen if bookingGroupId exists!");
           throw new Error(response.message || "Không thể tạo vé khứ hồi");
         }
       } catch (error: any) {
-        console.error("❌ Error creating round trip booking:", error);
+        console.error("🔥🔥🔥 [CATCH BLOCK] Error creating round trip booking!");
+        console.error("🔥 Error object:", error);
+        console.error("🔥 Error message:", error.message);
+        console.error("🔥 Error stack:", error.stack);
+        console.error("🔥 Error type:", typeof error);
+        console.error("🔥 Error constructor:", error?.constructor?.name);
+
+        // Check if this error is causing page reload
+        console.error("🔥 THIS ERROR MIGHT BE CAUSING PAGE RELOAD!");
+        console.error("🔥 Current URL:", window.location.href);
 
         // ✅ DON'T clear selected seats - let user see what they selected
         // setSelectedOutboundSeats([]);
@@ -929,27 +971,36 @@ function BookingSeat() {
 
       // Create tickets for each selected seat with status='booked'
       console.log("🎫 Creating tickets with status='booked' for seats:", selectedSeats);
+      console.log("🔍 All seats from API:", allSeats);
 
       for (const seatNumber of selectedSeats) {
         const tripSeat = allSeats.find((s: any) => s.seatNumber === seatNumber);
 
-        if (!tripSeat || !tripSeat.seatId) {
+        console.log(`🔍 Found tripSeat for ${seatNumber}:`, tripSeat);
+        console.log(`   - tripSeat.id: ${tripSeat?.id}`);
+        console.log(`   - tripSeat.seatId: ${tripSeat?.seatId}`);
+
+        if (!tripSeat) {
           throw new Error(`Không tìm thấy thông tin ghế ${seatNumber}`);
         }
+
+        // ✅ FIX: Use tripSeatId (always exists) instead of seatId (may be null)
+        console.log(`✅ Creating ticket with tripSeatId=${tripSeat.id} for seat ${seatNumber}`);
 
         const ticketRequest = {
           userId: Number(userId),
           tripId: Number(tripId),
-          seatId: tripSeat.seatId,
-          pickupPoint: pickupPoint,         // ⭐ NEW
-          dropoffPoint: dropoffPoint,       // ⭐ NEW
-          customerName: customerName,       // ⭐ NEW
-          customerPhone: customerPhone,     // ⭐ NEW
-          customerEmail: customerEmail,     // ⭐ NEW
-          notes: notes,                     // ⭐ NEW
+          tripSeatId: tripSeat.id,          // ✅ Use trip_seats.id (always exists)
+          seatId: tripSeat.seatId || null,  // ✅ Optional: seats.id (may be null)
+          pickupPoint: pickupPoint,
+          dropoffPoint: dropoffPoint,
+          customerName: customerName,
+          customerPhone: customerPhone,
+          customerEmail: customerEmail,
+          notes: notes,
           price: Number(trip?.route?.basePrice || 0),
           bookingMethod: "online" as const,
-          status: "booked" as const, // ⭐ TẠO VÉ VỚI STATUS 'BOOKED'
+          status: "booked" as const,        // ⭐ TẠO VÉ VỚI STATUS 'BOOKED'
         };
 
         console.log("📝 Creating ticket:", ticketRequest);
