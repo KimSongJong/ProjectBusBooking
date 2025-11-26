@@ -25,4 +25,15 @@ public interface TicketRepository extends JpaRepository<Ticket, Integer> {
     // Find ticket that links to a specific ticket (for deleting round trips)
     @Query("SELECT t FROM Ticket t WHERE t.linkedTicket = :linkedTicket")
     java.util.Optional<Ticket> findByLinkedTicket(@Param("linkedTicket") Ticket linkedTicket);
+
+    // ⭐ NEW: Find expired tickets for auto-cancellation
+    @Query("SELECT t FROM Ticket t WHERE t.status = :status AND t.expiresAt < :expiresAt")
+    List<Ticket> findByStatusAndExpiresAtBefore(
+        @Param("status") Ticket.Status status,
+        @Param("expiresAt") java.time.LocalDateTime expiresAt
+    );
+
+    // Convenience method for scheduler
+    @Query("SELECT t FROM Ticket t WHERE t.status = 'booked' AND t.expiresAt < :now")
+    List<Ticket> findExpiredBookedTickets(@Param("now") java.time.LocalDateTime now);
 }

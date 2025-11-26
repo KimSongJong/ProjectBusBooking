@@ -36,9 +36,9 @@ public class PaymentController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Payment retrieved successfully", payment));
     }
 
-    @GetMapping("/ticket/{ticketId}")
-    public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentByTicketId(@PathVariable Integer ticketId) {
-        PaymentResponse payment = paymentService.getPaymentByTicketId(ticketId);
+    @GetMapping("/booking-group/{bookingGroupId}")
+    public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentByBookingGroupId(@PathVariable String bookingGroupId) {
+        PaymentResponse payment = paymentService.getPaymentByBookingGroupId(bookingGroupId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Payment retrieved successfully", payment));
     }
 

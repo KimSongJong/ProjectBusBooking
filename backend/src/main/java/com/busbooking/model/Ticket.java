@@ -67,12 +67,22 @@ public class Ticket {
     @Column(nullable = false)
     private Status status = Status.booked;
     
-    @Column(name = "booked_at")
-    private LocalDateTime bookedAt;
-    
+    // ⭐ NEW: Timestamp fields for ticket lifecycle
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
+
     @Column(name = "cancelled_at")
     private LocalDateTime cancelledAt;
     
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt;
+
+    @Column(name = "booked_at")
+    private LocalDateTime bookedAt;
+
     // ⭐ NEW: Round trip support fields
     @Enumerated(EnumType.STRING)
     @Column(name = "trip_type", nullable = false)
@@ -93,7 +103,9 @@ public class Ticket {
     }
     
     public enum Status {
-        booked, confirmed, cancelled
+        booked,     // Đã đặt (chờ thanh toán)
+        confirmed,  // Đã thanh toán
+        cancelled   // Đã hủy
     }
     
     public enum TripType {
@@ -103,6 +115,15 @@ public class Ticket {
 
     @PrePersist
     protected void onCreate() {
-        bookedAt = LocalDateTime.now();
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+        if (bookedAt == null) {
+            bookedAt = LocalDateTime.now();
+        }
+        // ⭐ Auto-set expiration time: 5 minutes from creation
+        if (expiresAt == null && status == Status.booked) {
+            expiresAt = createdAt.plusMinutes(5);
+        }
     }
 }

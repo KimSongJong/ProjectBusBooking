@@ -23,6 +23,7 @@ import { FaChair, FaSearch, FaFilter, FaCalendar } from "react-icons/fa";
 import tripSeatService from "@/services/tripSeat.service";
 import tripService from "@/services/trip.service";
 import type { TripSeat, TripOption } from "@/types/tripSeat.types";
+import BusLayoutRenderer from "@/components/BusLayoutRenderer";
 
 function AdminSeats() {
   const [tripSeats, setTripSeats] = useState<TripSeat[]>([]);
@@ -36,6 +37,7 @@ function AdminSeats() {
 
   // Filter states
   const [statusFilter, setStatusFilter] = useState<string>("scheduled"); // all, scheduled, starting_soon, completed, cancelled
+  const [vehicleTypeFilter, setVehicleTypeFilter] = useState<string>("all"); // all, standard, bed, vip
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [dateFromFilter, setDateFromFilter] = useState<string>("");
   const [dateToFilter, setDateToFilter] = useState<string>("");
@@ -57,7 +59,7 @@ function AdminSeats() {
   // Apply filters whenever filter states change
   useEffect(() => {
     applyFilters();
-  }, [allTrips, statusFilter, searchQuery, dateFromFilter, dateToFilter]);
+  }, [allTrips, statusFilter, vehicleTypeFilter, searchQuery, dateFromFilter, dateToFilter]);
 
   const fetchTrips = async () => {
     try {
@@ -96,7 +98,22 @@ function AdminSeats() {
     }
     // statusFilter === "all" → không filter
 
-    // 2. Filter by search query (route, vehicle plate, ID)
+    // 2. Filter by vehicle type
+    if (vehicleTypeFilter !== "all") {
+      filtered = filtered.filter(trip => {
+        const vehicleType = trip.vehicle?.vehicleType?.toLowerCase() || '';
+        if (vehicleTypeFilter === "standard") {
+          return vehicleType === "standard" || vehicleType === "ghế";
+        } else if (vehicleTypeFilter === "bed") {
+          return vehicleType === "bed" || vehicleType === "sleeper" || vehicleType === "giường" || vehicleType === "giường nằm";
+        } else if (vehicleTypeFilter === "vip") {
+          return vehicleType === "vip" || vehicleType === "limousine";
+        }
+        return true;
+      });
+    }
+
+    // 3. Filter by search query (route, vehicle plate, ID)
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(trip => {
@@ -108,7 +125,7 @@ function AdminSeats() {
       });
     }
 
-    // 3. Filter by date range
+    // 4. Filter by date range
     if (dateFromFilter || dateToFilter) {
       filtered = filtered.filter(trip => {
         const tripDate = new Date(trip.departureTime);
@@ -214,34 +231,6 @@ function AdminSeats() {
     }
   };
 
-  const lowerFloorSeats = tripSeats.filter(s => s.seatNumber.match(/^[A]\d+$/));
-  const upperFloorSeats = tripSeats.filter(s => s.seatNumber.startsWith('B'));
-
-  const renderSeat = (seat: TripSeat) => {
-    const statusColors = {
-      available: "bg-green-100 border-green-500 text-green-800 hover:bg-green-200",
-      booked: "bg-red-100 border-red-500 text-red-800 hover:bg-red-200",
-      locked: "bg-slate-300 border-slate-500 text-slate-700 hover:bg-slate-400",
-    };
-
-    const typeIcons = {
-      standard: "🪑",
-      vip: "👑",
-      bed: "🛏️",
-    };
-
-    return (
-      <div
-        key={seat.id}
-        onClick={() => handleSeatClick(seat)}
-        className={`relative w-14 h-14 rounded-md border-2 flex flex-col items-center justify-center cursor-pointer transition-all ${statusColors[seat.status]}`}
-      >
-        <span className="text-xs font-bold">{seat.seatNumber}</span>
-        <span className="text-base">{typeIcons[seat.seatType]}</span>
-      </div>
-    );
-  };
-
   const selectedTrip = filteredTrips.find(t => t.id === selectedTripId);
 
   return (
@@ -261,7 +250,7 @@ function AdminSeats() {
             </div>
 
             {/* Compact Filter Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
               {/* Search */}
               <div>
                 <Label className="text-xs font-medium mb-1 block text-gray-600">Tìm kiếm</Label>
@@ -290,6 +279,22 @@ function AdminSeats() {
                 </Select>
               </div>
 
+              {/* Vehicle Type Filter */}
+              <div>
+                <Label className="text-xs font-medium mb-1 block text-gray-600">Loại xe</Label>
+                <Select value={vehicleTypeFilter} onValueChange={setVehicleTypeFilter}>
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue placeholder="Chọn loại xe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">🚌 Tất cả</SelectItem>
+                    <SelectItem value="standard">🪑 Ghế ngồi</SelectItem>
+                    <SelectItem value="bed">🛏️ Giường nằm</SelectItem>
+                    <SelectItem value="vip">👑 Limousine</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* From Date */}
               <div>
                 <Label className="text-xs font-medium mb-1 block text-gray-600">Từ ngày</Label>
@@ -314,7 +319,7 @@ function AdminSeats() {
             </div>
 
             {/* Filter Summary - Inline */}
-            {(searchQuery || statusFilter !== "scheduled" || dateFromFilter || dateToFilter) && (
+            {(searchQuery || statusFilter !== "scheduled" || vehicleTypeFilter !== "all" || dateFromFilter || dateToFilter) && (
               <div className="mt-3 flex items-center justify-between pt-3 border-t border-gray-200">
                 <p className="text-xs text-blue-600">
                   📊 <span className="font-bold">{filteredTrips.length}</span> / {allTrips.length} chuyến
@@ -325,6 +330,7 @@ function AdminSeats() {
                   onClick={() => {
                     setSearchQuery("");
                     setStatusFilter("scheduled");
+                    setVehicleTypeFilter("all");
                     setDateFromFilter("");
                     setDateToFilter("");
                   }}
@@ -380,6 +386,32 @@ function AdminSeats() {
                             <div className="flex items-center gap-1">
                               <span className="text-gray-500">🚌</span>
                               <span className="font-medium truncate">{trip.vehicle.licensePlate}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-gray-500">
+                                {(() => {
+                                  const vType = trip.vehicle.vehicleType?.toLowerCase() || '';
+                                  if (vType === 'bed' || vType === 'sleeper' || vType === 'giường' || vType === 'giường nằm') {
+                                    return '🛏️';
+                                  } else if (vType === 'vip' || vType === 'limousine') {
+                                    return '👑';
+                                  } else {
+                                    return '🪑'; // Chair icon
+                                  }
+                                })()}
+                              </span>
+                              <span className="font-medium truncate">
+                                {(() => {
+                                  const vType = trip.vehicle.vehicleType?.toLowerCase() || '';
+                                  if (vType === 'bed' || vType === 'sleeper' || vType === 'giường' || vType === 'giường nằm') {
+                                    return 'Giường nằm';
+                                  } else if (vType === 'vip' || vType === 'limousine') {
+                                    return 'Limousine';
+                                  } else {
+                                    return 'Ghế ngồi';
+                                  }
+                                })()}
+                              </span>
                             </div>
                             <div className="flex items-center gap-1">
                               <span className="text-gray-500">⏰</span>
@@ -448,8 +480,8 @@ function AdminSeats() {
                   {/* Compact Sticky Trip Bar with Legend */}
                   <div className="sticky top-0 z-10 mb-3 -mx-8 px-8 pt-3 pb-3 bg-slate-50">
                     <Card className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300">
-                      {/* Trip Info Row */}
-                      <div className="flex items-center gap-4 text-xs flex-wrap mb-2">
+                      {/* Trip Info + Legend Row */}
+                      <div className="flex items-center gap-4 text-xs flex-wrap">
                         <div className="flex items-center gap-1.5">
                           <span className="text-blue-700 font-semibold">📍</span>
                           <span className="font-bold text-blue-900 text-sm">{selectedTrip.route.fromLocation} → {selectedTrip.route.toLocation}</span>
@@ -466,26 +498,21 @@ function AdminSeats() {
                           <span className="text-red-700">Đã đặt:</span>{' '}
                           <span className="font-bold text-red-800">{tripSeats.filter(s => s.status === "booked").length}</span>
                         </div>
-                      </div>
 
-                      {/* Legend Row */}
-                      <div className="flex items-center gap-4 text-xs pt-2 border-t border-blue-200">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-6 h-6 bg-green-100 border border-green-500 rounded"></div>
-                          <span>Trống</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-6 h-6 bg-red-100 border border-red-500 rounded"></div>
-                          <span>Đã đặt</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-6 h-6 bg-slate-300 border border-slate-500 rounded"></div>
-                          <span>Khóa</span>
-                        </div>
-                        <div className="ml-auto flex items-center gap-3 text-sm">
-                          <span>🪑</span>
-                          <span>👑</span>
-                          <span>🛏️</span>
+                        {/* Legend badges - color blocks instead of icons */}
+                        <div className="flex items-center gap-2 ml-2 border-l border-blue-300 pl-3">
+                          <div className="flex items-center gap-1">
+                            <div className="w-4 h-4 bg-green-100 border-2 border-green-500 rounded"></div>
+                            <span className="text-[10px] font-medium text-gray-700">Trống</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-4 h-4 bg-red-100 border-2 border-red-500 rounded"></div>
+                            <span className="text-[10px] font-medium text-gray-700">Đã đặt</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-4 h-4 bg-slate-300 border-2 border-slate-500 rounded"></div>
+                            <span className="text-[10px] font-medium text-gray-700">Khóa</span>
+                          </div>
                         </div>
                       </div>
                     </Card>
@@ -495,7 +522,7 @@ function AdminSeats() {
             </>
           )}
 
-          {/* Compact Seat Layout */}
+          {/* 🚌 Bus Seat Layout with BusLayoutRenderer */}
           {loading ? (
             <div className="text-center py-8">
               <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-950"></div>
@@ -511,41 +538,12 @@ function AdminSeats() {
               </div>
             </Card>
           ) : (
-            <div className="space-y-3">
-              {lowerFloorSeats.length > 0 && (
-                <Card className="p-4 bg-white">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-bold text-slate-800">🔽 Tầng dưới</h3>
-                    <div className="text-xs text-slate-600">
-                      <span className="font-medium">{lowerFloorSeats.filter(s => s.status === 'available').length}</span>/{lowerFloorSeats.length} trống
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-8 gap-2 place-items-center">{lowerFloorSeats.map(renderSeat)}</div>
-                </Card>
-              )}
-              {upperFloorSeats.length > 0 && (
-                <Card className="p-4 bg-white">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-bold text-slate-800">🔼 Tầng trên</h3>
-                    <div className="text-xs text-slate-600">
-                      <span className="font-medium">{upperFloorSeats.filter(s => s.status === 'available').length}</span>/{upperFloorSeats.length} trống
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-8 gap-2 place-items-center">{upperFloorSeats.map(renderSeat)}</div>
-                </Card>
-              )}
-              {lowerFloorSeats.length === 0 && upperFloorSeats.length === 0 && (
-                <Card className="p-4 bg-white">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-bold text-slate-800">Sơ đồ ghế</h3>
-                    <div className="text-xs text-slate-600">
-                      <span className="font-medium">{tripSeats.filter(s => s.status === 'available').length}</span>/{tripSeats.length} trống
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-8 gap-2 place-items-center">{tripSeats.map(renderSeat)}</div>
-                </Card>
-              )}
-            </div>
+            <BusLayoutRenderer
+              seats={tripSeats}
+              onSeatClick={handleSeatClick}
+              selectedSeats={[]}
+              viewMode="admin"
+            />
           )}
         </div>
       </main>

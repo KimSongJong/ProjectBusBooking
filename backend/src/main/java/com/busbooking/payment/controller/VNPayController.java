@@ -26,9 +26,10 @@ public class VNPayController {
     @PostMapping("/create")
     public ResponseEntity<PaymentResponse> createPayment(@Valid @RequestBody PaymentRequest request) {
         try {
-            log.info("Creating VNPay payment - TicketId: {}, Amount: {}", request.getTicketId(), request.getAmount());
+            log.info("Creating VNPay payment - BookingGroupId: {}, TicketCount: {}, Amount: {}",
+                    request.getBookingGroupId(), request.getTicketCount(), request.getAmount());
 
-            String orderId = "TICKET_" + request.getTicketId() + "_" + System.currentTimeMillis();
+            String orderId = request.getBookingGroupId() + "_" + System.currentTimeMillis();
 
             String paymentUrl = vnPayService.createPaymentUrl(
                     orderId,

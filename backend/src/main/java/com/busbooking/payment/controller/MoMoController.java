@@ -26,14 +26,15 @@ public class MoMoController {
     @PostMapping("/create")
     public ResponseEntity<PaymentResponse> createPayment(@Valid @RequestBody PaymentRequest request) {
         try {
-            log.info("Creating MoMo payment - TicketId: {}, Amount: {}", request.getTicketId(), request.getAmount());
+            log.info("Creating MoMo payment - BookingGroupId: {}, TicketCount: {}, Amount: {}",
+                    request.getBookingGroupId(), request.getTicketCount(), request.getAmount());
 
             if (request.getAmount() < 1000) {
                 return ResponseEntity.badRequest()
                         .body(PaymentResponse.error("Amount must be at least 1,000 VND"));
             }
 
-            String orderId = "TICKET_" + request.getTicketId() + "_" + System.currentTimeMillis();
+            String orderId = request.getBookingGroupId() + "_" + System.currentTimeMillis();
 
             String paymentUrl = moMoService.createPaymentUrl(
                     orderId,

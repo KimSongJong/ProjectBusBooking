@@ -26,11 +26,12 @@ import ticketService from "@/services/ticket.service";
 import type { Trip } from "@/types/trip.types";
 import type { TripSeat } from "@/types/tripSeat.types";
 import type { PickupPoint, DropoffPoint } from "@/types/route.types";
+import BusLayoutRenderer from "@/components/BusLayoutRenderer";
 
 function BookingSeat() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
   // ⭐ Round trip URL params
   const tripId = searchParams.get("tripId");
@@ -84,6 +85,44 @@ function BookingSeat() {
   // ⭐ NEW: Notes
   const [notes, setNotes] = useState<string>('');
 
+  // ⭐ NEW: Last refresh timestamp
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+
+  // ⭐ Function to refresh seat status (for polling)
+  const refreshSeats = async () => {
+    try {
+      if (isRoundTrip) {
+        // Refresh both trips
+        if (outboundTripId) {
+          const outboundSeatsResponse = await tripSeatService.getSeatsByTrip(Number(outboundTripId));
+          if (outboundSeatsResponse.success && outboundSeatsResponse.data) {
+            setOutboundSeats(outboundSeatsResponse.data);
+            console.log("🔄 Refreshed outbound seats");
+          }
+        }
+        if (returnTripId) {
+          const returnSeatsResponse = await tripSeatService.getSeatsByTrip(Number(returnTripId));
+          if (returnSeatsResponse.success && returnSeatsResponse.data) {
+            setReturnSeats(returnSeatsResponse.data);
+            console.log("🔄 Refreshed return seats");
+          }
+        }
+      } else {
+        // Refresh one-way trip
+        if (tripId) {
+          const seatsResponse = await tripSeatService.getSeatsByTrip(Number(tripId));
+          if (seatsResponse.success && seatsResponse.data) {
+            setSeats(seatsResponse.data);
+            console.log("🔄 Refreshed seats");
+          }
+        }
+      }
+      setLastRefresh(new Date());
+    } catch (error) {
+      console.error("❌ Error refreshing seats:", error);
+    }
+  };
+
   // ⭐ Helper function to parse route pickup/dropoff points
   const parseRoutePoints = (route: any) => {
     try {
@@ -109,6 +148,45 @@ function BookingSeat() {
     console.log('  returnTripId:', returnTripId);
     console.log('  tripType:', tripType);
     console.log('  isRoundTrip:', isRoundTrip);
+    console.log('  authLoading:', authLoading);
+    console.log('  user:', user);
+    console.log('  isAuthenticated:', isAuthenticated);
+
+    // ⭐ FIX: Wait for AuthContext to finish loading
+    if (authLoading) {
+      console.log('⏳ Waiting for auth to load...');
+      return;
+    }
+
+    // ⭐ DEBUG: Log user object structure
+    console.log('🔍 User object details:');
+    console.log('  user keys:', user ? Object.keys(user) : 'null');
+    console.log('  user.id:', (user as any)?.id);
+    console.log('  user.userId:', (user as any)?.userId);
+
+    // ⭐ FIX: Support both user.id and user.userId
+    const userId = (user as any)?.id || (user as any)?.userId;
+    console.log('  computed userId:', userId);
+
+    // ⭐ CRITICAL: Check authentication AFTER loading is done
+    if (!isAuthenticated || !userId) {
+      console.error('❌ User not authenticated or userId missing!');
+      console.error('   isAuthenticated:', isAuthenticated);
+      console.error('   user:', user);
+      console.error('   userId:', userId);
+      toast.error("Vui lòng đăng nhập để đặt vé", {
+        description: "Bạn cần đăng nhập trước khi chọn ghế.",
+        action: {
+          label: "Đăng nhập",
+          onClick: () => navigate("/login"),
+        },
+      });
+      // Small delay to let user see the toast
+      setTimeout(() => navigate("/login"), 500);
+      return;
+    }
+
+    console.log('✅ User authenticated with userId:', userId, ', proceeding...');
 
     if (isRoundTrip) {
       console.log('✅ Fetching round trip data...');
@@ -123,7 +201,7 @@ function BookingSeat() {
       toast.error("Không tìm thấy thông tin chuyến xe");
       navigate("/product");
     }
-  }, [tripId, outboundTripId, returnTripId]);
+  }, [tripId, outboundTripId, returnTripId, user, isAuthenticated, authLoading]);
 
   // ⭐ NEW: Parse pickup/dropoff points when trip is loaded
   useEffect(() => {
@@ -290,33 +368,71 @@ function BookingSeat() {
     }
   };
 
-  // ⭐ NEW: Handle seat click for round trip
-  const handleRoundTripSeatClick = (seat: TripSeat, tripDirection: "outbound" | "return") => {
+  // ⭐ NEW: Handle seat click for round trip with temporary locking
+  const handleRoundTripSeatClick = async (seat: TripSeat, tripDirection: "outbound" | "return") => {
+    // ⭐ FIX: Get userId with debug logging
+    const userId = (user as any)?.userId || (user as any)?.id;
+
+    console.log("🔍 DEBUG handleRoundTripSeatClick:");
+    console.log("  user object:", user);
+    console.log("  userId:", userId);
+    console.log("  isAuthenticated:", isAuthenticated);
+    console.log("  tripDirection:", tripDirection);
+
+    if (!userId) {
+      console.error("❌ No userId found!");
+      toast.error("Phiên đăng nhập hết hạn", {
+        description: "Vui lòng đăng nhập lại để tiếp tục đặt vé.",
+        action: {
+          label: "Đăng nhập",
+          onClick: () => navigate("/login"),
+        },
+      });
+      return;
+    }
+
     if (seat.status !== "available") {
       toast.error("Ghế này đã được đặt hoặc đang được giữ chỗ");
       return;
     }
 
-    if (tripDirection === "outbound") {
-      if (selectedOutboundSeats.includes(seat.seatNumber)) {
-        setSelectedOutboundSeats(selectedOutboundSeats.filter((s) => s !== seat.seatNumber));
-      } else {
-        if (selectedOutboundSeats.length >= 5) {
-          toast.warning("Bạn chỉ được chọn tối đa 5 ghế mỗi chuyến");
-          return;
-        }
-        setSelectedOutboundSeats([...selectedOutboundSeats, seat.seatNumber]);
-      }
+    const selectedList = tripDirection === "outbound" ? selectedOutboundSeats : selectedReturnSeats;
+    const setSelectedList = tripDirection === "outbound" ? setSelectedOutboundSeats : setSelectedReturnSeats;
+    const seatsList = tripDirection === "outbound" ? outboundSeats : returnSeats;
+
+    if (selectedList.includes(seat.seatNumber)) {
+      // ⭐ DESELECT: Remove from local state only
+      setSelectedList(selectedList.filter((s) => s !== seat.seatNumber));
+      console.log("🔓 Deselected seat:", seat.seatNumber, tripDirection);
+
+      // ⚠️ WORKAROUND: Backend API not implemented yet
+      // try {
+      //   await tripSeatService.unlockSeat(seat.id, userId);
+      //   await refreshSeats();
+      // } catch (error) {
+      //   console.error("❌ Error unlocking seat:", error);
+      // }
     } else {
-      if (selectedReturnSeats.includes(seat.seatNumber)) {
-        setSelectedReturnSeats(selectedReturnSeats.filter((s) => s !== seat.seatNumber));
-      } else {
-        if (selectedReturnSeats.length >= 5) {
-          toast.warning("Bạn chỉ được chọn tối đa 5 ghế mỗi chuyến");
-          return;
-        }
-        setSelectedReturnSeats([...selectedReturnSeats, seat.seatNumber]);
+      // ⭐ SELECT: Add to local state only
+      if (selectedList.length >= 5) {
+        toast.warning("Bạn chỉ được chọn tối đa 5 ghế mỗi chuyến");
+        return;
       }
+
+      setSelectedList([...selectedList, seat.seatNumber]);
+      console.log("🔒 Selected seat:", seat.seatNumber, tripDirection);
+      toast.success(`Đã chọn ghế ${seat.seatNumber} (${tripDirection === 'outbound' ? 'Chuyến đi' : 'Chuyến về'})`, { duration: 2000 });
+
+      // ⚠️ WORKAROUND: Backend API not implemented yet
+      // try {
+      //   await tripSeatService.lockSeatTemporarily(seat.id, userId);
+      //   await refreshSeats();
+      // } catch (error) {
+      //   console.error("❌ Error locking seat:", error);
+      //   // Rollback
+      //   setSelectedList(prev => prev.filter(s => s !== seat.seatNumber));
+      //   toast.error("Không thể chọn ghế. Vui lòng thử lại.");
+      // }
     }
   };
 
@@ -362,22 +478,72 @@ function BookingSeat() {
     }
   };
 
-  const handleSeatClick = (seat: TripSeat) => {
+  const handleSeatClick = async (seat: TripSeat) => {
+    // ⭐ FIX: Get userId with fallback
+    const userId = user?.id;
+
+    console.log("🔍 DEBUG handleSeatClick:");
+    console.log("  user object:", user);
+    console.log("  userId:", userId);
+    console.log("  isAuthenticated:", isAuthenticated);
+
+    if (!userId) {
+      console.error("❌ No userId found!");
+      toast.error("Phiên đăng nhập hết hạn", {
+        description: "Vui lòng đăng nhập lại để tiếp tục đặt vé.",
+        action: {
+          label: "Đăng nhập",
+          onClick: () => navigate("/login"),
+        },
+      });
+      return;
+    }
+
+    // ✅ CHECK: Seat must be available
     if (seat.status !== "available") {
-      toast.error("Ghế này đã được đặt hoặc đang được giữ chỗ");
+      toast.error(`Ghế ${seat.seatNumber} đã được đặt hoặc không khả dụng. Vui lòng chọn ghế khác.`, {
+        description: "Trạng thái ghế có thể đã thay đổi. Trang sẽ tự động cập nhật.",
+      });
       return;
     }
 
     if (selectedSeats.includes(seat.seatNumber)) {
-      // Bỏ chọn ghế
+      // ⭐ DESELECT: Remove from local state only
       setSelectedSeats(selectedSeats.filter((s) => s !== seat.seatNumber));
+      console.log("🔓 Deselected seat:", seat.seatNumber);
+
+      // ⚠️ WORKAROUND: Backend API /trip-seats/{id}/unlock not implemented yet
+      // TODO: Implement temporary seat locking in backend
+      // try {
+      //   await tripSeatService.unlockSeat(seat.id, userId);
+      //   await refreshSeats();
+      // } catch (error) {
+      //   console.error("❌ Error unlocking seat:", error);
+      // }
     } else {
-      // Kiểm tra giới hạn 5 ghế
+      // ⭐ SELECT: Add to local state only
       if (selectedSeats.length >= 5) {
         toast.warning("Bạn chỉ được chọn tối đa 5 ghế mỗi lần đặt");
         return;
       }
+
       setSelectedSeats([...selectedSeats, seat.seatNumber]);
+      console.log("🔒 Selected seat:", seat.seatNumber);
+      toast.success(`Đã chọn ghế ${seat.seatNumber}`, { duration: 2000 });
+
+      // ⚠️ WORKAROUND: Backend API /trip-seats/{id}/lock-temporary not implemented yet
+      // TODO: Implement temporary seat locking (5 min timeout) in backend
+      // try {
+      //   await tripSeatService.lockSeatTemporarily(seat.id, userId);
+      //   console.log("🔒 Locked seat:", seat.seatNumber, "for 5 minutes");
+      //   toast.success(`Đã giữ ghế ${seat.seatNumber} trong 5 phút`);
+      //   await refreshSeats();
+      // } catch (error) {
+      //   console.error("❌ Error locking seat:", error);
+      //   // Rollback selection
+      //   setSelectedSeats(prev => prev.filter(s => s !== seat.seatNumber));
+      //   toast.error("Không thể chọn ghế. Vui lòng thử lại.");
+      // }
     }
   };
 
@@ -473,6 +639,18 @@ function BookingSeat() {
     }
   }, [trip]);
 
+  // ⭐ NEW: Setup polling to refresh seats every 30 seconds
+  useEffect(() => {
+    if (!loading && (trip || (outboundTrip && returnTrip))) {
+      const interval = setInterval(() => {
+        console.log("🔄 Auto-refreshing seat status...");
+        refreshSeats();
+      }, 30000); // 30 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [loading, trip, outboundTrip, returnTrip]);
+
   // ⭐ ADD: Early return with loading/error UI
   if (loading) {
     return (
@@ -538,6 +716,44 @@ function BookingSeat() {
       }
     }
 
+    // ⭐ NEW: Refresh seats before submitting to verify availability
+    console.log("🔄 Refreshing seats before booking...");
+    const refreshToast = toast.loading("Đang kiểm tra trạng thái ghế...");
+    await refreshSeats();
+    toast.dismiss(refreshToast);
+
+    // ⭐ NEW: Verify selected seats are still available after refresh
+    if (isRoundTrip) {
+      // Check outbound seats
+      for (const seatNumber of selectedOutboundSeats) {
+        const seat = outboundSeats.find(s => s.seatNumber === seatNumber);
+        if (!seat || seat.status !== 'available') {
+          toast.error(`Ghế ${seatNumber} (chuyến đi) đã được đặt bởi người khác. Vui lòng chọn ghế khác.`);
+          setSelectedOutboundSeats(prev => prev.filter(s => s !== seatNumber));
+          return;
+        }
+      }
+      // Check return seats
+      for (const seatNumber of selectedReturnSeats) {
+        const seat = returnSeats.find(s => s.seatNumber === seatNumber);
+        if (!seat || seat.status !== 'available') {
+          toast.error(`Ghế ${seatNumber} (chuyến về) đã được đặt bởi người khác. Vui lòng chọn ghế khác.`);
+          setSelectedReturnSeats(prev => prev.filter(s => s !== seatNumber));
+          return;
+        }
+      }
+    } else {
+      // Check one-way seats
+      for (const seatNumber of selectedSeats) {
+        const seat = seats.find(s => s.seatNumber === seatNumber);
+        if (!seat || seat.status !== 'available') {
+          toast.error(`Ghế ${seatNumber} đã được đặt bởi người khác. Vui lòng chọn ghế khác.`);
+          setSelectedSeats(prev => prev.filter(s => s !== seatNumber));
+          return;
+        }
+      }
+    }
+
     if (!customerName || !customerPhone || !customerEmail) {
       toast.error("Vui lòng điền đầy đủ thông tin khách hàng");
       return;
@@ -579,22 +795,20 @@ function BookingSeat() {
       return;
     }
 
-    try {
-      const loadingToast = toast.loading("Đang tạo vé...");
+    // ⭐ ROUND TRIP: Call round trip API
+    if (isRoundTrip && outboundTrip && returnTrip) {
+      // Validate round trip pickup/dropoff
+      if (!outboundPickupPoint || !outboundDropoffPoint) {
+        toast.error("Vui lòng chọn điểm đón/trả cho chuyến đi");
+        return;
+      }
+      if (!returnPickupPoint || !returnDropoffPoint) {
+        toast.error("Vui lòng chọn điểm đón/trả cho chuyến về");
+        return;
+      }
 
-      // ⭐ ROUND TRIP: Call round trip API
-      if (isRoundTrip && outboundTrip && returnTrip) {
-        // Validate round trip pickup/dropoff
-        if (!outboundPickupPoint || !outboundDropoffPoint) {
-          toast.error("Vui lòng chọn điểm đón/trả cho chuyến đi");
-          toast.dismiss(loadingToast);
-          return;
-        }
-        if (!returnPickupPoint || !returnDropoffPoint) {
-          toast.error("Vui lòng chọn điểm đón/trả cho chuyến về");
-          toast.dismiss(loadingToast);
-          return;
-        }
+      try {
+        const loadingToast = toast.loading("Đang tạo vé...");
 
         const roundTripRequest: RoundTripBookingRequest = {
           userId: Number(userId),
@@ -617,7 +831,14 @@ function BookingSeat() {
 
         const response = await ticketService.createRoundTripBooking(roundTripRequest);
 
+        console.log("📦 Round trip response:", response);
+
         toast.dismiss(loadingToast);
+
+        // ✅ Check if response exists
+        if (!response) {
+          throw new Error("Không nhận được phản hồi từ server");
+        }
 
         if (response.success) {
           toast.success(`Đã tạo vé khứ hồi thành công! Giảm ${formatPrice(response.discountAmount || 0)}đ`);
@@ -650,10 +871,39 @@ function BookingSeat() {
         } else {
           throw new Error(response.message || "Không thể tạo vé khứ hồi");
         }
-        return;
-      }
+      } catch (error: any) {
+        console.error("❌ Error creating round trip booking:", error);
 
-      // ⭐ ONE-WAY: Original flow
+        // ✅ DON'T clear selected seats - let user see what they selected
+        // setSelectedOutboundSeats([]);
+        // setSelectedReturnSeats([]);
+
+        // Refresh seats to show updated status (but keep selection UI)
+        const refreshToast = toast.loading("Đang cập nhật trạng thái ghế...");
+        await refreshSeats();
+        toast.dismiss(refreshToast);
+
+        // ✅ Better error message - specific to the issue
+        const errorMessage = error.message || "Không thể tạo vé khứ hồi";
+        if (errorMessage.includes("not available") || errorMessage.includes("đã được đặt")) {
+          toast.error("⚠️ Một số ghế đã được người khác đặt", {
+            description: "Ghế màu đỏ đã hết. Vui lòng chọn ghế khác (màu xanh) và thử lại.",
+            duration: 5000,
+          });
+        } else {
+          toast.error(errorMessage, {
+            description: "Vui lòng kiểm tra lại thông tin và thử lại.",
+            duration: 5000,
+          });
+        }
+      }
+      return; // Exit after round trip
+    }
+
+    // ⭐ ONE-WAY: Original flow
+    try {
+      const loadingToast = toast.loading("Đang tạo vé...");
+
       // Fetch seats information to get seatId
       const seatsResponse = await tripSeatService.getSeatsByTrip(Number(tripId));
       if (!seatsResponse.success || !seatsResponse.data) {
@@ -727,7 +977,28 @@ function BookingSeat() {
       navigate("/payment");
     } catch (error: any) {
       console.error("❌ Error creating tickets:", error);
-      toast.error(error.message || "Có lỗi xảy ra khi tạo vé. Vui lòng thử lại.");
+
+      // ✅ DON'T clear selected seats - let user see what they selected
+      // setSelectedSeats([]);
+
+      // Refresh seats to show updated status (but keep selection UI)
+      const refreshToast = toast.loading("Đang cập nhật trạng thái ghế...");
+      await refreshSeats();
+      toast.dismiss(refreshToast);
+
+      // ✅ Better error message - specific to the issue
+      const errorMessage = error.message || "Có lỗi xảy ra khi tạo vé";
+      if (errorMessage.includes("not available") || errorMessage.includes("đã được đặt")) {
+        toast.error("⚠️ Một số ghế đã được người khác đặt", {
+          description: "Ghế màu đỏ đã hết. Vui lòng chọn ghế khác (màu xanh) và thử lại.",
+          duration: 5000,
+        });
+      } else {
+        toast.error(errorMessage, {
+          description: "Vui lòng kiểm tra lại thông tin và thử lại.",
+          duration: 5000,
+        });
+      }
     }
   };
 
@@ -736,178 +1007,81 @@ function BookingSeat() {
   const upperSeats = seats.filter((seat) => seat.seatNumber.startsWith("B"));
 
   // ⭐ NEW: Helper function to render seat map (reusable for round trip)
-  const renderSeatMap = (seatsList: TripSeat[], direction: "outbound" | "return", tripData: Trip) => {
-    const lower = seatsList.filter((seat) => seat.seatNumber.startsWith("A"));
-    const upper = seatsList.filter((seat) => seat.seatNumber.startsWith("B"));
+  // Use BusLayoutRenderer instead of custom seat map (matching AdminSeats design)
+  const renderSeatMap = (seatsList: TripSeat[], direction?: "outbound" | "return", tripData?: Trip) => {
+    // For round trip, handle seat click based on direction
+    const handleSeatClickWrapper = (seat: TripSeat) => {
+      if (isRoundTrip && direction) {
+        handleRoundTripSeatClick(seat, direction);
+      } else {
+        handleSeatClick(seat);
+      }
+    };
+
+    // Get selected seats for this direction
+    const selectedSeatsForDirection = isRoundTrip && direction
+      ? (direction === "outbound" ? selectedOutboundSeats : selectedReturnSeats)
+      : selectedSeats;
 
     return (
-      <>
-        {/* Chú thích */}
-        <div className="flex flex-wrap gap-6 mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white border-2 border-gray-300 rounded-md flex items-center justify-center text-sm font-semibold">
-              A01
-            </div>
-            <span className="text-sm font-medium text-gray-700">Còn trống</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-orange-500 border-2 border-orange-600 rounded-md flex items-center justify-center text-white text-sm font-semibold">
-              A02
-            </div>
-            <span className="text-sm font-medium text-gray-700">Đang chọn</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-300 rounded-md flex items-center justify-center text-gray-600 text-sm font-semibold">
-              A03
-            </div>
-            <span className="text-sm font-medium text-gray-700">Đã bán</span>
-          </div>
-        </div>
-
-        {/* Tầng dưới */}
-        <div className="mb-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-1 h-8 bg-orange-500 rounded"></div>
-            <h3 className="text-lg font-bold text-gray-800">Tầng dưới</h3>
-          </div>
-
-          <div className="mb-4 flex justify-end pr-4">
-            <div className="w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center">
-              <span className="text-white text-lg">🚗</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-4 gap-4 p-4 bg-white border-2 border-gray-200 rounded-lg">
-            {lower.map((seat) => {
-              const status = isRoundTrip
-                ? getRoundTripSeatStatus(seat, direction)
-                : getSeatStatus(seat);
-
-              return (
-                <button
-                  key={seat.seatNumber}
-                  onClick={() => isRoundTrip
-                    ? handleRoundTripSeatClick(seat, direction)
-                    : handleSeatClick(seat)
-                  }
-                  disabled={seat.status !== "available"}
-                  className={`
-                    relative h-14 rounded-lg font-bold text-sm transition-all transform
-                    ${status === "available"
-                      ? "bg-white border-2 border-gray-300 text-gray-700 hover:border-orange-400 hover:shadow-md hover:scale-105"
-                      : ""}
-                    ${status === "selected"
-                      ? "bg-orange-500 border-2 border-orange-600 text-white shadow-lg scale-105"
-                      : ""}
-                    ${seat.status === "booked" || seat.status === "locked"
-                      ? "bg-gray-300 border-2 border-gray-400 text-gray-600 cursor-not-allowed"
-                      : ""}
-                  `}
-                >
-                  <span className="text-sm font-bold">{seat.seatNumber}</span>
-                  {status === "selected" && (
-                    <span className="absolute top-0 right-0 w-3 h-3 bg-green-400 rounded-full border border-white"></span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Tầng trên */}
-        <div>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-1 h-8 bg-blue-500 rounded"></div>
-            <h3 className="text-lg font-bold text-gray-800">Tầng trên</h3>
-          </div>
-
-          <div className="grid grid-cols-4 gap-4 p-4 bg-white border-2 border-gray-200 rounded-lg">
-            {upper.map((seat) => {
-              const status = isRoundTrip
-                ? getRoundTripSeatStatus(seat, direction)
-                : getSeatStatus(seat);
-
-              return (
-                <button
-                  key={seat.seatNumber}
-                  onClick={() => isRoundTrip
-                    ? handleRoundTripSeatClick(seat, direction)
-                    : handleSeatClick(seat)
-                  }
-                  disabled={seat.status !== "available"}
-                  className={`
-                    relative h-14 rounded-lg font-bold text-sm transition-all transform
-                    ${status === "available"
-                      ? "bg-white border-2 border-gray-300 text-gray-700 hover:border-orange-400 hover:shadow-md hover:scale-105"
-                      : ""}
-                    ${status === "selected"
-                      ? "bg-orange-500 border-2 border-orange-600 text-white shadow-lg scale-105"
-                      : ""}
-                    ${seat.status === "booked" || seat.status === "locked"
-                      ? "bg-gray-300 border-2 border-gray-400 text-gray-600 cursor-not-allowed"
-                      : ""}
-                  `}
-                >
-                  <span className="text-sm font-bold">{seat.seatNumber}</span>
-                  {status === "selected" && (
-                    <span className="absolute top-0 right-0 w-3 h-3 bg-green-400 rounded-full border border-white"></span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </>
+      <BusLayoutRenderer
+        seats={seatsList}
+        onSeatClick={handleSeatClickWrapper}
+        selectedSeats={selectedSeatsForDirection}
+        viewMode="customer"
+        direction={direction}
+      />
     );
   };
 
   // ⚠️ REMOVED OLD ERROR CHECK - Using hasValidData check above instead
   // Old check: if (!trip) caused error for round trips!
 
+  // ⭐ Show loading screen while auth is loading or data is being fetched
+  if (authLoading || loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-orange-500 mb-4"></div>
+          <p className="text-lg font-semibold text-gray-700">
+            {authLoading ? '🔐 Đang xác thực...' : '🚌 Đang tải thông tin chuyến xe...'}
+          </p>
+          <p className="text-sm text-gray-500 mt-2">Vui lòng đợi trong giây lát</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      {/* Banner - Support both one-way and round trip */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-6 shadow-md">
-        <div className="max-w-7xl mx-auto px-4">
+      {/* Compact Header */}
+      <div className="bg-gradient-to-r from-orange-500 to-orange-600 shadow-md sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">
-                {isRoundTrip ? "Thông tin vé khứ hồi" : "Thông tin chuyến đi"}
-              </h1>
-              <div className="flex items-center gap-4 text-sm">
-                {isRoundTrip && outboundTrip ? (
-                  <>
-                    <span className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      {outboundTrip.route.fromLocation} ⇄ {outboundTrip.route.toLocation}
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      Đi: {formatDate(outboundTrip.departureTime)} | Về: {returnTrip ? formatDate(returnTrip.departureTime) : '---'}
-                    </span>
-                  </>
-                ) : trip ? (
-                  <>
-                    <span className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      {trip.route.fromLocation} → {trip.route.toLocation}
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      {formatTime(trip.departureTime)} - {formatDate(trip.departureTime)}
-                    </span>
-                  </>
-                ) : null}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate(-1)}
+                className="p-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors"
+                title="Quay lại"
+              >
+                <span className="text-lg">←</span>
+              </button>
+              <div>
+                <h1 className="text-xl font-bold text-white flex items-center gap-2">
+                  {isRoundTrip ? '🔄 Vé khứ hồi' : '🎫 Chọn ghế'}
+                  {isRoundTrip && <span className="text-xs bg-green-400 text-green-900 px-2 py-0.5 rounded-full font-bold">-10%</span>}
+                </h1>
+                <div className="text-white/90 text-sm mt-0.5">
+                  {isRoundTrip && outboundTrip ? (
+                    <span>{outboundTrip.route.fromLocation} ⇄ {outboundTrip.route.toLocation} • {formatDate(outboundTrip.departureTime)} - {returnTrip && formatDate(returnTrip.departureTime)}</span>
+                  ) : trip && (
+                    <span>{trip.route.fromLocation} → {trip.route.toLocation} • {formatDate(trip.departureTime)}</span>
+                  )}
+                </div>
               </div>
             </div>
-            <button
-              onClick={() => navigate(-1)}
-              className="px-6 py-2 bg-white text-orange-600 rounded-lg font-semibold hover:bg-gray-100 transition"
-            >
-              ← Quay lại
-            </button>
           </div>
         </div>
       </div>
@@ -922,50 +1096,78 @@ function BookingSeat() {
                 <CardContent className="p-8">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold text-gray-800">Chọn ghế khứ hồi</h2>
-                    <div className="px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-semibold">
-                      🎉 Giảm 10% vé khứ hồi
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={async () => {
+                          toast.loading("Đang cập nhật trạng thái ghế...");
+                          await refreshSeats();
+                          toast.success("Đã cập nhật trạng thái ghế");
+                        }}
+                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
+                        title="Làm mới trạng thái ghế"
+                      >
+                        🔄 Làm mới
+                      </button>
+                      <div className="px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-semibold">
+                        🎉 Giảm 10% vé khứ hồi
+                      </div>
                     </div>
                   </div>
 
                   <Tabs value={activeTab} onValueChange={(val: any) => setActiveTab(val)} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-6">
-                      <TabsTrigger value="outbound" className="text-base">
-                        🚌 Chuyến đi ({new Date(outboundTrip.departureTime).toLocaleDateString('vi-VN')})
+                    <TabsList className="grid w-full grid-cols-2 mb-4">
+                      <TabsTrigger value="outbound" className="text-sm py-3">
+                        <div className="flex items-center gap-2">
+                          <span>🚌 Chuyến đi</span>
+                          {selectedOutboundSeats.length > 0 && (
+                            <span className="bg-orange-500 text-white px-2 py-0.5 rounded-full text-xs font-bold">
+                              {selectedOutboundSeats.length}
+                            </span>
+                          )}
+                        </div>
                       </TabsTrigger>
-                      <TabsTrigger value="return" className="text-base">
-                        🔄 Chuyến về ({new Date(returnTrip.departureTime).toLocaleDateString('vi-VN')})
+                      <TabsTrigger value="return" className="text-sm py-3">
+                        <div className="flex items-center gap-2">
+                          <span>🔄 Chuyến về</span>
+                          {selectedReturnSeats.length > 0 && (
+                            <span className="bg-orange-500 text-white px-2 py-0.5 rounded-full text-xs font-bold">
+                              {selectedReturnSeats.length}
+                            </span>
+                          )}
+                        </div>
                       </TabsTrigger>
                     </TabsList>
 
                     {/* Outbound Tab Content */}
-                    <TabsContent value="outbound" className="mt-0">
-                      <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-sm text-gray-600">Chuyến đi</div>
-                            <div className="font-bold text-lg">{outboundTrip.route.fromLocation} → {outboundTrip.route.toLocation}</div>
-                            <div className="text-sm text-gray-600">{formatTime(outboundTrip.departureTime)} | {outboundTrip.vehicle.model}</div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm text-gray-600">Đã chọn</div>
-                            <div className="text-2xl font-bold text-orange-600">{selectedOutboundSeats.length} ghế</div>
-                          </div>
+                    <TabsContent value="outbound" className="mt-0 space-y-4">
+                      {/* Compact Trip Info */}
+                      <div className="p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200 flex items-center justify-between">
+                        <div className="text-sm">
+                          <span className="text-gray-600">{formatTime(outboundTrip.departureTime)}</span>
+                          <span className="mx-2">•</span>
+                          <span className="font-semibold">{outboundTrip.vehicle.model}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs text-gray-600">Đã chọn: </span>
+                          <span className="text-lg font-bold text-orange-600">{selectedOutboundSeats.length} ghế</span>
                         </div>
                       </div>
+
                       {renderSeatMap(outboundSeats, "outbound", outboundTrip)}
 
-                      {/* ⭐ Outbound Pickup/Dropoff Section */}
-                      <Card className="mt-6">
-                        <CardContent className="p-6">
-                          <h3 className="text-xl font-bold mb-4">Thông tin đón trả - Chuyến đi</h3>
-
-                          <div className="space-y-4">
+                      {/* Compact Pickup/Dropoff */}
+                      <Card>
+                        <CardContent className="p-4">
+                          <h3 className="text-base font-bold mb-3 flex items-center gap-2">
+                            📍 Điểm đón/trả
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {/* Pickup */}
                             <div>
-                              <Label className="text-sm font-semibold mb-2 block">ĐIỂM ĐÓN</Label>
+                              <Label className="text-xs font-semibold mb-1.5 block text-gray-600">Điểm đón</Label>
                               {outboundPickupOptions.length > 0 ? (
                                 <Select value={outboundPickupPoint} onValueChange={setOutboundPickupPoint}>
-                                  <SelectTrigger className="w-full">
+                                  <SelectTrigger className="h-10 text-sm">
                                     <SelectValue placeholder="Chọn điểm đón" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -977,21 +1179,18 @@ function BookingSeat() {
                                   </SelectContent>
                                 </Select>
                               ) : (
-                                <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded border">
+                                <div className="text-sm text-gray-500 bg-gray-50 p-2 rounded border">
                                   BX {outboundTrip.route.fromLocation}
                                 </div>
                               )}
-                              <p className="text-xs text-gray-500 mt-2">
-                                Vui lòng có mặt trước {formatTime(outboundTrip.departureTime)}
-                              </p>
                             </div>
 
                             {/* Dropoff */}
                             <div>
-                              <Label className="text-sm font-semibold mb-2 block">ĐIỂM TRẢ</Label>
+                              <Label className="text-xs font-semibold mb-1.5 block text-gray-600">Điểm trả</Label>
                               {outboundDropoffOptions.length > 0 ? (
                                 <Select value={outboundDropoffPoint} onValueChange={setOutboundDropoffPoint}>
-                                  <SelectTrigger className="w-full">
+                                  <SelectTrigger className="h-10 text-sm">
                                     <SelectValue placeholder="Chọn điểm trả" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -1014,34 +1213,35 @@ function BookingSeat() {
                     </TabsContent>
 
                     {/* Return Tab Content */}
-                    <TabsContent value="return" className="mt-0">
-                      <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-sm text-gray-600">Chuyến về</div>
-                            <div className="font-bold text-lg">{returnTrip.route.fromLocation} → {returnTrip.route.toLocation}</div>
-                            <div className="text-sm text-gray-600">{formatTime(returnTrip.departureTime)} | {returnTrip.vehicle.model}</div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm text-gray-600">Đã chọn</div>
-                            <div className="text-2xl font-bold text-orange-600">{selectedReturnSeats.length} ghế</div>
-                          </div>
+                    <TabsContent value="return" className="mt-0 space-y-4">
+                      {/* Compact Trip Info */}
+                      <div className="p-3 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border border-purple-200 flex items-center justify-between">
+                        <div className="text-sm">
+                          <span className="text-gray-600">{formatTime(returnTrip.departureTime)}</span>
+                          <span className="mx-2">•</span>
+                          <span className="font-semibold">{returnTrip.vehicle.model}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs text-gray-600">Đã chọn: </span>
+                          <span className="text-lg font-bold text-orange-600">{selectedReturnSeats.length} ghế</span>
                         </div>
                       </div>
+
                       {renderSeatMap(returnSeats, "return", returnTrip)}
 
-                      {/* ⭐ Return Pickup/Dropoff Section */}
-                      <Card className="mt-6">
-                        <CardContent className="p-6">
-                          <h3 className="text-xl font-bold mb-4">Thông tin đón trả - Chuyến về</h3>
-
-                          <div className="space-y-4">
+                      {/* Compact Pickup/Dropoff */}
+                      <Card>
+                        <CardContent className="p-4">
+                          <h3 className="text-base font-bold mb-3 flex items-center gap-2">
+                            📍 Điểm đón/trả
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {/* Pickup */}
                             <div>
-                              <Label className="text-sm font-semibold mb-2 block">ĐIỂM ĐÓN</Label>
+                              <Label className="text-xs font-semibold mb-1.5 block text-gray-600">Điểm đón</Label>
                               {returnPickupOptions.length > 0 ? (
                                 <Select value={returnPickupPoint} onValueChange={setReturnPickupPoint}>
-                                  <SelectTrigger className="w-full">
+                                  <SelectTrigger className="h-10 text-sm">
                                     <SelectValue placeholder="Chọn điểm đón" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -1053,21 +1253,18 @@ function BookingSeat() {
                                   </SelectContent>
                                 </Select>
                               ) : (
-                                <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded border">
+                                <div className="text-sm text-gray-500 bg-gray-50 p-2 rounded border">
                                   BX {returnTrip.route.fromLocation}
                                 </div>
                               )}
-                              <p className="text-xs text-gray-500 mt-2">
-                                Vui lòng có mặt trước {formatTime(returnTrip.departureTime)}
-                              </p>
                             </div>
 
                             {/* Dropoff */}
                             <div>
-                              <Label className="text-sm font-semibold mb-2 block">ĐIỂM TRẢ</Label>
+                              <Label className="text-xs font-semibold mb-1.5 block text-gray-600">Điểm trả</Label>
                               {returnDropoffOptions.length > 0 ? (
                                 <Select value={returnDropoffPoint} onValueChange={setReturnDropoffPoint}>
-                                  <SelectTrigger className="w-full">
+                                  <SelectTrigger className="h-10 text-sm">
                                     <SelectValue placeholder="Chọn điểm trả" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -1126,110 +1323,27 @@ function BookingSeat() {
                 <CardContent className="p-8">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold text-gray-800">Sơ đồ chỗ ngồi</h2>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <span className="text-2xl">🚌</span>
-                      <span className="font-semibold">{trip.vehicle.model}</span>
-                    </div>
-                  </div>
-
-                {/* Chú thích - Style Phương Trang */}
-                <div className="flex flex-wrap gap-6 mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white border-2 border-gray-300 rounded-md flex items-center justify-center text-sm font-semibold">
-                      A01
-                    </div>
-                    <span className="text-sm font-medium text-gray-700">Còn trống</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-orange-500 border-2 border-orange-600 rounded-md flex items-center justify-center text-white text-sm font-semibold">
-                      A02
-                    </div>
-                    <span className="text-sm font-medium text-gray-700">Đang chọn</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-300 rounded-md flex items-center justify-center text-gray-600 text-sm font-semibold">
-                      A03
-                    </div>
-                    <span className="text-sm font-medium text-gray-700">Đã bán</span>
-                  </div>
-                </div>
-
-                {/* Tầng dưới - Improved Layout */}
-                <div className="mb-10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-1 h-8 bg-orange-500 rounded"></div>
-                    <h3 className="text-lg font-bold text-gray-800">Tầng dưới</h3>
-                  </div>
-
-                  {/* Driver seat indicator */}
-                  <div className="mb-4 flex justify-end pr-4">
-                    <div className="w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center">
-                      <span className="text-white text-lg">🚗</span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-4 p-4 bg-white border-2 border-gray-200 rounded-lg">
-                    {lowerSeats.map((seat) => (
+                    <div className="flex items-center gap-3">
                       <button
-                        key={seat.seatNumber}
-                        onClick={() => handleSeatClick(seat)}
-                        disabled={seat.status !== "available"}
-                        className={`
-                          relative h-14 rounded-lg font-bold text-sm transition-all transform
-                          ${getSeatStatus(seat) === "available"
-                            ? "bg-white border-2 border-gray-300 text-gray-700 hover:border-orange-400 hover:shadow-md hover:scale-105"
-                            : ""}
-                          ${getSeatStatus(seat) === "selected"
-                            ? "bg-orange-500 border-2 border-orange-600 text-white shadow-lg scale-105"
-                            : ""}
-                          ${seat.status === "booked" || seat.status === "locked"
-                            ? "bg-gray-300 border-2 border-gray-400 text-gray-600 cursor-not-allowed"
-                            : ""}
-                        `}
+                        onClick={async () => {
+                          toast.loading("Đang cập nhật trạng thái ghế...");
+                          await refreshSeats();
+                          toast.success("Đã cập nhật trạng thái ghế");
+                        }}
+                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
+                        title="Làm mới trạng thái ghế"
                       >
-                        <span className="text-sm font-bold">{seat.seatNumber}</span>
-                        {getSeatStatus(seat) === "selected" && (
-                          <span className="absolute top-0 right-0 w-3 h-3 bg-green-400 rounded-full border border-white"></span>
-                        )}
+                        🔄 Làm mới
                       </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Tầng trên - Improved Layout */}
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-1 h-8 bg-blue-500 rounded"></div>
-                    <h3 className="text-lg font-bold text-gray-800">Tầng trên</h3>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <span className="text-2xl">🚌</span>
+                        <span className="font-semibold">{trip.vehicle.model}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-4 gap-4 p-4 bg-white border-2 border-gray-200 rounded-lg">
-                    {upperSeats.map((seat) => (
-                      <button
-                        key={seat.seatNumber}
-                        onClick={() => handleSeatClick(seat)}
-                        disabled={seat.status !== "available"}
-                        className={`
-                          relative h-14 rounded-lg font-bold text-sm transition-all transform
-                          ${getSeatStatus(seat) === "available"
-                            ? "bg-white border-2 border-gray-300 text-gray-700 hover:border-orange-400 hover:shadow-md hover:scale-105"
-                            : ""}
-                          ${getSeatStatus(seat) === "selected"
-                            ? "bg-orange-500 border-2 border-orange-600 text-white shadow-lg scale-105"
-                            : ""}
-                          ${seat.status === "booked" || seat.status === "locked"
-                            ? "bg-gray-300 border-2 border-gray-400 text-gray-600 cursor-not-allowed"
-                            : ""}
-                        `}
-                      >
-                        <span className="text-sm font-bold">{seat.seatNumber}</span>
-                        {getSeatStatus(seat) === "selected" && (
-                          <span className="absolute top-0 right-0 w-3 h-3 bg-green-400 rounded-full border border-white"></span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                  {/* ✅ Use BusLayoutRenderer - same as round trip */}
+                  {renderSeatMap(seats, undefined, trip)}
               </CardContent>
             </Card>
             )}
@@ -1608,30 +1722,32 @@ function BookingSeat() {
                       </div>
                     </div>
 
-                    {/* Button */}
-                    {selectedOutboundSeats.length === 0 && selectedReturnSeats.length === 0 ? (
-                      <Button
-                        onClick={() => navigate(-1)}
-                        variant="outline"
-                        className="w-full mt-6 py-6 text-lg font-semibold"
-                      >
-                        ← Quay về
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={handleContinue}
-                        disabled={
-                          selectedOutboundSeats.length === 0 ||
-                          selectedReturnSeats.length === 0 ||
-                          !customerName ||
-                          !customerPhone ||
-                          !customerEmail
-                        }
-                        className="w-full mt-6 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white py-6 text-lg font-semibold"
-                      >
-                        Đặt vé khứ hồi
-                      </Button>
-                    )}
+                    {/* ✅ Fixed Button - Always show payment button, just enable/disable */}
+                    <Button
+                      onClick={handleContinue}
+                      disabled={
+                        selectedOutboundSeats.length === 0 ||
+                        selectedReturnSeats.length === 0 ||
+                        !customerName ||
+                        !customerPhone ||
+                        !customerEmail
+                      }
+                      className={`w-full mt-6 py-6 text-lg font-semibold transition-all ${
+                        selectedOutboundSeats.length === 0 ||
+                        selectedReturnSeats.length === 0 ||
+                        !customerName ||
+                        !customerPhone ||
+                        !customerEmail
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600'
+                      }`}
+                    >
+                      {selectedOutboundSeats.length === 0 || selectedReturnSeats.length === 0
+                        ? '⚠️ Vui lòng chọn ghế cho cả 2 chuyến'
+                        : !customerName || !customerPhone || !customerEmail
+                        ? '⚠️ Vui lòng nhập đầy đủ thông tin'
+                        : '✅ Đặt vé khứ hồi'}
+                    </Button>
                   </>
                 ) : (
                   /* ONE-WAY: Original sidebar */
@@ -1713,28 +1829,30 @@ function BookingSeat() {
                       </div>
                     </div>
 
-                    {/* Button */}
-                    {selectedSeats.length === 0 ? (
-                      <Button
-                        onClick={() => navigate(-1)}
-                        variant="outline"
-                        className="w-full mt-6 py-6 text-lg font-semibold"
-                      >
-                        ← Quay về
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={handleContinue}
-                        disabled={
-                          !customerName ||
-                          !customerPhone ||
-                          !customerEmail
-                        }
-                        className="w-full mt-6 bg-orange-600 hover:bg-orange-700 text-white py-6 text-lg font-semibold"
-                      >
-                        Đặt vé
-                      </Button>
-                    )}
+                    {/* ✅ Fixed Button - Always show payment button, just enable/disable */}
+                    <Button
+                      onClick={handleContinue}
+                      disabled={
+                        selectedSeats.length === 0 ||
+                        !customerName ||
+                        !customerPhone ||
+                        !customerEmail
+                      }
+                      className={`w-full mt-6 py-6 text-lg font-semibold transition-all ${
+                        selectedSeats.length === 0 ||
+                        !customerName ||
+                        !customerPhone ||
+                        !customerEmail
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-orange-600 hover:bg-orange-700'
+                      }`}
+                    >
+                      {selectedSeats.length === 0
+                        ? '⚠️ Vui lòng chọn ghế'
+                        : !customerName || !customerPhone || !customerEmail
+                        ? '⚠️ Vui lòng nhập đầy đủ thông tin'
+                        : '✅ Thanh toán'}
+                    </Button>
                   </>
                 )}
               </CardContent>

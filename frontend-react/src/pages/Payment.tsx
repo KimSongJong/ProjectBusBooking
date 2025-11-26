@@ -214,16 +214,27 @@ function Payment() {
       if (selectedPayment === "vnpay") {
         // ✅ VNPay: Redirect to VNPay payment gateway
         const finalAmount = calculateFinalTotal();
-        const orderInfo = `Dat ve ${bookingData.trip.route.fromLocation}-${bookingData.trip.route.toLocation} ghe ${bookingData.selectedSeats.join(",")}`;
+
+        // Generate booking group ID if not exists
+        const bookingGroupId = bookingData.bookingGroupId || `BOOKING_${Date.now()}_${bookingData.userId}`;
+
+        // Calculate ticket count
+        const ticketCount = bookingData.tripType === 'roundTrip'
+          ? (bookingData.outboundTickets?.length || 0) + (bookingData.returnTickets?.length || 0)
+          : bookingData.selectedSeats?.length || 1;
+
+        const orderInfo = `Dat ve ${bookingData.trip?.route?.fromLocation || ''}-${bookingData.trip?.route?.toLocation || ''} ${ticketCount} ve`;
 
         console.log("Creating VNPay payment with data:", {
-          ticketId: bookingData.tripId,
+          bookingGroupId,
+          ticketCount,
           amount: finalAmount,
           orderInfo: orderInfo,
         });
 
         const response = await paymentService.createVNPayPayment({
-          ticketId: bookingData.tripId,
+          bookingGroupId,
+          ticketCount,
           amount: finalAmount,
           orderInfo: orderInfo,
         });
@@ -246,16 +257,27 @@ function Payment() {
       } else if (selectedPayment === "momo") {
         // ✅ MoMo: Redirect to MoMo payment gateway
         const finalAmount = calculateFinalTotal();
-        const orderInfo = `Dat ve ${bookingData.trip.route.fromLocation}-${bookingData.trip.route.toLocation} ghe ${bookingData.selectedSeats.join(",")}`;
+
+        // Generate booking group ID if not exists
+        const bookingGroupId = bookingData.bookingGroupId || `BOOKING_${Date.now()}_${bookingData.userId}`;
+
+        // Calculate ticket count
+        const ticketCount = bookingData.tripType === 'roundTrip'
+          ? (bookingData.outboundTickets?.length || 0) + (bookingData.returnTickets?.length || 0)
+          : bookingData.selectedSeats?.length || 1;
+
+        const orderInfo = `Dat ve ${bookingData.trip?.route?.fromLocation || ''}-${bookingData.trip?.route?.toLocation || ''} ${ticketCount} ve`;
 
         console.log("Creating MoMo payment with data:", {
-          ticketId: bookingData.tripId,
+          bookingGroupId,
+          ticketCount,
           amount: finalAmount,
           orderInfo: orderInfo,
         });
 
         const response = await paymentService.createMoMoPayment({
-          ticketId: bookingData.tripId,
+          bookingGroupId,
+          ticketCount,
           amount: finalAmount,
           orderInfo: orderInfo,
         });

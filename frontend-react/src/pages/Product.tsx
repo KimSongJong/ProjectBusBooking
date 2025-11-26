@@ -887,81 +887,6 @@ function Product() {
                     )}
                   </>
                 )}
-
-                {/* ⭐ Summary Card (When both trips selected) */}
-                {tripType === "roundTrip" && selectedOutboundTrip && selectedReturnTrip && (
-                  <Card className="mt-6 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-300">
-                    <CardContent className="p-6">
-                      <h3 className="text-xl font-bold mb-4 text-center">📋 TỔNG KẾT VÉ KHỨ HỒI</h3>
-
-                      <div className="space-y-4">
-                        {/* Outbound */}
-                        <div className="bg-white p-4 rounded-lg">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="text-lg">🚌</div>
-                            <div className="font-bold text-green-800">Chuyến đi</div>
-                          </div>
-                          <div className="text-sm text-gray-700">
-                            {selectedOutboundTrip.route.fromLocation} → {selectedOutboundTrip.route.toLocation}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {formatTime(selectedOutboundTrip.departureTime)} • {new Date(selectedOutboundTrip.departureTime).toLocaleDateString('vi-VN')}
-                          </div>
-                          <div className="text-lg font-bold text-orange-600 mt-1">
-                            {formatPrice(Number(selectedOutboundTrip.route.basePrice))}đ
-                          </div>
-                        </div>
-
-                        {/* Return */}
-                        <div className="bg-white p-4 rounded-lg">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="text-lg">🔄</div>
-                            <div className="font-bold text-blue-800">Chuyến về</div>
-                          </div>
-                          <div className="text-sm text-gray-700">
-                            {selectedReturnTrip.route.fromLocation} → {selectedReturnTrip.route.toLocation}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {formatTime(selectedReturnTrip.departureTime)} • {new Date(selectedReturnTrip.departureTime).toLocaleDateString('vi-VN')}
-                          </div>
-                          <div className="text-lg font-bold text-orange-600 mt-1">
-                            {formatPrice(Number(selectedReturnTrip.route.basePrice))}đ
-                          </div>
-                        </div>
-
-                        {/* Total */}
-                        <div className="border-t-2 pt-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-gray-600">Tạm tính:</span>
-                            <span className="font-bold">
-                              {formatPrice(Number(selectedOutboundTrip.route.basePrice) + Number(selectedReturnTrip.route.basePrice))}đ
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center mb-2 text-green-600">
-                            <span>🎉 Giảm giá khứ hồi (10%):</span>
-                            <span className="font-bold">
-                              -{formatPrice((Number(selectedOutboundTrip.route.basePrice) + Number(selectedReturnTrip.route.basePrice)) * 0.1)}đ
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center text-xl">
-                            <span className="font-bold">TỔNG CỘNG:</span>
-                            <span className="font-bold text-orange-600">
-                              {formatPrice((Number(selectedOutboundTrip.route.basePrice) + Number(selectedReturnTrip.route.basePrice)) * 0.9)}đ
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Continue Button */}
-                        <Button
-                          onClick={handleContinueToBooking}
-                          className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white py-6 text-lg font-semibold rounded-full"
-                        >
-                          Tiếp tục chọn ghế →
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
               </div>
 
               {/* ⭐ NEW: Sticky Summary Sidebar (Round Trip Only) - Right Column */}
@@ -976,7 +901,7 @@ function Product() {
                           <span>VÉ KHỨ HỒI</span>
                         </h3>
                         <div className="text-sm mt-1 opacity-90">
-                          Bước {!selectedOutboundTrip ? '1' : (!selectedReturnTrip ? '2' : '3')}/2
+                          Bước {selectedOutboundTrip && selectedReturnTrip ? '2' : '1'}/2
                         </div>
                       </div>
 

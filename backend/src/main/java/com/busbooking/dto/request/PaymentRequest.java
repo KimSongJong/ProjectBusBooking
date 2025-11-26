@@ -13,8 +13,10 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class PaymentRequest {
 
-    @NotNull(message = "Ticket ID is required")
-    private Integer ticketId;
+    @NotNull(message = "Booking group ID is required")
+    private String bookingGroupId;
+
+    private Integer ticketCount = 1;
 
     @NotNull(message = "Amount is required")
     @Positive(message = "Amount must be positive")

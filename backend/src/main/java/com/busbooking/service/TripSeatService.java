@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -109,7 +110,8 @@ public class TripSeatService {
     }
     
     /**
-     * Khóa ghế (không cho đặt)
+     * Khóa ghế vĩnh viễn (admin only)
+     * Used for maintenance or disabled seats
      */
     @Transactional
     public TripSeatResponse lockSeat(Integer tripSeatId) {
@@ -120,7 +122,8 @@ public class TripSeatService {
         TripSeat updated = tripSeatRepository.save(tripSeat);
         return toResponse(updated);
     }
-    
+
+
     private TripSeatResponse toResponse(TripSeat tripSeat) {
         // Get Seat ID directly from relationship (much simpler!)
         Integer seatId = tripSeat.getSeat() != null ? tripSeat.getSeat().getId() : null;

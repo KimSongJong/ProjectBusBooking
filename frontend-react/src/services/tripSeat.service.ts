@@ -28,10 +28,15 @@ class TripSeatService {
     return await api.patch<ApiResponse<TripSeat>>(`/trip-seats/${tripSeatId}/cancel`);
   }
 
-  // Lock a seat
+  // Lock a seat permanently (admin only)
   async lockSeat(tripSeatId: number): Promise<ApiResponse<TripSeat>> {
     return await api.patch<ApiResponse<TripSeat>>(`/trip-seats/${tripSeatId}/lock`);
   }
+
+  // ⚠️ DEPRECATED: Temporary locking removed
+  // Now using ticket-based locking instead
+  // When user clicks "Thanh toán", ticket is created with expires_at = NOW() + 5 min
+  // Scheduler auto-cancels expired tickets and releases seats
 
   // Create seats for a trip
   async createSeatsForTrip(tripId: number): Promise<ApiResponse<void>> {

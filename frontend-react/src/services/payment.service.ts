@@ -13,9 +13,9 @@ class PaymentService {
     return await api.get<ApiResponse<Payment>>(`/payments/${id}`);
   }
 
-  // Get payment by ticket ID
-  async getPaymentByTicketId(ticketId: number): Promise<ApiResponse<Payment>> {
-    return await api.get<ApiResponse<Payment>>(`/payments/ticket/${ticketId}`);
+  // Get payment by booking group ID
+  async getPaymentByBookingGroupId(bookingGroupId: string): Promise<ApiResponse<Payment>> {
+    return await api.get<ApiResponse<Payment>>(`/payments/booking-group/${bookingGroupId}`);
   }
 
   // Get payment by transaction ID
@@ -64,6 +64,26 @@ class PaymentService {
   // Get payment stats
   async getPaymentStats(): Promise<ApiResponse<PaymentStats>> {
     return await api.get<ApiResponse<PaymentStats>>("/payments/stats");
+  }
+
+  // ⭐ VNPay Payment
+  async createVNPayPayment(data: {
+    bookingGroupId: string;
+    ticketCount: number;
+    amount: number;
+    orderInfo: string;
+  }): Promise<any> {
+    return await api.post("/payment/vnpay/create", data);
+  }
+
+  // ⭐ MoMo Payment
+  async createMoMoPayment(data: {
+    bookingGroupId: string;
+    ticketCount: number;
+    amount: number;
+    orderInfo: string;
+  }): Promise<any> {
+    return await api.post("/payment/momo/create", data);
   }
 }
 

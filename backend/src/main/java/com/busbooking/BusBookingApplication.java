@@ -14,6 +14,7 @@ public class BusBookingApplication {
         System.out.println("Bus Booking System Backend is running!");
         System.out.println("API URL: http://localhost:8080/api");
         System.out.println("Auto-update trip status: ENABLED");
+        System.out.println("Auto-cancel expired tickets: ENABLED (every 1 min)");
         System.out.println("==============================================");
     }
 }

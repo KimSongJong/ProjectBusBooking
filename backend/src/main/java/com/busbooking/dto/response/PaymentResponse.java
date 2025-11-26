@@ -1,6 +1,5 @@
 package com.busbooking.dto.response;
 
-import com.busbooking.dto.response.TicketResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,8 +12,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class PaymentResponse {
     private Integer id;
-    private Integer ticketId;
-    private TicketResponse ticket; // Nested ticket info
+    private String bookingGroupId;
+    private Integer ticketCount;
     private BigDecimal amount;
     private String paymentMethod;
     private String paymentStatus;

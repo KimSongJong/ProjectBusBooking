@@ -324,7 +324,11 @@ public class TicketService {
 
             // Check if seat is available
             if (tripSeat.getStatus() != TripSeat.SeatStatus.available) {
-                throw new IllegalStateException("Seat " + seatNumber + " is not available");
+                log.warn("⚠️ Seat {} is not available for trip {}. Current status: {}",
+                        seatNumber, tripId, tripSeat.getStatus());
+                throw new IllegalStateException(
+                        String.format("Ghế %s đã được đặt hoặc không khả dụng. Vui lòng chọn ghế khác.", seatNumber)
+                );
             }
 
             // Create ticket
@@ -346,12 +350,16 @@ public class TicketService {
             ticket.setDropoffPoint(dropoffLocation);
             ticket.setNotes(notes);
 
-            // Save ticket
+            // Save ticket (createdAt and expiresAt set by @PrePersist)
             Ticket savedTicket = ticketRepository.save(ticket);
 
-            // Update trip seat status to booked
+            // ⭐ NEW: Link seat to ticket and update seat status
+            tripSeat.setTicket(savedTicket);  // Set ticket_id foreign key
             tripSeat.setStatus(TripSeat.SeatStatus.booked);
             tripSeatRepository.save(tripSeat);
+
+            log.debug("  ✅ Created ticket {} for seat {} (expires: {})",
+                savedTicket.getId(), seatNumber, savedTicket.getExpiresAt());
 
             tickets.add(ticketMapper.toResponse(savedTicket));
         }
@@ -412,6 +420,68 @@ public class TicketService {
         return ticketRepository.findByBookingGroupId(bookingGroupId).stream()
                 .map(ticketMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    // ============================================
+    // ⭐ PAYMENT METHODS
+    // ============================================
+
+    /**
+     * Mark một ticket as CONFIRMED (sau khi payment success)
+     */
+    @Transactional
+    public void markTicketAsConfirmed(Integer ticketId) {
+        log.info("💳 Marking ticket {} as CONFIRMED (paid)", ticketId);
+
+        Ticket ticket = ticketRepository.findById(ticketId)
+            .orElseThrow(() -> new ResourceNotFoundException("Ticket not found: " + ticketId));
+
+        if (ticket.getStatus() != Ticket.Status.booked) {
+            log.warn("⚠️ Ticket {} is not in BOOKED status (current: {})", ticketId, ticket.getStatus());
+            throw new IllegalStateException("Chỉ có thể thanh toán vé đang ở trạng thái BOOKED");
+        }
+
+        // Update ticket status
+        ticket.setStatus(Ticket.Status.confirmed);
+        ticket.setPaidAt(LocalDateTime.now());
+        ticket.setExpiresAt(null);  // Clear expiration since it's confirmed
+
+        ticketRepository.save(ticket);
+
+        log.info("✅ Ticket {} marked as CONFIRMED at {}", ticketId, ticket.getPaidAt());
+    }
+
+    /**
+     * Mark toàn bộ booking group as PAID (cho round trip hoặc multiple tickets)
+     */
+    @Transactional
+    public void markBookingGroupAsPaid(String bookingGroupId) {
+        log.info("💳 Marking booking group {} as PAID", bookingGroupId);
+
+        List<Ticket> tickets = ticketRepository.findByBookingGroupId(bookingGroupId);
+
+        if (tickets.isEmpty()) {
+            throw new ResourceNotFoundException("No tickets found for booking group: " + bookingGroupId);
+        }
+
+        LocalDateTime paidAt = LocalDateTime.now();
+        int updatedCount = 0;
+
+        for (Ticket ticket : tickets) {
+            if (ticket.getStatus() == Ticket.Status.booked) {
+                ticket.setStatus(Ticket.Status.confirmed);
+                ticket.setPaidAt(paidAt);
+                ticket.setExpiresAt(null);  // Clear expiration
+                updatedCount++;
+            } else {
+                log.warn("⚠️ Ticket {} is not in BOOKED status (current: {}), skipping",
+                    ticket.getId(), ticket.getStatus());
+            }
+        }
+
+        ticketRepository.saveAll(tickets);
+
+        log.info("✅ Marked {} tickets as PAID for booking group {}", updatedCount, bookingGroupId);
     }
 
     // ============================================

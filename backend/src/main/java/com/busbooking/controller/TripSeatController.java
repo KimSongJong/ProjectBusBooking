@@ -76,6 +76,12 @@ public class TripSeatController {
     @PatchMapping("/{tripSeatId}/lock")
     public ResponseEntity<ApiResponse<TripSeatResponse>> lockSeat(@PathVariable Integer tripSeatId) {
         TripSeatResponse seat = tripSeatService.lockSeat(tripSeatId);
-        return ResponseEntity.ok(new ApiResponse<>(true, "Ghế đã được khóa", seat));
+        return ResponseEntity.ok(new ApiResponse<>(true, "Ghế đã được khóa vĩnh viễn", seat));
     }
+
+    // ⚠️ DEPRECATED ENDPOINTS REMOVED
+    // Temporary seat locking is now handled by ticket-based expiration
+    // - User selects seats → UI only (no lock)
+    // - User clicks "Thanh toán" → creates ticket with expires_at
+    // - Scheduler auto-cancels expired tickets and releases seats
 }

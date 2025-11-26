@@ -36,6 +36,12 @@ public class TripSeat {
     @Column(name = "status")
     private SeatStatus status = SeatStatus.available;
     
+    // ⭐ Link to ticket that booked this seat
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ticket_id")
+    private Ticket ticket;
+
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     

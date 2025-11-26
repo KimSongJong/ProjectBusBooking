@@ -18,9 +18,11 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "ticket_id", nullable = false)
-    private Ticket ticket;
+    @Column(name = "booking_group_id", length = 50)
+    private String bookingGroupId;
+
+    @Column(name = "ticket_count")
+    private Integer ticketCount = 1;
 
     @Column(nullable = false)
     private BigDecimal amount;

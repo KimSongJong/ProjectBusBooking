@@ -12,8 +12,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PaymentRequest {
 
-    @NotNull(message = "Ticket ID is required")
-    private Long ticketId;
+    @NotBlank(message = "Booking group ID is required")
+    private String bookingGroupId;
+
+    @NotNull(message = "Ticket count is required")
+    @Min(value = 1, message = "Ticket count must be at least 1")
+    private Integer ticketCount;
 
     @NotNull(message = "Amount is required")
     @Min(value = 1000, message = "Amount must be at least 1,000 VND")

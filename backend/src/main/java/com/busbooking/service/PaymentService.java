@@ -38,9 +38,9 @@ public class PaymentService {
         return paymentMapper.toResponse(payment, true);
     }
 
-    public PaymentResponse getPaymentByTicketId(Integer ticketId) {
-        Payment payment = paymentRepository.findByTicketId(ticketId)
-                .orElseThrow(() -> new ResourceNotFoundException("Payment not found for ticket id: " + ticketId));
+    public PaymentResponse getPaymentByBookingGroupId(String bookingGroupId) {
+        Payment payment = paymentRepository.findByBookingGroupId(bookingGroupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment not found for booking group: " + bookingGroupId));
         return paymentMapper.toResponse(payment, true);
     }
 

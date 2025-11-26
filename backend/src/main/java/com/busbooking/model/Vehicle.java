@@ -45,7 +45,7 @@ public class Vehicle {
     private LocalDateTime createdAt;
     
     public enum VehicleType {
-        standard, vip, sleeper, limousine
+        standard, vip, sleeper
     }
     
     @PrePersist
@@ -68,7 +68,7 @@ public class Vehicle {
                 case sleeper:
                     vehicleTypeDisplay = "Giường nằm";
                     break;
-                case limousine:
+                case vip:
                     vehicleTypeDisplay = "Limousine";
                     break;
             }
