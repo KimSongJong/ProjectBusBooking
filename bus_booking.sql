@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 26, 2025 at 02:33 PM
+-- Generation Time: Nov 26, 2025 at 05:17 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -192,7 +192,19 @@ CREATE TABLE `payments` (
 --
 
 INSERT INTO `payments` (`id`, `booking_group_id`, `ticket_count`, `amount`, `payment_method`, `payment_status`, `transaction_id`, `payment_date`, `created_at`) VALUES
-(1, 'BOOKING_1764162714118_2', 1, 166600.00, 'vnpay', 'refunded', 'BOOKING_1764162714118_2_1764162714137', '2025-11-26 13:31:02', '2025-11-26 13:11:54');
+(1, 'BOOKING-a45c0655-cad5-11f0-badd-107c6108bf76', 1, 166600.00, 'vnpay', 'refunded', 'BOOKING_1764162714118_2_1764162714137', '2025-11-26 13:31:02', '2025-11-26 13:11:54'),
+(2, 'BOOKING-a2136c40-d004-4494-b9c6-c64aa5badb55', 2, 299880.00, 'vnpay', 'completed', 'BOOKING_a2136c40-d004-4494-b9c6-c64aa5badb55_1764164045870', '2025-11-26 13:43:08', '2025-11-26 13:34:05'),
+(3, 'BOOKING-a45c06c1-cad5-11f0-badd-107c6108bf76', 1, 166600.00, 'vnpay', 'pending', 'BOOKING_1764164550424_2_1764164550431', NULL, '2025-11-26 13:42:30'),
+(4, 'BOOKING-83c72d5b-b150-47c5-81ce-2f0b01f2425b', 1, 166600.00, 'vnpay', 'pending', 'BOOKING_1764167523083_2_1764167523103', NULL, '2025-11-26 14:32:03'),
+(5, 'BOOKING_1764168966934_5', 1, 166600.00, 'vnpay', 'pending', 'BOOKING_1764168966934_5_1764168966948', NULL, '2025-11-26 14:56:06'),
+(6, 'BOOKING-882ff6fc-9e92-40a6-a2ad-803202a55126', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-882ff6fc-9e92-40a6-a2ad-803202a55126_1764169188530', NULL, '2025-11-26 14:59:48'),
+(7, 'BOOKING-d7136c97-2ede-4573-99c2-48b94dc03bb0', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-d7136c97-2ede-4573-99c2-48b94dc03bb0_1764169471913', NULL, '2025-11-26 15:04:31'),
+(8, 'BOOKING-1592560f-02a8-42f2-b67c-4fcc47c839c0', 1, 245000.00, 'vnpay', 'pending', 'BOOKING-1592560f-02a8-42f2-b67c-4fcc47c839c0_1764170547297', NULL, '2025-11-26 15:22:27'),
+(9, 'BOOKING-92574d14-18d0-439d-b57a-1d90d6bf5fe6', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-92574d14-18d0-439d-b57a-1d90d6bf5fe6_1764170991691', NULL, '2025-11-26 15:29:51'),
+(10, 'BOOKING-55c8aec6-d438-4a29-b3eb-1d4c085a4ef7', 1, 245000.00, 'vnpay', 'pending', 'BOOKING-55c8aec6-d438-4a29-b3eb-1d4c085a4ef7_1764171752023', NULL, '2025-11-26 15:42:32'),
+(11, 'BOOKING-6d0a31d5-46fb-4985-bc4e-d09a134ef7cc', 1, 245000.00, 'vnpay', 'pending', 'BOOKING-6d0a31d5-46fb-4985-bc4e-d09a134ef7cc_1764172491303', NULL, '2025-11-26 15:54:51'),
+(12, 'BOOKING-dee0863b-7dbb-42d3-b499-98c2ed4b22d8', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-dee0863b-7dbb-42d3-b499-98c2ed4b22d8_1764172577404', NULL, '2025-11-26 15:56:17'),
+(13, 'BOOKING-d1034f2f-b62c-4b40-a88b-10a3c6909ad3', 4, 599760.00, 'vnpay', 'pending', 'BOOKING-d1034f2f-b62c-4b40-a88b-10a3c6909ad3_1764173489905', NULL, '2025-11-26 16:11:29');
 
 -- --------------------------------------------------------
 
@@ -733,73 +745,88 @@ CREATE TABLE `tickets` (
 --
 
 INSERT INTO `tickets` (`id`, `user_id`, `trip_id`, `seat_id`, `trip_seat_id`, `promotion_id`, `pickup_point`, `dropoff_point`, `customer_name`, `customer_phone`, `customer_email`, `notes`, `price`, `booking_method`, `status`, `trip_type`, `is_return_trip`, `linked_ticket_id`, `booking_group_id`, `booked_at`, `cancelled_at`, `paid_at`, `created_at`, `expires_at`) VALUES
-(3, 2, 11, NULL, NULL, NULL, 'Bến xe Miền Tây', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 120000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-23 14:44:04', '2025-11-26 10:11:00', NULL, '2025-11-23 14:44:04', NULL),
-(4, 2, 11, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 120000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-23 14:52:08', '2025-11-23 14:52:32', NULL, '2025-11-23 14:52:08', NULL),
-(5, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-24 18:12:00', '2025-11-26 10:11:00', NULL, '2025-11-24 18:12:00', NULL),
-(6, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-24 18:12:00', '2025-11-26 10:11:00', NULL, '2025-11-24 18:12:00', NULL),
-(7, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-24 18:12:00', '2025-11-26 10:11:00', NULL, '2025-11-24 18:12:00', NULL),
-(8, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-24 18:12:00', '2025-11-26 10:11:00', NULL, '2025-11-24 18:12:00', NULL),
-(9, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-24 18:12:00', '2025-11-26 10:11:00', NULL, '2025-11-24 18:12:00', NULL),
-(10, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-24 18:12:00', '2025-11-26 10:11:00', NULL, '2025-11-24 18:12:00', NULL),
-(11, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-24 18:12:00', '2025-11-26 10:11:00', NULL, '2025-11-24 18:12:00', NULL),
-(12, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-24 18:12:00', '2025-11-24 18:12:30', NULL, '2025-11-24 18:12:00', NULL),
-(13, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-24 18:25:06', '2025-11-24 18:27:33', NULL, '2025-11-24 18:25:06', NULL),
-(14, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-24 18:25:06', '2025-11-24 18:27:33', NULL, '2025-11-24 18:25:06', NULL),
-(15, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-24 18:25:06', '2025-11-24 18:27:33', NULL, '2025-11-24 18:25:06', NULL),
-(16, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-24 18:25:06', '2025-11-24 18:27:33', NULL, '2025-11-24 18:25:06', NULL),
-(17, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-24 18:25:06', '2025-11-24 18:27:33', NULL, '2025-11-24 18:25:06', NULL),
-(18, 2, 22, 225, NULL, NULL, 'Bến xe Miền Tây', 'Trung tâm Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-24 20:03:36', '2025-11-26 10:11:00', NULL, '2025-11-24 20:03:36', NULL),
-(19, 2, 22, 227, NULL, NULL, 'Bến xe Miền Tây', 'Trung tâm Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-24 20:03:36', '2025-11-26 10:11:00', NULL, '2025-11-24 20:03:36', NULL),
-(20, 2, 22, 226, NULL, NULL, 'Bến xe Miền Tây', 'Trung tâm Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-24 20:03:36', '2025-11-26 10:11:00', NULL, '2025-11-24 20:03:36', NULL),
-(21, 2, 22, 228, NULL, NULL, 'Bến xe Miền Tây', 'Trung tâm Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-24 20:03:36', '2025-11-26 10:11:00', NULL, '2025-11-24 20:03:36', NULL),
-(22, 2, 19, 1, NULL, NULL, 'Bến xe Miền Tây', 'Trung tâm Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, 23, 'BOOKING_da7e1ffa-5e01-458f-bf61-acd104598d57', '2025-11-25 04:21:32', NULL, NULL, '2025-11-25 04:21:32', NULL),
-(23, 2, 154, 1, NULL, NULL, 'Bến xe Miền Tây', 'Trung tâm Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 120000.00, 'online', 'cancelled', 'round_trip', 1, 22, 'BOOKING_da7e1ffa-5e01-458f-bf61-acd104598d57', '2025-11-25 04:21:32', '2025-11-26 10:11:00', NULL, '2025-11-25 04:21:32', NULL),
-(26, 2, 310, 1, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-26 07:13:22', '2025-11-26 10:11:00', NULL, '2025-11-26 07:13:22', NULL),
-(27, 2, 310, 4, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 28, 'BOOKING_c2cba3f4-51aa-4484-b5c0-1498b028fb57', '2025-11-26 07:15:24', '2025-11-26 10:11:00', NULL, '2025-11-26 07:15:24', NULL),
-(28, 2, 292, 204, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 27, 'BOOKING_c2cba3f4-51aa-4484-b5c0-1498b028fb57', '2025-11-26 07:15:24', '2025-11-26 10:11:00', NULL, '2025-11-26 07:15:24', NULL),
-(29, 2, 310, 2, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'confirmed', 'one_way', 0, NULL, NULL, '2025-11-26 07:20:26', NULL, NULL, '2025-11-26 07:20:26', NULL),
-(30, 2, 96, 273, NULL, NULL, 'Bến xe Đà Lạt', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 250000.00, 'online', 'cancelled', 'round_trip', 0, 31, 'BOOKING_b2bf103a-fcf6-4e49-b0cc-f6be08456851', '2025-11-26 07:28:59', '2025-11-26 10:11:00', NULL, '2025-11-26 07:28:59', NULL),
-(31, 2, 77, 273, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Đà Lạt', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 250000.00, 'online', 'cancelled', 'round_trip', 1, 30, 'BOOKING_b2bf103a-fcf6-4e49-b0cc-f6be08456851', '2025-11-26 07:28:59', '2025-11-26 10:11:00', NULL, '2025-11-26 07:28:59', NULL),
-(32, 2, 77, 296, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Đà Lạt', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 250000.00, 'online', 'cancelled', 'round_trip', 1, NULL, 'BOOKING_b2bf103a-fcf6-4e49-b0cc-f6be08456851', '2025-11-26 07:28:59', '2025-11-26 10:11:00', NULL, '2025-11-26 07:28:59', NULL),
-(33, 2, 310, 3, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 34, 'BOOKING_9de0e68d-61e4-4fa3-88b6-78f596ff5d78', '2025-11-26 08:23:22', '2025-11-26 10:11:00', NULL, '2025-11-26 08:23:22', NULL),
-(34, 2, 292, 201, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 33, 'BOOKING_9de0e68d-61e4-4fa3-88b6-78f596ff5d78', '2025-11-26 08:23:22', '2025-11-26 10:11:00', NULL, '2025-11-26 08:23:22', NULL),
-(35, 2, 310, 5, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 37, 'BOOKING_e7b5aa0c-00d1-45d6-abd7-c36c62d55e65', '2025-11-26 08:23:51', '2025-11-26 10:11:00', NULL, '2025-11-26 08:23:51', NULL),
-(36, 2, 310, 25, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, NULL, 'BOOKING_e7b5aa0c-00d1-45d6-abd7-c36c62d55e65', '2025-11-26 08:23:51', '2025-11-26 10:11:00', NULL, '2025-11-26 08:23:51', NULL),
-(37, 2, 292, 203, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 35, 'BOOKING_e7b5aa0c-00d1-45d6-abd7-c36c62d55e65', '2025-11-26 08:23:51', '2025-11-26 10:11:00', NULL, '2025-11-26 08:23:51', NULL),
-(38, 2, 310, 6, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 39, 'BOOKING_691067f9-60bc-4a37-a33a-3ea5b0a55679', '2025-11-26 08:32:35', '2025-11-26 10:11:00', NULL, '2025-11-26 08:32:35', NULL),
-(39, 2, 292, 207, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 38, 'BOOKING_691067f9-60bc-4a37-a33a-3ea5b0a55679', '2025-11-26 08:32:35', '2025-11-26 10:11:00', NULL, '2025-11-26 08:32:35', NULL),
-(40, 2, 310, 7, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 41, 'BOOKING_6c9a5df4-8963-4a16-99d0-b3048989c312', '2025-11-26 08:33:06', '2025-11-26 10:11:00', NULL, '2025-11-26 08:33:06', NULL),
-(41, 2, 292, 202, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 40, 'BOOKING_6c9a5df4-8963-4a16-99d0-b3048989c312', '2025-11-26 08:33:06', '2025-11-26 10:11:00', NULL, '2025-11-26 08:33:06', NULL),
-(42, 2, 310, 8, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 43, 'BOOKING_0f2760a5-8ebc-4714-99d6-bc67a76baa8b', '2025-11-26 08:49:07', '2025-11-26 10:11:00', NULL, '2025-11-26 08:49:07', NULL),
-(43, 2, 292, 217, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 42, 'BOOKING_0f2760a5-8ebc-4714-99d6-bc67a76baa8b', '2025-11-26 08:49:07', '2025-11-26 10:11:00', NULL, '2025-11-26 08:49:07', NULL),
-(44, 4, 64, 212, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'booked', 'round_trip', 0, 45, 'BOOKING_f77e1c3c-592c-4288-a81d-506ad4671942', '2025-11-26 10:10:41', NULL, NULL, '2025-11-26 10:10:41', NULL),
-(45, 4, 313, 21, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'booked', 'round_trip', 1, 44, 'BOOKING_f77e1c3c-592c-4288-a81d-506ad4671942', '2025-11-26 10:10:41', NULL, NULL, '2025-11-26 10:10:41', NULL),
-(46, 4, 310, NULL, 26601, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 47, 'BOOKING_1ddbbd80-d915-49a6-89fe-b1c1c06bd292', '2025-11-26 10:57:35', '2025-11-26 11:03:00', NULL, '2025-11-26 10:57:35', NULL),
-(47, 4, 292, NULL, 38160, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 46, 'BOOKING_1ddbbd80-d915-49a6-89fe-b1c1c06bd292', '2025-11-26 10:57:35', '2025-11-26 11:03:00', NULL, '2025-11-26 10:57:35', NULL),
-(48, 2, 310, NULL, 26719, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 49, 'BOOKING_6246b248-edb0-4246-9efa-e0829ab8338c', '2025-11-26 10:58:31', '2025-11-26 11:04:00', NULL, '2025-11-26 10:58:31', NULL),
-(49, 2, 292, NULL, 38220, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 48, 'BOOKING_6246b248-edb0-4246-9efa-e0829ab8338c', '2025-11-26 10:58:31', '2025-11-26 11:04:00', NULL, '2025-11-26 10:58:31', NULL),
-(50, 2, 310, NULL, 26837, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 51, 'BOOKING_08c4aa91-4960-46db-9b6b-7f3814da0ce7', '2025-11-26 11:01:17', '2025-11-26 11:08:41', NULL, '2025-11-26 11:01:17', '2025-11-26 18:06:17'),
-(51, 2, 292, NULL, 38280, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'confirmed', 'round_trip', 1, 50, 'BOOKING_08c4aa91-4960-46db-9b6b-7f3814da0ce7', '2025-11-26 11:01:17', NULL, NULL, '2025-11-26 11:01:17', '2025-11-26 18:06:17'),
-(52, 2, 310, NULL, 26601, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 53, 'BOOKING_294f731d-9e65-451d-87bb-2252dcaba9d2', '2025-11-26 11:09:20', '2025-11-26 11:14:56', NULL, '2025-11-26 11:09:20', '2025-11-26 18:14:20'),
-(53, 2, 292, NULL, 38220, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 52, 'BOOKING_294f731d-9e65-451d-87bb-2252dcaba9d2', '2025-11-26 11:09:20', '2025-11-26 11:14:56', NULL, '2025-11-26 11:09:20', '2025-11-26 18:14:20'),
-(54, 4, 310, NULL, 26601, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 55, 'BOOKING_11b2d8ac-1867-4120-9920-dd345a30fd08', '2025-11-26 11:15:56', '2025-11-26 11:34:00', NULL, '2025-11-26 11:15:56', NULL),
-(55, 4, 292, NULL, 38220, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 54, 'BOOKING_11b2d8ac-1867-4120-9920-dd345a30fd08', '2025-11-26 11:15:56', '2025-11-26 11:34:00', NULL, '2025-11-26 11:15:56', NULL),
-(56, 4, 310, NULL, 26601, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'one_way', 0, NULL, NULL, '2025-11-26 11:51:46', '2025-11-26 11:57:00', NULL, '2025-11-26 11:51:46', NULL),
-(57, 4, 310, NULL, 26719, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 58, 'BOOKING_6514f7bd-02be-414f-af78-bf744536292e', '2025-11-26 11:52:33', '2025-11-26 11:57:45', NULL, '2025-11-26 11:52:33', '2025-11-26 18:57:33'),
-(58, 4, 292, NULL, 38220, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 57, 'BOOKING_6514f7bd-02be-414f-af78-bf744536292e', '2025-11-26 11:52:33', '2025-11-26 11:57:45', NULL, '2025-11-26 11:52:33', '2025-11-26 18:57:33'),
-(59, 2, 310, NULL, 26719, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 60, 'BOOKING_e3dcce1f-cca1-400d-8e98-32c0f9bb10bf', '2025-11-26 11:59:16', '2025-11-26 12:04:45', NULL, '2025-11-26 11:59:16', '2025-11-26 19:04:16'),
-(60, 2, 292, NULL, 38220, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 59, 'BOOKING_e3dcce1f-cca1-400d-8e98-32c0f9bb10bf', '2025-11-26 11:59:16', '2025-11-26 12:04:45', NULL, '2025-11-26 11:59:16', '2025-11-26 19:04:16'),
-(61, 2, 310, NULL, 26837, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'confirmed', 'one_way', 0, NULL, NULL, '2025-11-26 12:01:43', NULL, NULL, '2025-11-26 12:01:43', '2025-11-26 19:06:43'),
-(62, 2, 310, NULL, 27545, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'confirmed', 'one_way', 0, NULL, NULL, '2025-11-26 12:02:50', NULL, NULL, '2025-11-26 12:02:50', '2025-11-26 19:07:50'),
-(63, 2, 310, NULL, 27663, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'confirmed', 'one_way', 0, NULL, NULL, '2025-11-26 12:02:50', NULL, NULL, '2025-11-26 12:02:50', '2025-11-26 19:07:50'),
-(64, 2, 310, NULL, 27427, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'confirmed', 'one_way', 0, NULL, NULL, '2025-11-26 12:02:50', NULL, NULL, '2025-11-26 12:02:50', '2025-11-26 19:07:50'),
-(65, 2, 310, NULL, 26955, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 66, 'BOOKING_cd97c268-bf70-4f72-8652-d626e23e7756', '2025-11-26 12:26:26', '2025-11-26 12:31:48', NULL, '2025-11-26 12:26:26', '2025-11-26 19:31:26'),
-(66, 2, 292, NULL, 38460, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 65, 'BOOKING_cd97c268-bf70-4f72-8652-d626e23e7756', '2025-11-26 12:26:26', '2025-11-26 12:31:48', NULL, '2025-11-26 12:26:26', '2025-11-26 19:31:26'),
-(67, 5, 310, NULL, 26719, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'user1', '0969242323', 'user1@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 68, 'BOOKING_c97224af-5938-46fe-ae2c-961f1fe01c3f', '2025-11-26 12:38:13', '2025-11-26 12:43:16', NULL, '2025-11-26 12:38:13', '2025-11-26 19:43:13'),
-(68, 5, 292, NULL, 38220, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'user1', '0969242323', 'user1@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 67, 'BOOKING_c97224af-5938-46fe-ae2c-961f1fe01c3f', '2025-11-26 12:38:13', '2025-11-26 12:43:16', NULL, '2025-11-26 12:38:13', '2025-11-26 19:43:13'),
-(69, 5, 310, NULL, 26955, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'user1', '0969242323', 'user1@gmail.com', '', 170000.00, 'online', 'confirmed', 'round_trip', 0, 70, 'BOOKING_35f548b2-3e64-44c5-9ea3-8d08e58d6078', '2025-11-26 12:40:36', '2025-11-26 12:46:00', NULL, '2025-11-26 12:40:36', NULL),
-(70, 5, 292, NULL, 38460, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'user1', '0969242323', 'user1@gmail.com', '', 170000.00, 'online', 'confirmed', 'round_trip', 1, 69, 'BOOKING_35f548b2-3e64-44c5-9ea3-8d08e58d6078', '2025-11-26 12:40:36', '2025-11-26 12:46:00', NULL, '2025-11-26 12:40:36', NULL),
-(71, 2, 310, NULL, 28725, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'user1', '0969242323', 'user1@gmail.com', '', 170000.00, 'online', 'confirmed', 'one_way', 0, NULL, NULL, '2025-11-26 13:11:49', NULL, NULL, '2025-11-26 13:11:49', '2025-11-26 20:16:49');
+(3, 2, 11, NULL, NULL, NULL, 'Bến xe Miền Tây', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 120000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a0c76-cad5-11f0-badd-107c6108bf76', '2025-11-23 14:44:04', '2025-11-26 10:11:00', NULL, '2025-11-23 14:44:04', NULL),
+(4, 2, 11, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 120000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a9125-cad5-11f0-badd-107c6108bf76', '2025-11-23 14:52:08', '2025-11-23 14:52:32', NULL, '2025-11-23 14:52:08', NULL),
+(5, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a92fd-cad5-11f0-badd-107c6108bf76', '2025-11-24 18:12:00', '2025-11-26 10:11:00', NULL, '2025-11-24 18:12:00', NULL),
+(6, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a93b7-cad5-11f0-badd-107c6108bf76', '2025-11-24 18:12:00', '2025-11-26 10:11:00', NULL, '2025-11-24 18:12:00', NULL),
+(7, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a945c-cad5-11f0-badd-107c6108bf76', '2025-11-24 18:12:00', '2025-11-26 10:11:00', NULL, '2025-11-24 18:12:00', NULL),
+(8, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a9739-cad5-11f0-badd-107c6108bf76', '2025-11-24 18:12:00', '2025-11-26 10:11:00', NULL, '2025-11-24 18:12:00', NULL),
+(9, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a97c5-cad5-11f0-badd-107c6108bf76', '2025-11-24 18:12:00', '2025-11-26 10:11:00', NULL, '2025-11-24 18:12:00', NULL),
+(10, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a9898-cad5-11f0-badd-107c6108bf76', '2025-11-24 18:12:00', '2025-11-26 10:11:00', NULL, '2025-11-24 18:12:00', NULL),
+(11, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a9925-cad5-11f0-badd-107c6108bf76', '2025-11-24 18:12:00', '2025-11-26 10:11:00', NULL, '2025-11-24 18:12:00', NULL),
+(12, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a99a7-cad5-11f0-badd-107c6108bf76', '2025-11-24 18:12:00', '2025-11-24 18:12:30', NULL, '2025-11-24 18:12:00', NULL),
+(13, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a9ac3-cad5-11f0-badd-107c6108bf76', '2025-11-24 18:25:06', '2025-11-24 18:27:33', NULL, '2025-11-24 18:25:06', NULL),
+(14, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a9b40-cad5-11f0-badd-107c6108bf76', '2025-11-24 18:25:06', '2025-11-24 18:27:33', NULL, '2025-11-24 18:25:06', NULL),
+(15, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a9bbe-cad5-11f0-badd-107c6108bf76', '2025-11-24 18:25:06', '2025-11-24 18:27:33', NULL, '2025-11-24 18:25:06', NULL),
+(16, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a9c43-cad5-11f0-badd-107c6108bf76', '2025-11-24 18:25:06', '2025-11-24 18:27:33', NULL, '2025-11-24 18:25:06', NULL),
+(17, 2, 22, NULL, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Nguyễn Văn A', '0901234567', 'nguyenvana@gmail.com', NULL, 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a9cc2-cad5-11f0-badd-107c6108bf76', '2025-11-24 18:25:06', '2025-11-24 18:27:33', NULL, '2025-11-24 18:25:06', NULL),
+(18, 2, 22, 225, NULL, NULL, 'Bến xe Miền Tây', 'Trung tâm Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a9d4b-cad5-11f0-badd-107c6108bf76', '2025-11-24 20:03:36', '2025-11-26 10:11:00', NULL, '2025-11-24 20:03:36', NULL),
+(19, 2, 22, 227, NULL, NULL, 'Bến xe Miền Tây', 'Trung tâm Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a9dfc-cad5-11f0-badd-107c6108bf76', '2025-11-24 20:03:36', '2025-11-26 10:11:00', NULL, '2025-11-24 20:03:36', NULL),
+(20, 2, 22, 226, NULL, NULL, 'Bến xe Miền Tây', 'Trung tâm Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a9e8f-cad5-11f0-badd-107c6108bf76', '2025-11-24 20:03:36', '2025-11-26 10:11:00', NULL, '2025-11-24 20:03:36', NULL),
+(21, 2, 22, 228, NULL, NULL, 'Bến xe Miền Tây', 'Trung tâm Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45a9fc9-cad5-11f0-badd-107c6108bf76', '2025-11-24 20:03:36', '2025-11-26 10:11:00', NULL, '2025-11-24 20:03:36', NULL),
+(22, 2, 19, 1, NULL, NULL, 'Bến xe Miền Tây', 'Trung tâm Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, 23, 'BOOKING-da7e1ffa-5e01-458f-bf61-acd104598d57', '2025-11-25 04:21:32', NULL, NULL, '2025-11-25 04:21:32', NULL),
+(23, 2, 154, 1, NULL, NULL, 'Bến xe Miền Tây', 'Trung tâm Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 120000.00, 'online', 'cancelled', 'round_trip', 1, 22, 'BOOKING-da7e1ffa-5e01-458f-bf61-acd104598d57', '2025-11-25 04:21:32', '2025-11-26 10:11:00', NULL, '2025-11-25 04:21:32', NULL),
+(26, 2, 310, 1, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45aa068-cad5-11f0-badd-107c6108bf76', '2025-11-26 07:13:22', '2025-11-26 10:11:00', NULL, '2025-11-26 07:13:22', NULL),
+(27, 2, 310, 4, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 28, 'BOOKING-c2cba3f4-51aa-4484-b5c0-1498b028fb57', '2025-11-26 07:15:24', '2025-11-26 10:11:00', NULL, '2025-11-26 07:15:24', NULL),
+(28, 2, 292, 204, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 27, 'BOOKING-c2cba3f4-51aa-4484-b5c0-1498b028fb57', '2025-11-26 07:15:24', '2025-11-26 10:11:00', NULL, '2025-11-26 07:15:24', NULL),
+(29, 2, 310, 2, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-a45c00d3-cad5-11f0-badd-107c6108bf76', '2025-11-26 07:20:26', NULL, NULL, '2025-11-26 07:20:26', NULL),
+(30, 2, 96, 273, NULL, NULL, 'Bến xe Đà Lạt', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 250000.00, 'online', 'cancelled', 'round_trip', 0, 31, 'BOOKING-b2bf103a-fcf6-4e49-b0cc-f6be08456851', '2025-11-26 07:28:59', '2025-11-26 10:11:00', NULL, '2025-11-26 07:28:59', NULL),
+(31, 2, 77, 273, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Đà Lạt', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 250000.00, 'online', 'cancelled', 'round_trip', 1, 30, 'BOOKING-b2bf103a-fcf6-4e49-b0cc-f6be08456851', '2025-11-26 07:28:59', '2025-11-26 10:11:00', NULL, '2025-11-26 07:28:59', NULL),
+(32, 2, 77, 296, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Đà Lạt', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 250000.00, 'online', 'cancelled', 'round_trip', 1, NULL, 'BOOKING-b2bf103a-fcf6-4e49-b0cc-f6be08456851', '2025-11-26 07:28:59', '2025-11-26 10:11:00', NULL, '2025-11-26 07:28:59', NULL),
+(33, 2, 310, 3, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 34, 'BOOKING-9de0e68d-61e4-4fa3-88b6-78f596ff5d78', '2025-11-26 08:23:22', '2025-11-26 10:11:00', NULL, '2025-11-26 08:23:22', NULL),
+(34, 2, 292, 201, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 33, 'BOOKING-9de0e68d-61e4-4fa3-88b6-78f596ff5d78', '2025-11-26 08:23:22', '2025-11-26 10:11:00', NULL, '2025-11-26 08:23:22', NULL),
+(35, 2, 310, 5, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 37, 'BOOKING-e7b5aa0c-00d1-45d6-abd7-c36c62d55e65', '2025-11-26 08:23:51', '2025-11-26 10:11:00', NULL, '2025-11-26 08:23:51', NULL),
+(36, 2, 310, 25, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, NULL, 'BOOKING-e7b5aa0c-00d1-45d6-abd7-c36c62d55e65', '2025-11-26 08:23:51', '2025-11-26 10:11:00', NULL, '2025-11-26 08:23:51', NULL),
+(37, 2, 292, 203, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 35, 'BOOKING-e7b5aa0c-00d1-45d6-abd7-c36c62d55e65', '2025-11-26 08:23:51', '2025-11-26 10:11:00', NULL, '2025-11-26 08:23:51', NULL),
+(38, 2, 310, 6, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 39, 'BOOKING-691067f9-60bc-4a37-a33a-3ea5b0a55679', '2025-11-26 08:32:35', '2025-11-26 10:11:00', NULL, '2025-11-26 08:32:35', NULL),
+(39, 2, 292, 207, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 38, 'BOOKING-691067f9-60bc-4a37-a33a-3ea5b0a55679', '2025-11-26 08:32:35', '2025-11-26 10:11:00', NULL, '2025-11-26 08:32:35', NULL),
+(40, 2, 310, 7, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 41, 'BOOKING-6c9a5df4-8963-4a16-99d0-b3048989c312', '2025-11-26 08:33:06', '2025-11-26 10:11:00', NULL, '2025-11-26 08:33:06', NULL),
+(41, 2, 292, 202, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 40, 'BOOKING-6c9a5df4-8963-4a16-99d0-b3048989c312', '2025-11-26 08:33:06', '2025-11-26 10:11:00', NULL, '2025-11-26 08:33:06', NULL),
+(42, 2, 310, 8, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 43, 'BOOKING-0f2760a5-8ebc-4714-99d6-bc67a76baa8b', '2025-11-26 08:49:07', '2025-11-26 10:11:00', NULL, '2025-11-26 08:49:07', NULL),
+(43, 2, 292, 217, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 42, 'BOOKING-0f2760a5-8ebc-4714-99d6-bc67a76baa8b', '2025-11-26 08:49:07', '2025-11-26 10:11:00', NULL, '2025-11-26 08:49:07', NULL),
+(44, 4, 64, 212, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'booked', 'round_trip', 0, 45, 'BOOKING-f77e1c3c-592c-4288-a81d-506ad4671942', '2025-11-26 10:10:41', NULL, NULL, '2025-11-26 10:10:41', NULL),
+(45, 4, 313, 21, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'booked', 'round_trip', 1, 44, 'BOOKING-f77e1c3c-592c-4288-a81d-506ad4671942', '2025-11-26 10:10:41', NULL, NULL, '2025-11-26 10:10:41', NULL),
+(46, 4, 310, NULL, 26601, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 47, 'BOOKING-1ddbbd80-d915-49a6-89fe-b1c1c06bd292', '2025-11-26 10:57:35', '2025-11-26 11:03:00', NULL, '2025-11-26 10:57:35', NULL),
+(47, 4, 292, NULL, 38160, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 46, 'BOOKING-1ddbbd80-d915-49a6-89fe-b1c1c06bd292', '2025-11-26 10:57:35', '2025-11-26 11:03:00', NULL, '2025-11-26 10:57:35', NULL),
+(48, 2, 310, NULL, 26719, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 49, 'BOOKING-6246b248-edb0-4246-9efa-e0829ab8338c', '2025-11-26 10:58:31', '2025-11-26 11:04:00', NULL, '2025-11-26 10:58:31', NULL),
+(49, 2, 292, NULL, 38220, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 48, 'BOOKING-6246b248-edb0-4246-9efa-e0829ab8338c', '2025-11-26 10:58:31', '2025-11-26 11:04:00', NULL, '2025-11-26 10:58:31', NULL),
+(50, 2, 310, NULL, 26837, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 51, 'BOOKING-08c4aa91-4960-46db-9b6b-7f3814da0ce7', '2025-11-26 11:01:17', '2025-11-26 11:08:41', NULL, '2025-11-26 11:01:17', '2025-11-26 18:06:17'),
+(51, 2, 292, NULL, 38280, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'confirmed', 'round_trip', 1, 50, 'BOOKING-08c4aa91-4960-46db-9b6b-7f3814da0ce7', '2025-11-26 11:01:17', NULL, NULL, '2025-11-26 11:01:17', '2025-11-26 18:06:17'),
+(52, 2, 310, NULL, 26601, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 53, 'BOOKING-294f731d-9e65-451d-87bb-2252dcaba9d2', '2025-11-26 11:09:20', '2025-11-26 11:14:56', NULL, '2025-11-26 11:09:20', '2025-11-26 18:14:20'),
+(53, 2, 292, NULL, 38220, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 52, 'BOOKING-294f731d-9e65-451d-87bb-2252dcaba9d2', '2025-11-26 11:09:20', '2025-11-26 11:14:56', NULL, '2025-11-26 11:09:20', '2025-11-26 18:14:20'),
+(54, 4, 310, NULL, 26601, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 55, 'BOOKING-11b2d8ac-1867-4120-9920-dd345a30fd08', '2025-11-26 11:15:56', '2025-11-26 11:34:00', NULL, '2025-11-26 11:15:56', NULL),
+(55, 4, 292, NULL, 38220, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 54, 'BOOKING-11b2d8ac-1867-4120-9920-dd345a30fd08', '2025-11-26 11:15:56', '2025-11-26 11:34:00', NULL, '2025-11-26 11:15:56', NULL),
+(56, 4, 310, NULL, 26601, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a45c03b2-cad5-11f0-badd-107c6108bf76', '2025-11-26 11:51:46', '2025-11-26 11:57:00', NULL, '2025-11-26 11:51:46', NULL),
+(57, 4, 310, NULL, 26719, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 58, 'BOOKING-6514f7bd-02be-414f-af78-bf744536292e', '2025-11-26 11:52:33', '2025-11-26 11:57:45', NULL, '2025-11-26 11:52:33', '2025-11-26 18:57:33'),
+(58, 4, 292, NULL, 38220, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 57, 'BOOKING-6514f7bd-02be-414f-af78-bf744536292e', '2025-11-26 11:52:33', '2025-11-26 11:57:45', NULL, '2025-11-26 11:52:33', '2025-11-26 18:57:33'),
+(59, 2, 310, NULL, 26719, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 60, 'BOOKING-e3dcce1f-cca1-400d-8e98-32c0f9bb10bf', '2025-11-26 11:59:16', '2025-11-26 12:04:45', NULL, '2025-11-26 11:59:16', '2025-11-26 19:04:16'),
+(60, 2, 292, NULL, 38220, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 59, 'BOOKING-e3dcce1f-cca1-400d-8e98-32c0f9bb10bf', '2025-11-26 11:59:16', '2025-11-26 12:04:45', NULL, '2025-11-26 11:59:16', '2025-11-26 19:04:16'),
+(61, 2, 310, NULL, 26837, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-a45c0476-cad5-11f0-badd-107c6108bf76', '2025-11-26 12:01:43', NULL, NULL, '2025-11-26 12:01:43', '2025-11-26 19:06:43'),
+(62, 2, 310, NULL, 27545, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-a45c04f9-cad5-11f0-badd-107c6108bf76', '2025-11-26 12:02:50', NULL, NULL, '2025-11-26 12:02:50', '2025-11-26 19:07:50'),
+(63, 2, 310, NULL, 27663, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-a45c0574-cad5-11f0-badd-107c6108bf76', '2025-11-26 12:02:50', NULL, NULL, '2025-11-26 12:02:50', '2025-11-26 19:07:50'),
+(64, 2, 310, NULL, 27427, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-a45c05cf-cad5-11f0-badd-107c6108bf76', '2025-11-26 12:02:50', NULL, NULL, '2025-11-26 12:02:50', '2025-11-26 19:07:50'),
+(65, 2, 310, NULL, 26955, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 66, 'BOOKING-cd97c268-bf70-4f72-8652-d626e23e7756', '2025-11-26 12:26:26', '2025-11-26 12:31:48', NULL, '2025-11-26 12:26:26', '2025-11-26 19:31:26'),
+(66, 2, 292, NULL, 38460, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 65, 'BOOKING-cd97c268-bf70-4f72-8652-d626e23e7756', '2025-11-26 12:26:26', '2025-11-26 12:31:48', NULL, '2025-11-26 12:26:26', '2025-11-26 19:31:26'),
+(67, 5, 310, NULL, 26719, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'user1', '0969242323', 'user1@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 68, 'BOOKING-c97224af-5938-46fe-ae2c-961f1fe01c3f', '2025-11-26 12:38:13', '2025-11-26 12:43:16', NULL, '2025-11-26 12:38:13', '2025-11-26 19:43:13'),
+(68, 5, 292, NULL, 38220, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'user1', '0969242323', 'user1@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 67, 'BOOKING-c97224af-5938-46fe-ae2c-961f1fe01c3f', '2025-11-26 12:38:13', '2025-11-26 12:43:16', NULL, '2025-11-26 12:38:13', '2025-11-26 19:43:13'),
+(69, 5, 310, NULL, 26955, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'user1', '0969242323', 'user1@gmail.com', '', 170000.00, 'online', 'confirmed', 'round_trip', 0, 70, 'BOOKING-35f548b2-3e64-44c5-9ea3-8d08e58d6078', '2025-11-26 12:40:36', '2025-11-26 12:46:00', NULL, '2025-11-26 12:40:36', NULL),
+(70, 5, 292, NULL, 38460, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'user1', '0969242323', 'user1@gmail.com', '', 170000.00, 'online', 'confirmed', 'round_trip', 1, 69, 'BOOKING-35f548b2-3e64-44c5-9ea3-8d08e58d6078', '2025-11-26 12:40:36', '2025-11-26 12:46:00', NULL, '2025-11-26 12:40:36', NULL),
+(71, 2, 310, NULL, 28725, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'user1', '0969242323', 'user1@gmail.com', '', 170000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-a45c0655-cad5-11f0-badd-107c6108bf76', '2025-11-26 13:11:49', NULL, NULL, '2025-11-26 13:11:49', '2025-11-26 20:16:49'),
+(72, 2, 310, NULL, 26719, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'user1', '0969242323', 'user1@gmail.com', '', 170000.00, 'online', 'confirmed', 'round_trip', 0, 73, 'BOOKING-a2136c40-d004-4494-b9c6-c64aa5badb55', '2025-11-26 13:33:54', NULL, NULL, '2025-11-26 13:33:54', '2025-11-26 20:38:54'),
+(73, 2, 292, NULL, 38460, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'user1', '0969242323', 'user1@gmail.com', '', 170000.00, 'online', 'confirmed', 'round_trip', 1, 72, 'BOOKING-a2136c40-d004-4494-b9c6-c64aa5badb55', '2025-11-26 13:33:54', NULL, NULL, '2025-11-26 13:33:54', '2025-11-26 20:38:54'),
+(74, 2, 310, NULL, 27899, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'user1', '0969242323', 'user1@gmail.com', '', 170000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-a45c06c1-cad5-11f0-badd-107c6108bf76', '2025-11-26 13:42:24', NULL, NULL, '2025-11-26 13:42:24', '2025-11-26 20:47:24'),
+(75, 2, 310, NULL, 26955, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'user1', '0969242323', 'user1@gmail.com', '', 170000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-83c72d5b-b150-47c5-81ce-2f0b01f2425b', '2025-11-26 14:32:00', NULL, NULL, '2025-11-26 14:32:00', '2025-11-26 21:37:00'),
+(76, 5, 310, NULL, 28371, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'user1', '0969242323', 'user1@gmail.com', '', 170000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-9e8618c7-19a0-4d17-a413-89d0a36fd003', '2025-11-26 14:56:03', NULL, NULL, '2025-11-26 14:56:03', '2025-11-26 22:01:03'),
+(77, 5, 310, NULL, 28489, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'user1', '0969242323', 'user1@gmail.com', '', 170000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-34d2774a-3cdd-4537-a68e-7599fd9f2f7b', '2025-11-26 15:04:30', NULL, NULL, '2025-11-26 15:04:30', '2025-11-26 22:09:30'),
+(78, 2, 96, NULL, 34745, NULL, 'Bến xe Đà Lạt', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 250000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-7729a475-6bd2-4abd-bca2-9b47fcbb1d91', '2025-11-26 15:22:24', NULL, NULL, '2025-11-26 15:22:24', '2025-11-26 22:27:24'),
+(79, 2, 311, NULL, 38346, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-92574d14-18d0-439d-b57a-1d90d6bf5fe6', '2025-11-26 15:29:48', NULL, NULL, '2025-11-26 15:29:48', '2025-11-26 22:34:48'),
+(80, 2, 96, NULL, 34790, NULL, 'Bến xe Đà Lạt', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 250000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-55c8aec6-d438-4a29-b3eb-1d4c085a4ef7', '2025-11-26 15:42:30', NULL, NULL, '2025-11-26 15:42:30', '2025-11-26 22:47:30'),
+(81, 2, 310, NULL, 28607, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-dee0863b-7dbb-42d3-b499-98c2ed4b22d8', '2025-11-26 15:52:55', '2025-11-26 15:58:00', NULL, '2025-11-26 15:52:55', NULL),
+(82, 2, 96, NULL, 36005, NULL, 'Bến xe Đà Lạt', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 250000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-6d0a31d5-46fb-4985-bc4e-d09a134ef7cc', '2025-11-26 15:54:10', NULL, NULL, '2025-11-26 15:54:10', '2025-11-26 22:59:10'),
+(83, 2, 310, NULL, 27191, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 85, 'BOOKING-d1034f2f-b62c-4b40-a88b-10a3c6909ad3', '2025-11-26 16:09:56', '2025-11-26 16:15:00', NULL, '2025-11-26 16:09:56', NULL),
+(84, 2, 310, NULL, 27781, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, NULL, 'BOOKING-d1034f2f-b62c-4b40-a88b-10a3c6909ad3', '2025-11-26 16:09:56', '2025-11-26 16:15:00', NULL, '2025-11-26 16:09:56', NULL),
+(85, 2, 292, NULL, 38220, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 83, 'BOOKING-d1034f2f-b62c-4b40-a88b-10a3c6909ad3', '2025-11-26 16:09:56', '2025-11-26 16:15:00', NULL, '2025-11-26 16:09:56', NULL),
+(86, 2, 292, NULL, 38520, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, NULL, 'BOOKING-d1034f2f-b62c-4b40-a88b-10a3c6909ad3', '2025-11-26 16:09:56', '2025-11-26 16:15:00', NULL, '2025-11-26 16:09:56', NULL);
 
 -- --------------------------------------------------------
 
@@ -1003,7 +1030,7 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (178, 3, 1, 1, '2025-11-26 06:00:00', '2025-11-26 12:30:00', 'completed', '2025-11-24 19:30:04'),
 (179, 3, 5, 2, '2025-11-26 09:00:00', '2025-11-26 15:30:00', 'completed', '2025-11-24 19:30:04'),
 (180, 3, 2, 3, '2025-11-26 14:00:00', '2025-11-26 20:30:00', 'completed', '2025-11-24 19:30:04'),
-(181, 3, 1, 4, '2025-11-26 22:00:00', '2025-11-27 04:30:00', 'scheduled', '2025-11-24 19:30:04'),
+(181, 3, 1, 4, '2025-11-26 22:00:00', '2025-11-27 04:30:00', 'ongoing', '2025-11-24 19:30:04'),
 (182, 3, 1, 1, '2025-11-27 05:30:00', '2025-11-27 12:00:00', 'scheduled', '2025-11-24 19:30:04'),
 (183, 3, 5, 2, '2025-11-27 08:30:00', '2025-11-27 15:00:00', 'scheduled', '2025-11-24 19:30:04'),
 (184, 3, 2, 3, '2025-11-27 13:30:00', '2025-11-27 20:00:00', 'scheduled', '2025-11-24 19:30:04'),
@@ -1026,7 +1053,7 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (201, 4, 2, 3, '2025-11-25 14:00:00', '2025-11-25 20:30:00', 'completed', '2025-11-24 19:30:04'),
 (202, 4, 1, 1, '2025-11-26 07:00:00', '2025-11-26 13:30:00', 'completed', '2025-11-24 19:30:04'),
 (203, 4, 5, 2, '2025-11-26 11:00:00', '2025-11-26 17:30:00', 'completed', '2025-11-24 19:30:04'),
-(204, 4, 2, 3, '2025-11-26 15:00:00', '2025-11-26 21:30:00', 'ongoing', '2025-11-24 19:30:04'),
+(204, 4, 2, 3, '2025-11-26 15:00:00', '2025-11-26 21:30:00', 'completed', '2025-11-24 19:30:04'),
 (205, 4, 1, 1, '2025-11-27 06:30:00', '2025-11-27 13:00:00', 'scheduled', '2025-11-24 19:30:04'),
 (206, 4, 5, 2, '2025-11-27 10:30:00', '2025-11-27 17:00:00', 'scheduled', '2025-11-24 19:30:04'),
 (207, 4, 2, 3, '2025-11-27 14:30:00', '2025-11-27 21:00:00', 'scheduled', '2025-11-24 19:30:04'),
@@ -1168,7 +1195,7 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (343, 3, 9, 9, '2025-11-25 23:30:00', '2025-11-26 06:00:00', 'completed', '2025-11-24 19:53:55'),
 (344, 3, 1, 1, '2025-11-26 06:00:00', '2025-11-26 12:30:00', 'completed', '2025-11-24 19:53:55'),
 (345, 3, 2, 2, '2025-11-26 07:00:00', '2025-11-26 13:30:00', 'completed', '2025-11-24 19:53:55'),
-(346, 3, 5, 5, '2025-11-26 23:00:00', '2025-11-27 05:30:00', 'scheduled', '2025-11-24 19:53:55'),
+(346, 3, 5, 5, '2025-11-26 23:00:00', '2025-11-27 05:30:00', 'ongoing', '2025-11-24 19:53:55'),
 (347, 4, 1, 1, '2025-11-25 06:00:00', '2025-11-25 12:30:00', 'completed', '2025-11-24 19:53:55'),
 (348, 4, 2, 2, '2025-11-25 14:00:00', '2025-11-25 20:30:00', 'completed', '2025-11-24 19:53:55'),
 (349, 4, 5, 5, '2025-11-25 22:00:00', '2025-11-26 04:30:00', 'completed', '2025-11-24 19:53:55'),
@@ -1452,7 +1479,7 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (26716, 303, NULL, 'A02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (26717, 306, NULL, 'A02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (26718, 307, NULL, 'A02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(26719, 310, NULL, 'A02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(26719, 310, NULL, 'A02', 'standard', 1, 'middle', 'booked', 72, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (26720, 313, NULL, 'A02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (26721, 316, NULL, 'A02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (26722, 319, NULL, 'A02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -1689,7 +1716,7 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (26952, 303, NULL, 'A04', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (26953, 306, NULL, 'A04', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (26954, 307, NULL, 'A04', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(26955, 310, NULL, 'A04', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(26955, 310, NULL, 'A04', 'standard', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (26956, 313, NULL, 'A04', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (26957, 316, NULL, 'A04', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (26958, 319, NULL, 'A04', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -2085,9 +2112,9 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (27348, 127, NULL, 'A08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (27349, 131, NULL, 'A08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (27350, 132, NULL, 'A08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(27351, 136, NULL, 'A08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
+(27351, 136, NULL, 'A08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(27352, 138, NULL, 'A08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
 INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
-(27352, 138, NULL, 'A08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (27353, 142, NULL, 'A08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (27354, 143, NULL, 'A08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (27355, 147, NULL, 'A08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -2515,9 +2542,9 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (27777, 300, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (27778, 303, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (27779, 306, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(27780, 307, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
+(27780, 307, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(27781, 310, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
 INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
-(27781, 310, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (27782, 313, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (27783, 316, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (27784, 319, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -2635,7 +2662,7 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (27896, 303, NULL, 'B02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (27897, 306, NULL, 'B02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (27898, 307, NULL, 'B02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(27899, 310, NULL, 'B02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(27899, 310, NULL, 'B02', 'standard', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (27900, 313, NULL, 'B02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (27901, 316, NULL, 'B02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (27902, 319, NULL, 'B02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -2945,10 +2972,10 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (28206, 217, NULL, 'B05', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28207, 220, NULL, 'B05', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28208, 221, NULL, 'B05', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(28209, 223, NULL, 'B05', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(28209, 223, NULL, 'B05', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28210, 224, NULL, 'B05', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(28211, 226, NULL, 'B05', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(28211, 226, NULL, 'B05', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (28212, 228, NULL, 'B05', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28213, 230, NULL, 'B05', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28214, 232, NULL, 'B05', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -3108,7 +3135,7 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (28368, 303, NULL, 'B06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28369, 306, NULL, 'B06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28370, 307, NULL, 'B06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(28371, 310, NULL, 'B06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(28371, 310, NULL, 'B06', 'standard', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28372, 313, NULL, 'B06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28373, 316, NULL, 'B06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28374, 319, NULL, 'B06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -3226,7 +3253,7 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (28486, 303, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28487, 306, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28488, 307, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(28489, 310, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(28489, 310, NULL, 'B07', 'standard', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28490, 313, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28491, 316, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28492, 319, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -3344,7 +3371,7 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (28604, 303, NULL, 'B08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28605, 306, NULL, 'B08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28606, 307, NULL, 'B08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(28607, 310, NULL, 'B08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(28607, 310, NULL, 'B08', 'standard', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28608, 313, NULL, 'B08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28609, 316, NULL, 'B08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28610, 319, NULL, 'B08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -3375,11 +3402,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (28635, 92, NULL, 'B09', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28636, 93, NULL, 'B09', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28637, 97, NULL, 'B09', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(28638, 100, NULL, 'B09', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(28638, 100, NULL, 'B09', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28639, 104, NULL, 'B09', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28640, 108, NULL, 'B09', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(28641, 112, NULL, 'B09', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(28641, 112, NULL, 'B09', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (28642, 115, NULL, 'B09', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28643, 119, NULL, 'B09', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (28644, 121, NULL, 'B09', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -3805,11 +3832,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (29064, 276, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29065, 277, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29066, 279, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(29067, 280, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(29067, 280, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29068, 283, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29069, 284, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(29070, 287, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(29070, 287, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (29071, 288, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29072, 291, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29073, 294, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -4235,11 +4262,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (29493, 186, NULL, 'C06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29494, 189, NULL, 'C06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29495, 190, NULL, 'C06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(29496, 193, NULL, 'C06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(29496, 193, NULL, 'C06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29497, 196, NULL, 'C06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29498, 199, NULL, 'C06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(29499, 202, NULL, 'C06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(29499, 202, NULL, 'C06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (29500, 205, NULL, 'C06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29501, 208, NULL, 'C06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29502, 211, NULL, 'C06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -4665,11 +4692,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (29922, 51, NULL, 'C10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29923, 63, NULL, 'C10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29924, 67, NULL, 'C10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(29925, 70, NULL, 'C10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(29925, 70, NULL, 'C10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29926, 73, NULL, 'C10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29927, 75, NULL, 'C10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(29928, 85, NULL, 'C10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(29928, 85, NULL, 'C10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (29929, 86, NULL, 'C10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29930, 88, NULL, 'C10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (29931, 89, NULL, 'C10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -5095,11 +5122,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (30351, 256, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (30352, 258, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (30353, 259, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(30354, 261, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(30354, 261, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (30355, 263, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (30356, 265, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(30357, 267, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(30357, 267, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (30358, 269, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (30359, 271, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (30360, 273, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -5525,11 +5552,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (30780, 154, NULL, 'D07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (30781, 158, NULL, 'D07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (30782, 162, NULL, 'D07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(30783, 166, NULL, 'D07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(30783, 166, NULL, 'D07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (30784, 170, NULL, 'D07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (30785, 174, NULL, 'D07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(30786, 177, NULL, 'D07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(30786, 177, NULL, 'D07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (30787, 178, NULL, 'D07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (30788, 181, NULL, 'D07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (30789, 182, NULL, 'D07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -5955,11 +5982,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (31209, 329, NULL, 'D10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (31210, 333, NULL, 'D10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (31211, 335, NULL, 'D10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(31212, 337, NULL, 'D10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(31212, 337, NULL, 'D10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (31213, 344, NULL, 'A01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (31214, 347, NULL, 'A01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(31215, 358, NULL, 'A01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(31215, 358, NULL, 'A01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (31216, 364, NULL, 'A01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (31217, 366, NULL, 'A01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (31218, 372, NULL, 'A01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -6386,11 +6413,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (31639, 160, NULL, 'A06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (31640, 164, NULL, 'A06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (31641, 168, NULL, 'A06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(31642, 172, NULL, 'A06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(31642, 172, NULL, 'A06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (31643, 282, NULL, 'A06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (31644, 286, NULL, 'A06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(31645, 290, NULL, 'A06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(31645, 290, NULL, 'A06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (31646, 293, NULL, 'A06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (31647, 296, NULL, 'A06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (31648, 299, NULL, 'A06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -6817,11 +6844,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (32069, 16, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32070, 27, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32071, 38, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(32072, 42, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(32072, 42, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32073, 54, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32074, 66, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(32075, 327, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(32075, 327, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (32076, 339, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32077, 351, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32078, 360, NULL, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -7248,11 +7275,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (32499, 3, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32500, 13, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32501, 21, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(32502, 25, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(32502, 25, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32503, 46, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32504, 57, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(32505, 78, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(32505, 78, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (32506, 82, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32507, 102, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32508, 106, NULL, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -7679,11 +7706,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (32929, 302, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32930, 305, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32931, 309, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(32932, 312, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(32932, 312, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32933, 315, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32934, 318, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(32935, 321, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(32935, 321, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (32936, 324, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32937, 326, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (32938, 331, NULL, 'C02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -8110,11 +8137,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (33359, 368, NULL, 'C07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (33360, 8, NULL, 'C07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (33361, 18, NULL, 'C07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(33362, 32, NULL, 'C07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(33362, 32, NULL, 'C07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (33363, 39, NULL, 'C07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (33364, 49, NULL, 'C07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(33365, 61, NULL, 'C07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(33365, 61, NULL, 'C07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (33366, 328, NULL, 'C07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (33367, 361, NULL, 'C07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (33368, 369, NULL, 'C07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -8541,11 +8568,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (33789, 110, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (33790, 114, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (33791, 117, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(33792, 123, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(33792, 123, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (33793, 129, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (33794, 134, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(33795, 140, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(33795, 140, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (33796, 145, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (33797, 151, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (33798, 156, NULL, 'D03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -8972,11 +8999,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (34219, 334, NULL, 'D08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (34220, 336, NULL, 'D08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (34221, 338, NULL, 'D08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(34222, 350, NULL, 'D08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(34222, 350, NULL, 'D08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (34223, 356, NULL, 'D08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (34224, 359, NULL, 'D08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
-(34225, 365, NULL, 'D08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
+(34225, 365, NULL, 'D08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (34226, 367, NULL, 'D08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (34227, 373, NULL, 'D08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
 (34228, 6, NULL, 'D08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:03'),
@@ -9225,7 +9252,7 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (34742, 81, NULL, 'A02', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (34743, 84, NULL, 'A02', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (34744, 94, NULL, 'A02', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(34745, 96, NULL, 'A02', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
+(34745, 96, NULL, 'A02', 'bed', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (34746, 99, NULL, 'A02', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (34747, 175, NULL, 'A02', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (34748, 179, NULL, 'A02', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
@@ -9270,7 +9297,7 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (34787, 81, NULL, 'A03', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (34788, 84, NULL, 'A03', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (34789, 94, NULL, 'A03', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(34790, 96, NULL, 'A03', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
+(34790, 96, NULL, 'A03', 'bed', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (34791, 99, NULL, 'A03', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (34792, 175, NULL, 'A03', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (34793, 179, NULL, 'A03', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
@@ -9415,11 +9442,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (34932, 194, NULL, 'A06', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (34933, 197, NULL, 'A06', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (34934, 200, NULL, 'A06', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(34935, 203, NULL, 'A06', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(34935, 203, NULL, 'A06', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (34936, 206, NULL, 'A06', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (34937, 209, NULL, 'A06', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(34938, 212, NULL, 'A06', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
+(34938, 212, NULL, 'A06', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (34939, 215, NULL, 'A06', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (34940, 218, NULL, 'A06', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (34941, 342, NULL, 'A06', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
@@ -9866,11 +9893,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (35382, 194, NULL, 'A16', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (35383, 197, NULL, 'A16', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (35384, 200, NULL, 'A16', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(35385, 203, NULL, 'A16', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(35385, 203, NULL, 'A16', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (35386, 206, NULL, 'A16', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (35387, 209, NULL, 'A16', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(35388, 212, NULL, 'A16', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
+(35388, 212, NULL, 'A16', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (35389, 215, NULL, 'A16', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (35390, 218, NULL, 'A16', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (35391, 342, NULL, 'A16', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
@@ -10317,11 +10344,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (35832, 194, NULL, 'B10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (35833, 197, NULL, 'B10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (35834, 200, NULL, 'B10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(35835, 203, NULL, 'B10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(35835, 203, NULL, 'B10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (35836, 206, NULL, 'B10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (35837, 209, NULL, 'B10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(35838, 212, NULL, 'B10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
+(35838, 212, NULL, 'B10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (35839, 215, NULL, 'B10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (35840, 218, NULL, 'B10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (35841, 342, NULL, 'B10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
@@ -10488,7 +10515,7 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (36002, 81, NULL, 'B14', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (36003, 84, NULL, 'B14', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (36004, 94, NULL, 'B14', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(36005, 96, NULL, 'B14', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
+(36005, 96, NULL, 'B14', 'bed', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (36006, 99, NULL, 'B14', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (36007, 175, NULL, 'B14', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (36008, 179, NULL, 'B14', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
@@ -10768,11 +10795,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (36889, 98, NULL, 'A03', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (36890, 101, NULL, 'A03', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (36891, 105, NULL, 'A03', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(36892, 109, NULL, 'A03', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(36892, 109, NULL, 'A03', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (36893, 113, NULL, 'A03', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (36894, 116, NULL, 'A03', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(36895, 120, NULL, 'A03', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
+(36895, 120, NULL, 'A03', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (36896, 122, NULL, 'A03', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (36897, 126, NULL, 'A03', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (36898, 128, NULL, 'A03', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
@@ -11218,11 +11245,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (37338, 184, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (37339, 188, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (37340, 192, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(37341, 195, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(37341, 195, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (37342, 198, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (37343, 201, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(37344, 204, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
+(37344, 204, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (37345, 207, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (37346, 210, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (37347, 213, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
@@ -11668,11 +11695,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (37787, 247, NULL, 'C05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (37788, 249, NULL, 'C05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (37789, 251, NULL, 'C05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(37790, 253, NULL, 'C05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(37790, 253, NULL, 'C05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (37791, 255, NULL, 'C05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (37792, 257, NULL, 'C05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(37793, 260, NULL, 'C05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
+(37793, 260, NULL, 'C05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (37794, 262, NULL, 'C05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (37795, 264, NULL, 'C05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (37796, 2, NULL, 'D01', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
@@ -12118,11 +12145,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (38236, 362, NULL, 'A02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38237, 370, NULL, 'A02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38238, 4, NULL, 'A02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(38239, 14, NULL, 'A02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(38239, 14, NULL, 'A02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38240, 22, NULL, 'A02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38241, 30, NULL, 'A02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(38242, 36, NULL, 'A02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
+(38242, 36, NULL, 'A02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (38243, 47, NULL, 'A02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38244, 58, NULL, 'A02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38245, 103, NULL, 'A02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
@@ -12226,7 +12253,7 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (38343, 301, NULL, 'A04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38344, 304, NULL, 'A04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38345, 308, NULL, 'A04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(38346, 311, NULL, 'A04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
+(38346, 311, NULL, 'A04', 'vip', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38347, 314, NULL, 'A04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38348, 317, NULL, 'A04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38349, 320, NULL, 'A04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
@@ -12340,7 +12367,7 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (38457, 281, NULL, 'B01', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38458, 285, NULL, 'B01', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38459, 289, NULL, 'B01', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(38460, 292, NULL, 'B01', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
+(38460, 292, NULL, 'B01', 'vip', 1, 'middle', 'booked', 73, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38461, 295, NULL, 'B01', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38462, 298, NULL, 'B01', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38463, 301, NULL, 'B01', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
@@ -12568,11 +12595,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (38685, 374, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38686, 7, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38687, 17, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(38688, 43, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(38688, 43, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38689, 48, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38690, 60, NULL, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(38691, 266, NULL, 'B05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
+(38691, 266, NULL, 'B05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (38692, 268, NULL, 'B05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38693, 270, NULL, 'B05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (38694, 272, NULL, 'B05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
@@ -13018,11 +13045,11 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (39134, 348, NULL, 'D02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (39135, 352, NULL, 'D02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (39136, 362, NULL, 'D02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(39137, 370, NULL, 'D02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
-INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
+(39137, 370, NULL, 'D02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (39138, 4, NULL, 'D02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (39139, 14, NULL, 'D02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
-(39140, 22, NULL, 'D02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
+(39140, 22, NULL, 'D02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04');
+INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`, `floor`, `row_position`, `status`, `ticket_id`, `locked_until`, `locked_by_user`, `locked_at`, `locked_by`, `created_at`) VALUES
 (39141, 30, NULL, 'D02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (39142, 36, NULL, 'D02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
 (39143, 47, NULL, 'D02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-26 10:33:04'),
@@ -13505,7 +13532,7 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `promotions`
@@ -13541,7 +13568,7 @@ ALTER TABLE `stations`
 -- AUTO_INCREMENT for table `tickets`
 --
 ALTER TABLE `tickets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=72;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
 
 --
 -- AUTO_INCREMENT for table `trips`
