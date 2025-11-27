@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import LeftTaskBar from "@/components/LeftTaskBar"
 import { Card } from "@/components/ui/card"
 import { FaUsers, FaCar, FaRoute, FaTicketAlt, FaChartLine, FaMoneyBillWave } from "react-icons/fa"
@@ -14,7 +15,30 @@ interface DashboardStats {
   activeTrips: number
 }
 
+interface RecentTicket {
+  id: number
+  bookingGroupId?: string
+  customerName: string
+  customerPhone: string
+  user?: {
+    fullName: string
+    phone: string
+    email: string
+  }
+  trip: {
+    route: {
+      fromLocation: string
+      toLocation: string
+    }
+    departureTime: string
+  }
+  price: number
+  status: string
+  bookedAt: string
+}
+
 function AdminDashboard() {
+  const navigate = useNavigate()
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     totalVehicles: 0,
@@ -23,6 +47,7 @@ function AdminDashboard() {
     totalRevenue: 0,
     activeTrips: 0,
   })
+  const [recentTickets, setRecentTickets] = useState<RecentTicket[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -32,24 +57,69 @@ function AdminDashboard() {
   const fetchDashboardStats = async () => {
     try {
       setLoading(true)
+      console.log("📊 Fetching dashboard stats...")
+
       // Fetch data from multiple endpoints
-      const [usersRes, vehiclesRes, routesRes, ticketsRes] = await Promise.all([
-        api.get(ENDPOINTS.USERS.BASE).catch(() => ({ data: [] })),
-        api.get(ENDPOINTS.VEHICLES.BASE).catch(() => ({ data: [] })),
-        api.get(ENDPOINTS.ROUTES.BASE).catch(() => ({ data: [] })),
-        api.get(ENDPOINTS.TICKETS.BASE).catch(() => ({ data: [] })),
+      const [usersRes, vehiclesRes, routesRes, ticketsRes, tripsRes, paymentsRes] = await Promise.all([
+        api.get(ENDPOINTS.USERS.BASE).catch(() => ({ data: { data: [] } })),
+        api.get(ENDPOINTS.VEHICLES.BASE).catch(() => ({ data: { data: [] } })),
+        api.get(ENDPOINTS.ROUTES.BASE).catch(() => ({ data: { data: [] } })),
+        api.get(ENDPOINTS.TICKETS.BASE).catch(() => ({ data: { data: [] } })),
+        api.get(ENDPOINTS.TRIPS.BASE).catch(() => ({ data: { data: [] } })),
+        api.get("/payments").catch(() => ({ data: { data: [] } })),
       ])
 
-      setStats({
-        totalUsers: usersRes.data?.length || 0,
-        totalVehicles: vehiclesRes.data?.length || 0,
-        totalRoutes: routesRes.data?.length || 0,
-        totalTickets: ticketsRes.data?.length || 0,
-        totalRevenue: 0, // Calculate from tickets
-        activeTrips: 0, // Calculate from trips
+      // Extract data arrays (handle both formats: {data: [...]} and {success: true, data: [...]})
+      const users = usersRes.data?.data || usersRes.data || []
+      const vehicles = vehiclesRes.data?.data || vehiclesRes.data || []
+      const routes = routesRes.data?.data || routesRes.data || []
+      const tickets = ticketsRes.data?.data || ticketsRes.data || []
+      const trips = tripsRes.data?.data || tripsRes.data || []
+      const payments = paymentsRes.data?.data || paymentsRes.data || []
+
+      console.log("✅ Users:", users.length)
+      console.log("✅ Vehicles:", vehicles.length)
+      console.log("✅ Routes:", routes.length)
+      console.log("✅ Tickets:", tickets.length)
+      console.log("✅ Trips:", trips.length)
+      console.log("✅ Payments:", payments.length)
+
+      // Calculate revenue from successful payments
+      const totalRevenue = payments
+        .filter((p: any) => p.paymentStatus === "completed" || p.paymentStatus === "success")
+        .reduce((sum: number, p: any) => sum + (Number(p.amount) || 0), 0)
+
+      // Calculate active trips (status = 'scheduled' or 'in_progress')
+      const now = new Date().getTime()
+      const activeTrips = trips.filter((trip: any) => {
+        const departureTime = new Date(trip.departureTime).getTime()
+        const status = trip.status?.toLowerCase()
+        // Trip is active if it's scheduled or in progress and departure is within next 24 hours
+        return (status === "scheduled" || status === "in_progress") && departureTime > now
+      }).length
+
+      // Get recent tickets (last 5, sorted by bookedAt)
+      const sortedTickets = [...tickets].sort((a: any, b: any) => {
+        return new Date(b.bookedAt || b.createdAt).getTime() - new Date(a.bookedAt || a.createdAt).getTime()
       })
+      const recent = sortedTickets.slice(0, 5)
+
+      console.log("💰 Total Revenue:", totalRevenue)
+      console.log("🚌 Active Trips:", activeTrips)
+      console.log("🎫 Recent Tickets:", recent.length)
+
+      setStats({
+        totalUsers: users.length || 0,
+        totalVehicles: vehicles.length || 0,
+        totalRoutes: routes.length || 0,
+        totalTickets: tickets.length || 0,
+        totalRevenue: totalRevenue || 0,
+        activeTrips: activeTrips || 0,
+      })
+
+      setRecentTickets(recent)
     } catch (error) {
-      console.error("Failed to fetch dashboard stats:", error)
+      console.error("❌ Failed to fetch dashboard stats:", error)
     } finally {
       setLoading(false)
     }
@@ -148,10 +218,47 @@ function AdminDashboard() {
               <div className="space-y-3">
                 {loading ? (
                   <div className="text-center py-8 text-slate-400">Đang tải dữ liệu...</div>
-                ) : (
+                ) : recentTickets.length === 0 ? (
                   <div className="text-center py-8 text-slate-400">
                     Chưa có dữ liệu vé
                   </div>
+                ) : (
+                  recentTickets.map((ticket) => (
+                    <div
+                      key={ticket.id}
+                      onClick={() => navigate(`/admin/tickets?search=${ticket.bookingGroupId || ticket.id}`)}
+                      className="p-3 bg-slate-50 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all cursor-pointer border border-slate-200"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold text-slate-800 text-sm">
+                          {ticket.bookingGroupId ? ticket.bookingGroupId.slice(0, 20) + '...' : `#${ticket.id}`}
+                        </span>
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          ticket.status === "confirmed"
+                            ? "bg-green-100 text-green-700"
+                            : ticket.status === "cancelled"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}>
+                          {ticket.status === "confirmed" ? "Đã xác nhận" :
+                           ticket.status === "cancelled" ? "Đã hủy" : "Đã đặt"}
+                        </span>
+                      </div>
+                      <div className="text-sm text-slate-600">
+                        <p className="truncate">
+                          {ticket.trip?.route?.fromLocation} → {ticket.trip?.route?.toLocation}
+                        </p>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-xs text-slate-500">
+                            {new Date(ticket.bookedAt).toLocaleDateString("vi-VN")}
+                          </span>
+                          <span className="font-semibold text-blue-950">
+                            {Number(ticket.price).toLocaleString("vi-VN")}đ
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
                 )}
               </div>
             </Card>

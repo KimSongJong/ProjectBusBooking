@@ -1,7 +1,8 @@
 # 🚌 TPT Bus Booking System
 
 > **Clone của FUTA Phương Trang Bus** - Hệ thống đặt vé xe khách trực tuyến  
-> **Tech Stack:** Spring Boot 3.4.1 + React 19 + MySQL 8.0
+> **Tech Stack:** Spring Boot 3.4.1 + React 19 + MySQL 8.0 + VNPay/MoMo  
+> **Last Updated:** 26/11/2025
 
 ---
 
@@ -13,16 +14,19 @@
 # Bước 1: Mở XAMPP, start MySQL
 # Bước 2: Import database current_dtb.sql vào database "bus_booking"
 # Bước 3: Chạy batch file
-START_ALL.bat
+START_FRONTEND.bat
 ```
+
+**Lưu ý:** Backend phải start thủ công bằng IDE (IntelliJ IDEA hoặc Eclipse)
 
 ### 📍 Truy cập sau khi start
 
 | Service | URL | Tài khoản |
 |---------|-----|-----------|
-| **Customer** | http://localhost:5173 | LNNT / 123456 |
-| **Admin** | http://localhost:5173/admin/login | admin / admin123 |
+| **Customer** | http://localhost:5173 | **User1** / **123456** |
+| **Admin Dashboard** | http://localhost:5173/admin/login | **LNNT** / **123456** |
 | **Backend API** | http://localhost:8080/api | - |
+| **Database** | localhost:3306/bus_booking | root / (no password) |
 
 ---
 

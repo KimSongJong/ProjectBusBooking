@@ -36,6 +36,8 @@ import {
   Receipt,
   Info,
   X,
+  Copy,
+  Check,
 } from "lucide-react";
 
 function SearchTicket() {
@@ -51,6 +53,7 @@ function SearchTicket() {
   // ⭐ NEW: Dialog state
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [copiedBookingId, setCopiedBookingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
@@ -326,6 +329,14 @@ function SearchTicket() {
     }).format(price);
   };
 
+  const handleCopyBookingId = (bookingId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(bookingId);
+    setCopiedBookingId(bookingId);
+    toast.success("Đã copy mã đặt vé!");
+    setTimeout(() => setCopiedBookingId(null), 2000);
+  };
+
   const handleViewDetails = (booking: any, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
 
@@ -561,6 +572,18 @@ function SearchTicket() {
                           {mainTicket.bookingGroupId ? (
                             <>
                               <span>Mã đặt: {mainTicket.bookingGroupId.slice(0, 15)}...</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0"
+                                onClick={(e) => handleCopyBookingId(mainTicket.bookingGroupId, e)}
+                              >
+                                {copiedBookingId === mainTicket.bookingGroupId ? (
+                                  <Check className="h-4 w-4 text-green-600" />
+                                ) : (
+                                  <Copy className="h-4 w-4 text-gray-600" />
+                                )}
+                              </Button>
                               {isRoundTripBooking(booking) && (
                                 <Badge className="bg-gradient-to-r from-green-500 to-blue-500 text-white">
                                   🔄 Khứ hồi
@@ -864,8 +887,9 @@ function InvoiceContent({ booking }: { booking: any }) {
   const mainTicket = booking.mainTicket;
   const totalPrice = booking.tickets.reduce((sum: number, t: any) => sum + Number(t.price), 0);
 
-  // ⭐ Check if round trip
-  const isRoundTrip = booking.tickets.some((t: any) => t.bookingGroupId || t.tripType === 'round_trip');
+  // ⭐ Check if round trip - Must have return trip tickets
+  const hasReturnTickets = booking.tickets.some((t: any) => t.isReturnTrip);
+  const isRoundTrip = hasReturnTickets || booking.tickets.some((t: any) => t.tripType === 'round_trip');
   const outboundTickets = isRoundTrip ? booking.tickets.filter((t: any) => !t.isReturnTrip) : booking.tickets;
   const returnTickets = isRoundTrip ? booking.tickets.filter((t: any) => t.isReturnTrip) : [];
 
@@ -882,9 +906,23 @@ function InvoiceContent({ booking }: { booking: any }) {
               Ngày xuất: {new Date().toLocaleDateString("vi-VN")}
             </p>
             {isRoundTrip && mainTicket.bookingGroupId && (
-              <p className="text-sm text-gray-600 mt-1">
-                Mã đặt: {mainTicket.bookingGroupId}
-              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-sm text-gray-600">
+                  Mã đặt: {mainTicket.bookingGroupId}
+                </p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(mainTicket.bookingGroupId);
+                    toast.success("Đã copy mã đặt vé!");
+                  }}
+                >
+                  <Copy className="h-3 w-3 text-gray-600" />
+                </Button>
+              </div>
             )}
           </div>
           <div className="text-right">
@@ -954,42 +992,68 @@ function InvoiceContent({ booking }: { booking: any }) {
                     {outboundTickets.map((t: any) => t.tripSeat?.seatNumber || t.seat?.seatNumber).join(", ")}
                   </p>
                 </div>
+                {outboundTickets[0]?.pickupPoint && (
+                  <div>
+                    <p className="text-sm text-gray-600">Điểm đón</p>
+                    <p className="font-semibold text-sm">{outboundTickets[0].pickupPoint}</p>
+                  </div>
+                )}
+                {outboundTickets[0]?.dropoffPoint && (
+                  <div>
+                    <p className="text-sm text-gray-600">Điểm trả</p>
+                    <p className="font-semibold text-sm">{outboundTickets[0].dropoffPoint}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Return Trip */}
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border-2 border-blue-200">
-            <h4 className="font-bold text-blue-800 mb-3 flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              🔄 CHUYẾN VỀ
-            </h4>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-lg">
-                  {returnTickets[0]?.trip.route.fromLocation}
-                </span>
-                <ArrowRight className="h-5 w-5 text-blue-600" />
-                <span className="font-semibold text-lg">
-                  {returnTickets[0]?.trip.route.toLocation}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600">Khởi hành</p>
-                  <p className="font-semibold">
-                    {new Date(returnTickets[0]?.trip.departureTime).toLocaleString("vi-VN")}
-                  </p>
+          {/* Return Trip - Only show if returnTickets exist */}
+          {returnTickets.length > 0 && (
+            <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border-2 border-blue-200">
+              <h4 className="font-bold text-blue-800 mb-3 flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                🔄 CHUYẾN VỀ
+              </h4>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-lg">
+                    {returnTickets[0]?.trip.route.fromLocation}
+                  </span>
+                  <ArrowRight className="h-5 w-5 text-blue-600" />
+                  <span className="font-semibold text-lg">
+                    {returnTickets[0]?.trip.route.toLocation}
+                  </span>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">Số ghế</p>
-                  <p className="font-semibold text-blue-600">
-                    {returnTickets.map((t: any) => t.tripSeat?.seatNumber || t.seat?.seatNumber).join(", ")}
-                  </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Khởi hành</p>
+                    <p className="font-semibold">
+                      {new Date(returnTickets[0]?.trip.departureTime).toLocaleString("vi-VN")}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Số ghế</p>
+                    <p className="font-semibold text-blue-600">
+                      {returnTickets.map((t: any) => t.tripSeat?.seatNumber || t.seat?.seatNumber).join(", ")}
+                    </p>
+                  </div>
+                  {returnTickets[0]?.pickupPoint && (
+                    <div>
+                      <p className="text-sm text-gray-600">Điểm đón</p>
+                      <p className="font-semibold text-sm">{returnTickets[0].pickupPoint}</p>
+                    </div>
+                  )}
+                  {returnTickets[0]?.dropoffPoint && (
+                    <div>
+                      <p className="text-sm text-gray-600">Điểm trả</p>
+                      <p className="font-semibold text-sm">{returnTickets[0].dropoffPoint}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </>
       ) : (
         /* One-Way Trip */
@@ -1027,6 +1091,18 @@ function InvoiceContent({ booking }: { booking: any }) {
                 <p className="text-sm text-gray-600">Số lượng vé</p>
                 <p className="font-semibold">{booking.tickets.length} vé</p>
               </div>
+              {mainTicket.pickupPoint && (
+                <div>
+                  <p className="text-sm text-gray-600">Điểm đón</p>
+                  <p className="font-semibold text-sm">{mainTicket.pickupPoint}</p>
+                </div>
+              )}
+              {mainTicket.dropoffPoint && (
+                <div>
+                  <p className="text-sm text-gray-600">Điểm trả</p>
+                  <p className="font-semibold text-sm">{mainTicket.dropoffPoint}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1195,6 +1271,18 @@ function TicketDetailsContent({ booking }: { booking: any }) {
                  mainTicket.trip.vehicle.vehicleType}
               </p>
             </div>
+            {mainTicket.pickupPoint && (
+              <div>
+                <p className="text-sm text-gray-600">Điểm đón</p>
+                <p className="font-semibold text-sm">{mainTicket.pickupPoint}</p>
+              </div>
+            )}
+            {mainTicket.dropoffPoint && (
+              <div>
+                <p className="text-sm text-gray-600">Điểm trả</p>
+                <p className="font-semibold text-sm">{mainTicket.dropoffPoint}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

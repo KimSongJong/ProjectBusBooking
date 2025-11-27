@@ -241,7 +241,7 @@ function Invoice() {
                 <CheckCircle2 className="h-16 w-16 text-green-500" />
               </div>
               <CardTitle className="text-3xl font-bold text-gray-800">
-                {isRoundTrip ? "Hóa đơn vé khứ hồi" : "Hóa đơn đặt vé"}
+                {mode === 'group' && isRoundTrip ? "Hóa đơn vé khứ hồi" : "Hóa đơn điện tử"}
               </CardTitle>
               <p className="text-gray-600 mt-2">
                 Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi
@@ -346,47 +346,49 @@ function Invoice() {
                     </div>
                   </div>
 
-                  {/* Return Trip */}
-                  <div className="mb-6 p-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200">
-                    <h3 className="text-xl font-bold text-blue-800 mb-4 flex items-center gap-2">
-                      <Bus className="h-6 w-6" />
-                      🔄 CHUYẾN VỀ
-                    </h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-600">Tuyến đường</p>
-                          <p className="font-bold text-lg text-gray-800">
-                            {returnTickets[0]?.trip.route.fromLocation} → {returnTickets[0]?.trip.route.toLocation}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm text-gray-600">Khởi hành</p>
-                          <p className="font-semibold text-gray-800">
-                            {formatTime(returnTickets[0]?.trip.departureTime)} | {formatDate(returnTickets[0]?.trip.departureTime)}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="bg-white p-4 rounded-lg space-y-2">
-                        <p className="font-semibold text-gray-700">Danh sách vé:</p>
-                        {returnTickets.map((ticket, idx) => (
-                          <div key={ticket.id} className="flex items-center justify-between py-2 border-b last:border-0">
-                            <div className="flex items-center gap-3">
-                              <TicketIcon className="h-4 w-4 text-gray-400" />
-                              <div>
-                                <p className="font-medium">Vé #{ticket.id} - Ghế {ticket.seat?.seatNumber}</p>
-                                {ticket.pickupPoint && (
-                                  <p className="text-xs text-gray-500">Đón: {ticket.pickupPoint} | Trả: {ticket.dropoffPoint}</p>
-                                )}
-                              </div>
-                            </div>
-                            <p className="font-semibold text-gray-800">{formatPrice(ticket.price)}</p>
+                  {/* Return Trip - Only show if returnTickets exist */}
+                  {returnTickets.length > 0 && (
+                    <div className="mb-6 p-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200">
+                      <h3 className="text-xl font-bold text-blue-800 mb-4 flex items-center gap-2">
+                        <Bus className="h-6 w-6" />
+                        🔄 CHUYẾN VỀ
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-600">Tuyến đường</p>
+                            <p className="font-bold text-lg text-gray-800">
+                              {returnTickets[0]?.trip.route.fromLocation} → {returnTickets[0]?.trip.route.toLocation}
+                            </p>
                           </div>
-                        ))}
+                          <div className="text-right">
+                            <p className="text-sm text-gray-600">Khởi hành</p>
+                            <p className="font-semibold text-gray-800">
+                              {formatTime(returnTickets[0]?.trip.departureTime)} | {formatDate(returnTickets[0]?.trip.departureTime)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="bg-white p-4 rounded-lg space-y-2">
+                          <p className="font-semibold text-gray-700">Danh sách vé:</p>
+                          {returnTickets.map((ticket, idx) => (
+                            <div key={ticket.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                              <div className="flex items-center gap-3">
+                                <TicketIcon className="h-4 w-4 text-gray-400" />
+                                <div>
+                                  <p className="font-medium">Vé #{ticket.id} - Ghế {ticket.seat?.seatNumber}</p>
+                                  {ticket.pickupPoint && (
+                                    <p className="text-xs text-gray-500">Đón: {ticket.pickupPoint} | Trả: {ticket.dropoffPoint}</p>
+                                  )}
+                                </div>
+                              </div>
+                              <p className="font-semibold text-gray-800">{formatPrice(ticket.price)}</p>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   <Separator className="my-6" />
 

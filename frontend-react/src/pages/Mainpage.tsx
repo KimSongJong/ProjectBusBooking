@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -18,7 +18,8 @@ import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { RouteCard, PromotionCard, FeatureCard } from "@/components/layout"
 import bannerImage from "@/assets/2257 x 501 px.png"
-import { ALL_PROVINCES, POPULAR_PROVINCES, getAvailableDestinations } from "@/constants/provinces"
+import routeService from "@/services/route.service"
+import type { Route } from "@/types/route.types"
 
 function MainPage() {
   const navigate = useNavigate()
@@ -38,11 +39,39 @@ function MainPage() {
     return dayAfter.toISOString().split("T")[0];
   })
   const [passengers, setPassengers] = useState(1)
+  const [routes, setRoutes] = useState<Route[]>([])
 
-  // Lấy danh sách điểm đến khả dụng dựa trên điểm đi
+  // ⭐ Fetch actual routes from database
+  useEffect(() => {
+    fetchRoutes()
+  }, [])
+
+  const fetchRoutes = async () => {
+    try {
+      const response = await routeService.getAllRoutes()
+      if (response.success && response.data) {
+        setRoutes(response.data)
+        console.log("✅ Loaded routes from database:", response.data.length)
+      }
+    } catch (error) {
+      console.error("❌ Error fetching routes:", error)
+    }
+  }
+
+  // ⭐ Get available FROM locations from actual database routes
+  const availableFromLocations = useMemo(() => {
+    const locations = new Set(routes.map(r => r.fromLocation))
+    return Array.from(locations).sort()
+  }, [routes])
+
+  // ⭐ Get available TO locations based on selected FROM location
   const availableDestinations = useMemo(() => {
-    return getAvailableDestinations(from);
-  }, [from])
+    if (!from) return []
+    const destinations = routes
+      .filter(r => r.fromLocation === from)
+      .map(r => r.toLocation)
+    return Array.from(new Set(destinations)).sort()
+  }, [routes, from])
 
   const handleSearch = () => {
     if (!from || !to) {
@@ -69,7 +98,7 @@ function MainPage() {
 
   const popularRoutes = [
     {
-      from: "TP.Hồ Chí Minh",
+      from: "TP Hồ Chí Minh",
       routes: [
         { to: "Đà Lạt", price: "350.000đ", distance: "310km", duration: "11 giờ" },
         { to: "Cần Thơ", price: "200.000đ", distance: "167km", duration: "4 giờ 30 phút" },
@@ -156,7 +185,10 @@ function MainPage() {
                     <Select value={from} onValueChange={(value) => {
                       setFrom(value);
                       // Reset điểm đến nếu không còn hợp lệ
-                      if (to && !getAvailableDestinations(value).some(p => p.name === to)) {
+                      const newDestinations = routes
+                        .filter(r => r.fromLocation === value)
+                        .map(r => r.toLocation)
+                      if (to && !newDestinations.includes(to)) {
                         setTo("");
                       }
                     }}>
@@ -164,28 +196,17 @@ function MainPage() {
                         <SelectValue placeholder="Chọn điểm đi" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[300px]">
-                        {/* Tỉnh phổ biến */}
-                        <div className="font-semibold text-sm text-gray-500 px-2 py-1.5">
-                          Thành phố lớn
-                        </div>
-                        {POPULAR_PROVINCES.map((province) => (
-                          <SelectItem key={province.name} value={province.name}>
-                            {province.name}
-                          </SelectItem>
-                        ))}
-
-                        {/* Divider */}
-                        <div className="border-t my-2"></div>
-
-                        {/* Tất cả tỉnh thành */}
-                        <div className="font-semibold text-sm text-gray-500 px-2 py-1.5">
-                          Tất cả tỉnh thành
-                        </div>
-                        {ALL_PROVINCES.filter(p => !p.isPopular).map((province) => (
-                          <SelectItem key={province.name} value={province.name}>
-                            {province.name}
-                          </SelectItem>
-                        ))}
+                        {availableFromLocations.length === 0 ? (
+                          <div className="px-2 py-4 text-sm text-gray-500 text-center">
+                            Đang tải danh sách...
+                          </div>
+                        ) : (
+                          availableFromLocations.map((location) => (
+                            <SelectItem key={location} value={location}>
+                              {location}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -219,35 +240,14 @@ function MainPage() {
                       <SelectContent className="max-h-[300px]">
                         {availableDestinations.length === 0 ? (
                           <div className="text-sm text-gray-500 px-2 py-1.5">
-                            Không có tuyến xe khả dụng
+                            {from ? "Không có tuyến xe khả dụng" : "Vui lòng chọn điểm đi trước"}
                           </div>
                         ) : (
-                          <>
-                            {/* Tỉnh phổ biến có thể đi */}
-                            {availableDestinations.filter(p => p.isPopular).length > 0 && (
-                              <>
-                                <div className="font-semibold text-sm text-gray-500 px-2 py-1.5">
-                                  Thành phố lớn
-                                </div>
-                                {availableDestinations.filter(p => p.isPopular).map((province) => (
-                                  <SelectItem key={province.name} value={province.name}>
-                                    {province.name}
-                                  </SelectItem>
-                                ))}
-                                <div className="border-t my-2"></div>
-                              </>
-                            )}
-
-                            {/* Tỉnh thường có thể đi */}
-                            <div className="font-semibold text-sm text-gray-500 px-2 py-1.5">
-                              Các tỉnh khác
-                            </div>
-                            {availableDestinations.filter(p => !p.isPopular).map((province) => (
-                              <SelectItem key={province.name} value={province.name}>
-                                {province.name}
-                              </SelectItem>
-                            ))}
-                          </>
+                          availableDestinations.map((destination) => (
+                            <SelectItem key={destination} value={destination}>
+                              {destination}
+                            </SelectItem>
+                          ))
                         )}
                       </SelectContent>
                     </Select>

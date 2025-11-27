@@ -20,6 +20,7 @@ import tripService from "@/services/trip.service";
 import routeService from "@/services/route.service";
 import type { Trip } from "@/types/trip.types";
 import type { Route } from "@/types/route.types";
+import { ALL_PROVINCES, POPULAR_PROVINCES, getAvailableDestinations } from "@/constants/provinces";
 
 function Product() {
   const [searchParams] = useSearchParams();
@@ -30,8 +31,12 @@ function Product() {
   const [passengers, setPassengers] = useState(
     Number(searchParams.get("passengers")) || 1
   );
-  const [fromLocation, setFromLocation] = useState(searchParams.get("from") || "");
-  const [toLocation, setToLocation] = useState(searchParams.get("to") || "");
+  const [fromLocation, setFromLocation] = useState(
+    searchParams.get("from") ? decodeURIComponent(searchParams.get("from")!) : ""
+  );
+  const [toLocation, setToLocation] = useState(
+    searchParams.get("to") ? decodeURIComponent(searchParams.get("to")!) : ""
+  );
   const [searchDate, setSearchDate] = useState(
     searchParams.get("date") || (() => {
       // Default to tomorrow instead of today since trips are scheduled for future dates
@@ -166,18 +171,15 @@ function Product() {
     );
   };
 
+  // ⭐ Use ALL_PROVINCES constant instead of API routes for consistency with MainPage
   const availableFromLocations = useMemo(() => {
-    const locations = new Set(routes.map(r => r.fromLocation));
-    return Array.from(locations).sort();
-  }, [routes]);
+    return ALL_PROVINCES.map(p => p.name);
+  }, []);
 
   const availableToLocations = useMemo(() => {
     if (!fromLocation) return [];
-    const locations = routes
-      .filter(r => r.fromLocation === fromLocation)
-      .map(r => r.toLocation);
-    return Array.from(new Set(locations)).sort();
-  }, [routes, fromLocation]);
+    return getAvailableDestinations(fromLocation).map(p => p.name);
+  }, [fromLocation]);
 
   const handleSwapLocations = () => {
     const temp = fromLocation;
@@ -189,11 +191,20 @@ function Product() {
     fetchRoutes();
   }, []);
 
+  // ⭐ Auto-search when coming from external link with URL params
   useEffect(() => {
-    if (searchParams.get("from") && searchParams.get("to")) {
+    const fromParam = searchParams.get("from");
+    const toParam = searchParams.get("to");
+
+    console.log("🔍 URL Params:", { fromParam, toParam });
+    console.log("📍 Current State:", { fromLocation, toLocation });
+
+    // Only auto-search if we have URL params and haven't searched yet
+    if (fromParam && toParam && !hasSearched) {
+      console.log("✅ Auto-searching with params...");
       handleSearch();
     }
-  }, [fromLocation, toLocation]);
+  }, [searchParams, hasSearched]);
 
   const fetchRoutes = async () => {
     try {
@@ -495,13 +506,38 @@ function Product() {
               {/* From */}
               <div className="md:col-span-1">
                 <Label className="mb-2 block">Điểm đi</Label>
-                <Select value={fromLocation} onValueChange={setFromLocation}>
+                <Select value={fromLocation} onValueChange={(value) => {
+                  setFromLocation(value);
+                  // Reset điểm đến nếu không còn hợp lệ
+                  if (toLocation && !getAvailableDestinations(value).some(p => p.name === toLocation)) {
+                    setToLocation("");
+                  }
+                }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn điểm đi" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {availableFromLocations.map((loc) => (
-                      <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                  <SelectContent className="max-h-[300px]">
+                    {/* Popular provinces */}
+                    <div className="font-semibold text-sm text-gray-500 px-2 py-1.5">
+                      Thành phố lớn
+                    </div>
+                    {POPULAR_PROVINCES.map((province) => (
+                      <SelectItem key={province.name} value={province.name}>
+                        {province.name}
+                      </SelectItem>
+                    ))}
+
+                    {/* Divider */}
+                    <div className="border-t my-2"></div>
+
+                    {/* All provinces */}
+                    <div className="font-semibold text-sm text-gray-500 px-2 py-1.5">
+                      Tất cả tỉnh thành
+                    </div>
+                    {ALL_PROVINCES.filter(p => !p.isPopular).map((province) => (
+                      <SelectItem key={province.name} value={province.name}>
+                        {province.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -519,12 +555,18 @@ function Product() {
                 <Label className="mb-2 block">Điểm đến</Label>
                 <Select value={toLocation} onValueChange={setToLocation} disabled={!fromLocation}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Chọn điểm đến" />
+                    <SelectValue placeholder={fromLocation ? "Chọn điểm đến" : "Chọn điểm đi trước"} />
                   </SelectTrigger>
-                  <SelectContent>
-                    {availableToLocations.map((loc) => (
-                      <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                    ))}
+                  <SelectContent className="max-h-[300px]">
+                    {availableToLocations.length === 0 ? (
+                      <div className="px-2 py-4 text-sm text-gray-500 text-center">
+                        Không có điểm đến khả dụng
+                      </div>
+                    ) : (
+                      availableToLocations.map((loc) => (
+                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
