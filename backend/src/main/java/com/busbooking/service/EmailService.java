@@ -1,11 +1,18 @@
 package com.busbooking.service;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -13,6 +20,9 @@ public class EmailService {
 
     @Autowired
     private JavaMailSender mailSender;
+
+    @Autowired
+    private TemplateEngine templateEngine;
 
     @Value("${spring.mail.username}")
     private String fromEmail;
@@ -89,5 +99,76 @@ public class EmailService {
             // Don't throw exception - welcome email is not critical
         }
     }
-}
 
+    /**
+     * Send HTML email using Thymeleaf template
+     */
+    private void sendHtmlEmail(String toEmail, String subject, String templateName, Map<String, Object> variables) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+
+            // Process Thymeleaf template
+            Context context = new Context();
+            context.setVariables(variables);
+            String htmlContent = templateEngine.process(templateName, context);
+
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            log.info("✅ HTML email sent successfully to: {} using template: {}", toEmail, templateName);
+
+        } catch (MessagingException e) {
+            log.error("❌ Failed to send HTML email to: {}", toEmail, e);
+            throw new RuntimeException("Failed to send HTML email", e);
+        }
+    }
+
+    /**
+     * Send ticket confirmation email with HTML template
+     */
+    public void sendTicketConfirmationEmail(String toEmail, Map<String, Object> ticketData) {
+        try {
+            log.info("📧 [EMAIL] Sending ticket confirmation email to: {}", toEmail);
+            log.info("📧 [EMAIL] Ticket data keys: {}", ticketData.keySet());
+            log.info("📧 [EMAIL] Booking group ID: {}", ticketData.get("bookingGroupId"));
+            log.info("📧 [EMAIL] Ticket count: {}", ticketData.get("ticketCount"));
+
+            String subject = "🎉 Xác nhận đặt vé thành công - Bus Booking System";
+            sendHtmlEmail(toEmail, subject, "email/ticket-confirmation", ticketData);
+
+            log.info("✅ [EMAIL] Ticket confirmation email sent successfully to: {}", toEmail);
+        } catch (Exception e) {
+            log.error("❌ [EMAIL] Failed to send ticket confirmation email to: {}", toEmail, e);
+            log.error("❌ [EMAIL] Error message: {}", e.getMessage());
+            log.error("❌ [EMAIL] Error stack:", e);
+            // Don't throw exception - email failure shouldn't break booking flow
+        }
+    }
+
+    /**
+     * Send payment invoice email with HTML template
+     */
+    public void sendPaymentInvoiceEmail(String toEmail, Map<String, Object> invoiceData) {
+        try {
+            log.info("📧 [INVOICE] Sending payment invoice email to: {}", toEmail);
+            log.info("📧 [INVOICE] Invoice data keys: {}", invoiceData.keySet());
+            log.info("📧 [INVOICE] Booking group ID: {}", invoiceData.get("bookingGroupId"));
+            log.info("📧 [INVOICE] Payment ID: {}", invoiceData.get("paymentId"));
+
+            String subject = "🧾 Hóa đơn thanh toán - Bus Booking System";
+            sendHtmlEmail(toEmail, subject, "email/payment-invoice", invoiceData);
+
+            log.info("✅ [INVOICE] Payment invoice email sent successfully to: {}", toEmail);
+        } catch (Exception e) {
+            log.error("❌ [INVOICE] Failed to send payment invoice email to: {}", toEmail, e);
+            log.error("❌ [INVOICE] Error message: {}", e.getMessage());
+            log.error("❌ [INVOICE] Error stack:", e);
+            // Don't throw exception - email failure shouldn't break payment flow
+        }
+    }
+}

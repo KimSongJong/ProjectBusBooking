@@ -6,14 +6,17 @@ import com.busbooking.dto.request.TicketRequest;
 import com.busbooking.dto.response.TicketResponse;
 import com.busbooking.exception.ResourceNotFoundException;
 import com.busbooking.mapper.TicketMapper;
+import com.busbooking.model.Payment;
 import com.busbooking.model.Ticket;
 import com.busbooking.model.Trip;
 import com.busbooking.model.TripSeat;
 import com.busbooking.model.User;
+import com.busbooking.repository.PaymentRepository;
 import com.busbooking.repository.TicketRepository;
 import com.busbooking.repository.TripRepository;
 import com.busbooking.repository.TripSeatRepository;
 import com.busbooking.repository.UserRepository;
+import com.busbooking.util.EmailTemplateBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -36,6 +41,8 @@ public class TicketService {
     private final TripSeatRepository tripSeatRepository;
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
+    private final PaymentRepository paymentRepository;
 
     public List<TicketResponse> getAllTickets() {
         return ticketRepository.findAll().stream()
@@ -168,6 +175,17 @@ public class TicketService {
             Ticket updatedTicket = ticketRepository.save(ticket);
             log.info("✅ Ticket {} status updated successfully to {}", id, newStatus);
 
+            // ⭐ SEND EMAIL INVOICE WHEN TICKET STATUS BECOMES CONFIRMED
+            if (newStatus == Ticket.Status.confirmed && oldStatus != Ticket.Status.confirmed) {
+                log.info("📧 Ticket status changed to CONFIRMED, triggering email...");
+                try {
+                    sendInvoiceEmailForConfirmedTicket(updatedTicket);
+                } catch (Exception emailError) {
+                    log.error("❌ Failed to send invoice email for ticket {}", id, emailError);
+                    // Don't throw - email failure shouldn't break status update
+                }
+            }
+
             return ticketMapper.toResponse(updatedTicket);
 
         } catch (ResourceNotFoundException | IllegalArgumentException e) {
@@ -278,6 +296,26 @@ public class TicketService {
             int totalSeats = outboundTickets.size() + (returnTickets != null ? returnTickets.size() : 0);
 
             log.info("✅ Booking created successfully: {} tickets, total: {}đ", totalSeats, totalPrice);
+
+            // ❌ REMOVED: Do NOT send confirmation email here!
+            // Email should ONLY be sent AFTER payment completed (via VNPay/MoMo callback)
+            // See: VNPayController.callback() and MoMoController.callback()
+
+            // ⚠️ OLD CODE (COMMENTED OUT):
+            // try {
+            //     sendBookingConfirmationEmail(
+            //         request.getCustomerEmail(),
+            //         outboundTickets,
+            //         returnTickets,
+            //         request.getTripType()
+            //     );
+            // } catch (Exception e) {
+            //     log.error("❌ Failed to send confirmation email, but booking was successful", e);
+            //     // Don't throw exception - email failure shouldn't break booking
+            // }
+
+            log.info("📧 Email will be sent after payment completed (not now)");
+
 
             if (request.getTripType() == Ticket.TripType.round_trip) {
                 return RoundTripBookingResponse.forRoundTrip(
@@ -611,5 +649,266 @@ public class TicketService {
         }
 
         return false;
+    }
+
+    // ============================================
+    // ⭐ EMAIL NOTIFICATION METHODS
+    // ============================================
+
+    /**
+     * Send booking confirmation email (ONE-WAY or ROUND-TRIP)
+     */
+    private void sendBookingConfirmationEmail(
+            String customerEmail,
+            List<TicketResponse> outboundTickets,
+            List<TicketResponse> returnTickets,
+            Ticket.TripType tripType
+    ) {
+        if (customerEmail == null || customerEmail.isEmpty()) {
+            log.warn("⚠️ No customer email provided, skipping confirmation email");
+            return;
+        }
+
+        try {
+            log.info("📧 Preparing to send booking confirmation email to: {}", customerEmail);
+
+            // Get actual Ticket entities for email template
+            Ticket outboundTicket = ticketRepository.findById(outboundTickets.get(0).getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
+
+            Map<String, Object> emailData;
+
+            if (tripType == Ticket.TripType.round_trip && returnTickets != null && !returnTickets.isEmpty()) {
+                // Round trip email
+                Ticket returnTicket = ticketRepository.findById(returnTickets.get(0).getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Return ticket not found"));
+
+                // Calculate discount (10% for round trip)
+                BigDecimal totalBeforeDiscount = outboundTicket.getPrice().add(returnTicket.getPrice());
+                BigDecimal discountAmount = totalBeforeDiscount.multiply(BigDecimal.valueOf(0.1));
+
+                emailData = EmailTemplateBuilder.buildRoundTripTicketData(
+                        outboundTicket,
+                        returnTicket,
+                        discountAmount
+                );
+
+                log.info("📧 Sending ROUND-TRIP confirmation email");
+            } else {
+                // One-way email
+                emailData = EmailTemplateBuilder.buildOneWayTicketData(outboundTicket);
+                log.info("📧 Sending ONE-WAY confirmation email");
+            }
+
+            // Send email
+            emailService.sendTicketConfirmationEmail(customerEmail, emailData);
+            log.info("✅ Booking confirmation email sent successfully to: {}", customerEmail);
+
+        } catch (Exception e) {
+            log.error("❌ Failed to send booking confirmation email to: {}", customerEmail, e);
+            // Don't throw - email failure shouldn't break booking flow
+        }
+    }
+
+    /**
+     * ⭐ Send invoice email when admin confirms ticket payment
+     * This is triggered when ticket status changes to CONFIRMED
+     * (Since MoMo/VNPay sandbox doesn't send callback to localhost)
+     */
+    private void sendInvoiceEmailForConfirmedTicket(Ticket confirmedTicket) {
+        try {
+            String customerEmail = confirmedTicket.getCustomerEmail();
+            if (customerEmail == null || customerEmail.isEmpty()) {
+                log.warn("⚠️ Ticket {} has no customer email, skipping invoice email", confirmedTicket.getId());
+                return;
+            }
+
+            log.info("📧 [INVOICE] Preparing invoice email for ticket {} → {}", confirmedTicket.getId(), customerEmail);
+
+            // Find all tickets in this booking group
+            String bookingGroupId = confirmedTicket.getBookingGroupId();
+            List<Ticket> allTickets = ticketRepository.findByBookingGroupId(bookingGroupId);
+
+            log.info("📧 [INVOICE] Found {} tickets for booking group: {}", allTickets.size(), bookingGroupId);
+
+            // Find payment for this booking group
+            Payment payment = paymentRepository.findByBookingGroupId(bookingGroupId)
+                    .orElse(null);
+
+            if (payment == null) {
+                log.warn("⚠️ No payment found for booking group: {}", bookingGroupId);
+                // Create mock payment data from ticket
+                payment = new Payment();
+                payment.setBookingGroupId(bookingGroupId);
+                payment.setAmount(allTickets.stream()
+                        .map(Ticket::getPrice)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add));
+                payment.setPaymentStatus(Payment.PaymentStatus.completed);
+                payment.setPaymentDate(confirmedTicket.getPaidAt() != null ?
+                        confirmedTicket.getPaidAt() : LocalDateTime.now());
+            }
+
+            // Prepare ticket details for invoice
+            List<Map<String, Object>> ticketDetails = allTickets.stream().map(ticket -> {
+                Map<String, Object> detail = new HashMap<>();
+                detail.put("ticketId", ticket.getId());
+                detail.put("tripId", ticket.getTrip() != null ? ticket.getTrip().getId() : "N/A");
+                detail.put("from", ticket.getTrip() != null && ticket.getTrip().getRoute() != null
+                        ? ticket.getTrip().getRoute().getFromLocation() : "N/A");
+                detail.put("to", ticket.getTrip() != null && ticket.getTrip().getRoute() != null
+                        ? ticket.getTrip().getRoute().getToLocation() : "N/A");
+                detail.put("departureTime", ticket.getTrip() != null
+                        ? ticket.getTrip().getDepartureTime() : null);
+                detail.put("seatNumber", ticket.getTripSeat() != null
+                        ? ticket.getTripSeat().getSeatNumber() : "N/A");
+                detail.put("pickupPoint", ticket.getPickupPoint());
+                detail.put("dropoffPoint", ticket.getDropoffPoint());
+                detail.put("price", ticket.getPrice());
+                detail.put("tripType", ticket.getTripType());
+                return detail;
+            }).collect(java.util.stream.Collectors.toList());
+
+            // Prepare invoice data - COMPLETE with all required fields
+            Map<String, Object> invoiceData = new HashMap<>();
+
+            // Customer info
+            invoiceData.put("customerName", confirmedTicket.getCustomerName() != null ?
+                    confirmedTicket.getCustomerName() : "Quý khách");
+            invoiceData.put("customerEmail", confirmedTicket.getCustomerEmail());
+            invoiceData.put("customerPhone", confirmedTicket.getCustomerPhone() != null ?
+                    confirmedTicket.getCustomerPhone() : "N/A");
+
+            // Payment info
+            invoiceData.put("bookingGroupId", bookingGroupId);
+            invoiceData.put("paymentId", payment.getId() != null ? payment.getId() : 0);
+            invoiceData.put("invoiceNumber", bookingGroupId); // Use booking group ID as invoice number
+
+            // ⭐ Use transactionId from Payment (this is the VNPay/MoMo transaction ID)
+            invoiceData.put("transactionId", payment.getTransactionId() != null ?
+                    payment.getTransactionId() : bookingGroupId);
+
+            // ⭐ Use payment amount as finalAmount
+            invoiceData.put("finalAmount", payment.getAmount());
+            invoiceData.put("totalAmount", payment.getAmount());
+
+            // ⭐ Read paymentMethod from Payment entity (vnpay or momo)
+            String methodDisplay = payment.getPaymentMethod() != null ?
+                    payment.getPaymentMethod().name().toUpperCase() : "VNPay";
+            if (methodDisplay.equals("VNPAY")) methodDisplay = "VNPay";
+            if (methodDisplay.equals("MOMO")) methodDisplay = "MoMo";
+            invoiceData.put("paymentMethod", methodDisplay);
+
+            invoiceData.put("paymentDate", payment.getPaymentDate());
+            invoiceData.put("paymentStatus", "Đã thanh toán");
+            invoiceData.put("issuedAt", LocalDateTime.now()); // Invoice issue time
+
+            // Ticket info
+            invoiceData.put("ticketCount", allTickets.size());
+            invoiceData.put("tickets", ticketDetails);
+
+            // Check if this is round trip
+            boolean isRoundTrip = allTickets.stream()
+                    .anyMatch(t -> t.getTripType() == Ticket.TripType.round_trip);
+            invoiceData.put("isRoundTrip", isRoundTrip);
+
+            // ⭐ ONE-WAY ticket specific fields
+            if (!isRoundTrip && !allTickets.isEmpty()) {
+                Ticket ticket = allTickets.get(0);
+                invoiceData.put("tripType", "one_way");
+                invoiceData.put("fromCity", ticket.getTrip() != null && ticket.getTrip().getRoute() != null ?
+                        ticket.getTrip().getRoute().getFromLocation() : "N/A");
+                invoiceData.put("toCity", ticket.getTrip() != null && ticket.getTrip().getRoute() != null ?
+                        ticket.getTrip().getRoute().getToLocation() : "N/A");
+                invoiceData.put("departureTime", ticket.getTrip() != null ?
+                        ticket.getTrip().getDepartureTime() : LocalDateTime.now());
+                invoiceData.put("vehiclePlate", ticket.getTrip() != null && ticket.getTrip().getVehicle() != null ?
+                        ticket.getTrip().getVehicle().getLicensePlate() : "N/A");
+                invoiceData.put("vehicleType", ticket.getTrip() != null && ticket.getTrip().getVehicle() != null ?
+                        ticket.getTrip().getVehicle().getVehicleTypeDisplay() : "N/A");
+                invoiceData.put("seats", java.util.Arrays.asList(ticket.getTripSeat() != null ?
+                        ticket.getTripSeat().getSeatNumber() : "N/A"));
+
+                // ⭐ Add price field for one-way ticket
+                invoiceData.put("price", ticket.getPrice());
+                invoiceData.put("ticketPrice", ticket.getPrice());
+
+                // ⭐ ADD pickup/dropoff points
+                invoiceData.put("pickupPoint", ticket.getPickupPoint() != null ?
+                        ticket.getPickupPoint() : "N/A");
+                invoiceData.put("dropoffPoint", ticket.getDropoffPoint() != null ?
+                        ticket.getDropoffPoint() : "N/A");
+            }
+
+            // ⭐ ROUND-TRIP ticket specific fields
+            if (isRoundTrip && allTickets.size() >= 2) {
+                invoiceData.put("tripType", "round_trip");
+
+                // Find outbound and return tickets
+                Ticket outbound = allTickets.stream()
+                        .filter(t -> !t.getIsReturnTrip())
+                        .findFirst()
+                        .orElse(allTickets.get(0));
+                Ticket returnTicket = allTickets.stream()
+                        .filter(Ticket::getIsReturnTrip)
+                        .findFirst()
+                        .orElse(allTickets.size() > 1 ? allTickets.get(1) : allTickets.get(0));
+
+                // Outbound trip details
+                invoiceData.put("outboundFromCity", outbound.getTrip() != null && outbound.getTrip().getRoute() != null ?
+                        outbound.getTrip().getRoute().getFromLocation() : "N/A");
+                invoiceData.put("outboundToCity", outbound.getTrip() != null && outbound.getTrip().getRoute() != null ?
+                        outbound.getTrip().getRoute().getToLocation() : "N/A");
+                invoiceData.put("outboundDepartureTime", outbound.getTrip() != null ?
+                        outbound.getTrip().getDepartureTime() : LocalDateTime.now());
+                invoiceData.put("outboundVehiclePlate", outbound.getTrip() != null && outbound.getTrip().getVehicle() != null ?
+                        outbound.getTrip().getVehicle().getLicensePlate() : "N/A");
+                invoiceData.put("outboundSeats", java.util.Arrays.asList(outbound.getTripSeat() != null ?
+                        outbound.getTripSeat().getSeatNumber() : "N/A"));
+                invoiceData.put("outboundPrice", outbound.getPrice());
+                // ⭐ ADD outbound pickup/dropoff points
+                invoiceData.put("outboundPickupPoint", outbound.getPickupPoint() != null ?
+                        outbound.getPickupPoint() : "Bến xe " + (outbound.getTrip() != null && outbound.getTrip().getRoute() != null ?
+                        outbound.getTrip().getRoute().getFromLocation() : "N/A"));
+                invoiceData.put("outboundDropoffPoint", outbound.getDropoffPoint() != null ?
+                        outbound.getDropoffPoint() : "Bến xe " + (outbound.getTrip() != null && outbound.getTrip().getRoute() != null ?
+                        outbound.getTrip().getRoute().getToLocation() : "N/A"));
+
+                // Return trip details
+                invoiceData.put("returnFromCity", returnTicket.getTrip() != null && returnTicket.getTrip().getRoute() != null ?
+                        returnTicket.getTrip().getRoute().getFromLocation() : "N/A");
+                invoiceData.put("returnToCity", returnTicket.getTrip() != null && returnTicket.getTrip().getRoute() != null ?
+                        returnTicket.getTrip().getRoute().getToLocation() : "N/A");
+                invoiceData.put("returnDepartureTime", returnTicket.getTrip() != null ?
+                        returnTicket.getTrip().getDepartureTime() : LocalDateTime.now());
+                invoiceData.put("returnVehiclePlate", returnTicket.getTrip() != null && returnTicket.getTrip().getVehicle() != null ?
+                        returnTicket.getTrip().getVehicle().getLicensePlate() : "N/A");
+                invoiceData.put("returnSeats", java.util.Arrays.asList(returnTicket.getTripSeat() != null ?
+                        returnTicket.getTripSeat().getSeatNumber() : "N/A"));
+                invoiceData.put("returnPrice", returnTicket.getPrice());
+                // ⭐ ADD return pickup/dropoff points
+                invoiceData.put("returnPickupPoint", returnTicket.getPickupPoint() != null ?
+                        returnTicket.getPickupPoint() : "Bến xe " + (returnTicket.getTrip() != null && returnTicket.getTrip().getRoute() != null ?
+                        returnTicket.getTrip().getRoute().getFromLocation() : "N/A"));
+                invoiceData.put("returnDropoffPoint", returnTicket.getDropoffPoint() != null ?
+                        returnTicket.getDropoffPoint() : "Bến xe " + (returnTicket.getTrip() != null && returnTicket.getTrip().getRoute() != null ?
+                        returnTicket.getTrip().getRoute().getToLocation() : "N/A"));
+
+                // Round trip discount (10%)
+                BigDecimal totalBeforeDiscount = outbound.getPrice().add(returnTicket.getPrice());
+                BigDecimal discountAmount = totalBeforeDiscount.multiply(BigDecimal.valueOf(0.1));
+                invoiceData.put("discountAmount", discountAmount);
+            }
+
+            // Send invoice email
+            emailService.sendPaymentInvoiceEmail(customerEmail, invoiceData);
+            log.info("✅ [INVOICE] Invoice email sent successfully to: {}", customerEmail);
+            log.info("📧 [INVOICE] Booking: {} | Tickets: {} | Amount: {} | Email: {}",
+                    bookingGroupId, allTickets.size(), payment.getAmount(), customerEmail);
+
+        } catch (Exception e) {
+            log.error("❌ [INVOICE] Failed to send invoice email for ticket: {}",
+                    confirmedTicket.getId(), e);
+            // Don't throw - email failure shouldn't break ticket update
+        }
     }
 }

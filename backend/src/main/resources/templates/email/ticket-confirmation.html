@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận đặt vé</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #4CAF50;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #4CAF50;
+            margin: 0;
+            font-size: 28px;
+        }
+        .ticket-info {
+            background-color: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .ticket-info h2 {
+            color: #4CAF50;
+            margin-top: 0;
+            font-size: 20px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .info-value {
+            color: #333;
+            text-align: right;
+        }
+        .seats {
+            background-color: #e8f5e9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .seats-title {
+            font-weight: bold;
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+        .seat-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .seat-item {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .total-price {
+            background-color: #fff3e0;
+            border: 2px solid #ff9800;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .total-price .label {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .total-price .amount {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ff9800;
+        }
+        .booking-code {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .booking-code .label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        .booking-code .code {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            text-align: center;
+            padding-top: 30px;
+            margin-top: 30px;
+            border-top: 2px solid #eee;
+            color: #777;
+            font-size: 14px;
+        }
+        .important-note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .important-note strong {
+            color: #856404;
+        }
+        .trip-section {
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .trip-section h3 {
+            color: #495057;
+            margin-top: 0;
+            font-size: 18px;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 10px;
+        }
+        @media only screen and (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            .info-row {
+                flex-direction: column;
+            }
+            .info-value {
+                text-align: left;
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 XÁC NHẬN ĐẶT VÉ THÀNH CÔNG</h1>
+            <p>Cảm ơn bạn đã sử dụng dịch vụ của Bus Booking System</p>
+        </div>
+
+        <div class="booking-code">
+            <div class="label">MÃ ĐẶT VÉ</div>
+            <div class="code" th:text="${bookingGroupId}">BOOKING-ABC123</div>
+        </div>
+
+        <p>Xin chào <strong th:text="${customerName}">Quý khách</strong>,</p>
+        <p>Vé của bạn đã được đặt thành công! Dưới đây là thông tin chi tiết:</p>
+
+        <!-- ONE-WAY TRIP -->
+        <div th:if="${tripType == 'one_way'}" class="trip-section">
+            <div class="ticket-info">
+                <h2>🚌 THÔNG TIN CHUYẾN ĐI</h2>
+                <div class="info-row">
+                    <span class="info-label">📍 Tuyến đường:</span>
+                    <span class="info-value" th:text="${fromCity + ' → ' + toCity}">TP.HCM → Hà Nội</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📅 Ngày khởi hành:</span>
+                    <span class="info-value" th:text="${#temporals.format(departureTime, 'dd/MM/yyyy')}">25/11/2025</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">🕐 Giờ khởi hành:</span>
+                    <span class="info-value" th:text="${#temporals.format(departureTime, 'HH:mm')}">08:00</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">🚍 Biển số xe:</span>
+                    <span class="info-value" th:text="${vehiclePlate}">51B-12345</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">🚗 Loại xe:</span>
+                    <span class="info-value" th:text="${vehicleType}">Giường nằm</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📍 Điểm đón:</span>
+                    <span class="info-value" th:text="${pickupPoint}">Bến xe Miền Đông</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📍 Điểm trả:</span>
+                    <span class="info-value" th:text="${dropoffPoint}">Bến xe Mỹ Đình</span>
+                </div>
+            </div>
+
+            <div class="seats">
+                <div class="seats-title">🪑 Ghế đã chọn:</div>
+                <div class="seat-list">
+                    <span class="seat-item" th:each="seat : ${seats}" th:text="${seat}">A01</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROUND TRIP -->
+        <div th:if="${tripType == 'round_trip'}">
+            <!-- Outbound Trip -->
+            <div class="trip-section">
+                <h3>✈️ CHUYẾN ĐI</h3>
+                <div class="ticket-info">
+                    <div class="info-row">
+                        <span class="info-label">📍 Tuyến đường:</span>
+                        <span class="info-value" th:text="${outboundFromCity + ' → ' + outboundToCity}">TP.HCM → Hà Nội</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">📅 Ngày khởi hành:</span>
+                        <span class="info-value" th:text="${#temporals.format(outboundDepartureTime, 'dd/MM/yyyy')}">25/11/2025</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">🕐 Giờ khởi hành:</span>
+                        <span class="info-value" th:text="${#temporals.format(outboundDepartureTime, 'HH:mm')}">08:00</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">🚍 Biển số xe:</span>
+                        <span class="info-value" th:text="${outboundVehiclePlate}">51B-12345</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">📍 Điểm đón:</span>
+                        <span class="info-value" th:text="${outboundPickupPoint}">Bến xe Miền Đông</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">📍 Điểm trả:</span>
+                        <span class="info-value" th:text="${outboundDropoffPoint}">Bến xe Mỹ Đình</span>
+                    </div>
+                </div>
+                <div class="seats">
+                    <div class="seats-title">🪑 Ghế đã chọn:</div>
+                    <div class="seat-list">
+                        <span class="seat-item" th:each="seat : ${outboundSeats}" th:text="${seat}">A01</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Return Trip -->
+            <div class="trip-section">
+                <h3>🔙 CHUYẾN VỀ</h3>
+                <div class="ticket-info">
+                    <div class="info-row">
+                        <span class="info-label">📍 Tuyến đường:</span>
+                        <span class="info-value" th:text="${returnFromCity + ' → ' + returnToCity}">Hà Nội → TP.HCM</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">📅 Ngày khởi hành:</span>
+                        <span class="info-value" th:text="${#temporals.format(returnDepartureTime, 'dd/MM/yyyy')}">27/11/2025</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">🕐 Giờ khởi hành:</span>
+                        <span class="info-value" th:text="${#temporals.format(returnDepartureTime, 'HH:mm')}">14:00</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">🚍 Biển số xe:</span>
+                        <span class="info-value" th:text="${returnVehiclePlate}">51B-67890</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">📍 Điểm đón:</span>
+                        <span class="info-value" th:text="${returnPickupPoint}">Bến xe Mỹ Đình</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">📍 Điểm trả:</span>
+                        <span class="info-value" th:text="${returnDropoffPoint}">Bến xe Miền Đông</span>
+                    </div>
+                </div>
+                <div class="seats">
+                    <div class="seats-title">🪑 Ghế đã chọn:</div>
+                    <div class="seat-list">
+                        <span class="seat-item" th:each="seat : ${returnSeats}" th:text="${seat}">B02</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Round Trip Discount -->
+            <div th:if="${discountAmount > 0}" class="important-note">
+                <strong>🎁 Giảm giá vé khứ hồi:</strong>
+                <span th:text="${#numbers.formatDecimal(discountAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'">34,000đ</span>
+            </div>
+        </div>
+
+        <div class="total-price">
+            <div class="label">TỔNG TIỀN</div>
+            <div class="amount">
+                <span th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')}">500,000</span>đ
+            </div>
+        </div>
+
+        <div class="important-note">
+            <strong>⚠️ LƯU Ý QUAN TRỌNG:</strong>
+            <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                <li>Vui lòng có mặt tại điểm đón <strong>trước 15 phút</strong></li>
+                <li>Mang theo <strong>CMND/CCCD</strong> khi lên xe</li>
+                <li>Xuất trình mã đặt vé cho tài xế</li>
+                <li th:if="${expiresAt != null}" th:text="'Vé sẽ tự động hủy nếu không thanh toán trước: ' + ${#temporals.format(expiresAt, 'HH:mm dd/MM/yyyy')}">Vé sẽ tự động hủy sau 5 phút</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p><strong>THÔNG TIN LIÊN HỆ</strong></p>
+            <p>📞 Hotline: 1900-xxxx</p>
+            <p>📧 Email: support@busbooking.com</p>
+            <p>🌐 Website: www.busbooking.com</p>
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+            <p style="font-size: 12px; color: #999;">
+                Email này được gửi tự động, vui lòng không trả lời.<br>
+                © 2025 Bus Booking System. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+
