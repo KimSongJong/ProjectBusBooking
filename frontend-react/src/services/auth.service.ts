@@ -118,6 +118,33 @@ class AuthService {
   getToken(): string | null {
     return api.getToken()
   }
+
+  /**
+   * Verify OTP code after registration
+   * @param email - user's email
+   * @param otpCode - 6-digit OTP code
+   * @returns ApiResponse indicating success or failure
+   */
+  async verifyOtp(email: string, otpCode: string): Promise<ApiResponse<null>> {
+    const response = await api.post<ApiResponse<null>>(
+      ENDPOINTS.AUTH.VERIFY_OTP,
+      { email, otp: otpCode }
+    )
+    return response
+  }
+
+  /**
+   * Resend OTP code to user's email
+   * @param email - user's email
+   * @returns ApiResponse indicating success or failure
+   */
+  async resendOtp(email: string): Promise<ApiResponse<null>> {
+    const response = await api.post<ApiResponse<null>>(
+      ENDPOINTS.AUTH.RESEND_OTP,
+      { email }
+    )
+    return response
+  }
 }
 
 // Export singleton instance

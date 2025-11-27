@@ -29,16 +29,18 @@ import {
 } from "@/components/ui/table"
 import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
+import RouteMapVisualizer from "@/components/RouteMapVisualizer"
 import { FaPlus, FaEdit, FaSearch, FaSave, FaTimes, FaMapMarkerAlt } from "react-icons/fa"
 import routeService from "@/services/route.service"
-import authService from "@/services/auth.service"
+import adminApi from "@/config/adminAxios" // 🔑 Use admin axios
 import type { Route, CreateRouteRequest, UpdateRouteRequest } from "@/types/route.types"
 import { VIETNAM_PROVINCES } from "@/constants/provinces"
-import { 
-  validateDistance, 
-  validatePrice, 
-  validateDuration 
+import {
+  validateDistance,
+  validatePrice,
+  validateDuration
 } from "@/utils/validation"
+import { sortCitiesByPriority, STANDARD_CITIES } from "@/utils/cityNormalizer"
 
 interface Station {
   id: number;
@@ -53,11 +55,7 @@ interface Station {
 }
 
 interface RouteCalculation {
-  fromStationId: number;
-  fromStationName: string;
   fromCity: string;
-  toStationId: number;
-  toStationName: string;
   toCity: string;
   distanceKm: number;
   durationMinutes: number;
@@ -73,8 +71,8 @@ function AdminRoutes() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [currentRoute, setCurrentRoute] = useState<Route | null>(null)
-  const [fromStationId, setFromStationId] = useState<number | null>(null)
-  const [toStationId, setToStationId] = useState<number | null>(null)
+  const [fromCity, setFromCity] = useState<string>("")
+  const [toCity, setToCity] = useState<string>("")
   const [calculating, setCalculating] = useState(false)
   const [calculation, setCalculation] = useState<RouteCalculation | null>(null)
   const [formData, setFormData] = useState<CreateRouteRequest | UpdateRouteRequest>({
@@ -84,6 +82,31 @@ function AdminRoutes() {
     basePrice: 0,
     estimatedDuration: 0,
   })
+
+  // 🏙️ Sorted cities list (priority cities first)
+  const sortedCities = sortCitiesByPriority(STANDARD_CITIES)
+
+  // 🗺️ City center coordinates for map visualization
+  const getCityCoordinates = (cityName: string): [number, number] => {
+    const cityCoords: Record<string, [number, number]> = {
+      "TP Hồ Chí Minh": [10.8231, 106.6297],
+      "Hà Nội": [21.0285, 105.8542],
+      "Đà Nẵng": [16.0544, 108.2022],
+      "Nha Trang": [12.2388, 109.1967],
+      "Đà Lạt": [11.9404, 108.4583],
+      "Vũng Tàu": [10.4113, 107.1362],
+      "Phan Thiết": [10.9289, 108.1022],
+      "Cần Thơ": [10.0452, 105.7469],
+      "Huế": [16.4637, 107.5909],
+      "Quy Nhơn": [13.7830, 109.2196],
+      "Hải Phòng": [20.8449, 106.6881],
+      "Buôn Ma Thuột": [12.6667, 108.0500],
+      "Pleiku": [13.9833, 108.0000],
+      "Vinh": [18.6792, 105.6922],
+      "Biên Hòa": [10.9510, 106.8442],
+    }
+    return cityCoords[cityName] || [10.8231, 106.6297] // Default to TPHCM if not found
+  }
 
   useEffect(() => {
     fetchRoutes()
@@ -107,14 +130,8 @@ function AdminRoutes() {
 
   const fetchStations = async () => {
     try {
-      const token = authService.getToken()
-      const response = await fetch('http://localhost:8080/api/stations?activeOnly=true', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      const result = await response.json()
+      // 🔑 Use adminApi instead of authService
+      const result = await adminApi.get('/stations', { activeOnly: 'true' })
       if (result.success && result.data) {
         setStations(result.data)
       }
@@ -125,38 +142,26 @@ function AdminRoutes() {
   }
 
   const handleAutoCalculate = async () => {
-    if (!fromStationId || !toStationId) {
-      toast.error('Vui lòng chọn cả điểm đi và điểm đến')
+    if (!fromCity || !toCity) {
+      toast.error('Vui lòng chọn cả thành phố đi và thành phố đến')
       return
     }
 
-    if (fromStationId === toStationId) {
-      toast.error('Điểm đi và điểm đến không được giống nhau')
+    if (fromCity === toCity) {
+      toast.error('Thành phố đi và thành phố đến không được giống nhau')
       return
     }
 
     try {
       setCalculating(true)
-      console.log('🔍 Calculating route:', { fromStationId, toStationId })
+      console.log('🔍 Calculating route:', { fromCity, toCity })
 
-      const url = `http://localhost:8080/api/routes/calculate?fromStation=${fromStationId}&toStation=${toStationId}`
-      console.log('📡 Request URL:', url)
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      // Use adminApi to make the request with proper headers
+      const result = await adminApi.get(`/routes/calculate-by-city`, {
+        fromCity: fromCity,
+        toCity: toCity
       })
 
-      console.log('📦 Response status:', response.status)
-      console.log('📦 Response headers:', Object.fromEntries(response.headers.entries()))
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-      }
-
-      const result = await response.json()
       console.log('✅ Response data:', result)
 
       if (result.success && result.data) {
@@ -172,7 +177,7 @@ function AdminRoutes() {
           estimatedDuration: calc.durationMinutes,
         })
 
-        toast.success(`Tính toán thành công! 🎉\n${calc.distanceKm}km - ${calc.durationMinutes}phút - ${calc.basePrice.toLocaleString()}đ`)
+        toast.success(`✅ Tính toán thành công!\n📏 ${calc.distanceKm}km\n⏱️ ${calc.durationMinutes}phút\n💰 ${calc.basePrice.toLocaleString()}đ`)
       } else {
         const errorMsg = result.message || 'Không thể tính toán tuyến đường'
         console.error('❌ Calculation failed:', errorMsg)
@@ -182,14 +187,6 @@ function AdminRoutes() {
       console.error('❌ Calculate route error:', error)
       const errorMsg = error.message || 'Lỗi khi tính toán tuyến đường'
       toast.error(`Lỗi: ${errorMsg}`)
-
-      // Show detailed error in console for debugging
-      if (error.message.includes('CORS')) {
-        console.error('🚫 CORS Error - Check:')
-        console.error('1. Backend GlobalExceptionHandler has @CrossOrigin')
-        console.error('2. Backend is running on http://localhost:8080')
-        console.error('3. SecurityConfig permits /routes/** endpoints')
-      }
     } finally {
       setCalculating(false)
     }
@@ -198,8 +195,8 @@ function AdminRoutes() {
   const handleCreate = () => {
     setIsEditing(false)
     setCurrentRoute(null)
-    setFromStationId(null)
-    setToStationId(null)
+    setFromCity("")
+    setToCity("")
     setCalculation(null)
     setFormData({
       fromLocation: "",
@@ -214,6 +211,11 @@ function AdminRoutes() {
   const handleEdit = (route: Route) => {
     setIsEditing(true)
     setCurrentRoute(route)
+
+    // 🔑 Set city values for edit mode
+    setFromCity(route.fromLocation)
+    setToCity(route.toLocation)
+
     setFormData({
       fromLocation: route.fromLocation,
       toLocation: route.toLocation,
@@ -321,6 +323,9 @@ function AdminRoutes() {
     return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
   }
 
+
+
+
   return (
     <div className="flex h-screen bg-slate-50">
       <LeftTaskBar />
@@ -421,9 +426,10 @@ function AdminRoutes() {
 
       {/* Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-slate-800">
+            <DialogTitle className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+              <FaMapMarkerAlt className="text-blue-600" />
               {isEditing ? "Chỉnh sửa tuyến đường" : "Thêm tuyến đường mới"}
             </DialogTitle>
             <DialogDescription>
@@ -431,231 +437,227 @@ function AdminRoutes() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isEditing && (
-              <>
-                {/* Station Selection with Auto Calculate */}
-                <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="flex items-center gap-2">
-                    <FaMapMarkerAlt className="text-blue-600" />
-                    <h3 className="font-semibold text-blue-900">Chọn trạm xe & Tự động tính toán</h3>
-                  </div>
+          <form onSubmit={handleSubmit}>
+            {/* 2-Column Layout: Form Left, Map Right */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="fromStation">
-                        Trạm xe đi <span className="text-red-500">*</span>
-                      </Label>
-                      <Select
-                        value={fromStationId?.toString() || ""}
-                        onValueChange={(value) => setFromStationId(parseInt(value))}
+              {/* LEFT COLUMN: Form Inputs */}
+              <div className="space-y-4">
+                    {/* City Selection with Auto Calculate */}
+                    <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-blue-900">🏙️ Chọn thành phố & Tự động tính toán</h3>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="fromCity">
+                            Thành phố đi <span className="text-red-500">*</span>
+                          </Label>
+                          <Select
+                            value={fromCity}
+                            onValueChange={setFromCity}
+                            disabled={isEditing}
+                          >
+                            <SelectTrigger className={isEditing ? "bg-slate-100 cursor-not-allowed" : ""}>
+                              <SelectValue placeholder="Chọn thành phố đi" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {sortedCities.map((city) => (
+                                <SelectItem key={city} value={city} disabled={city === toCity}>
+                                  {city}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="toCity">
+                            Thành phố đến <span className="text-red-500">*</span>
+                          </Label>
+                          <Select
+                            value={toCity}
+                            onValueChange={setToCity}
+                            disabled={isEditing}
+                          >
+                            <SelectTrigger className={isEditing ? "bg-slate-100 cursor-not-allowed" : ""}>
+                              <SelectValue placeholder="Chọn thành phố đến" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {sortedCities.map((city) => (
+                                <SelectItem key={city} value={city} disabled={city === fromCity}>
+                                  {city}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <Button
+                        type="button"
+                        onClick={handleAutoCalculate}
+                        disabled={calculating || !fromCity || !toCity || isEditing}
+                        className="w-full bg-blue-600 hover:bg-blue-700"
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn trạm xe đi" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {stations.map((station) => (
-                            <SelectItem key={station.id} value={station.id.toString()}>
-                              {station.name} - {station.city}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        {calculating ? "⏳ Đang tính toán..." : "🧮 Tự động tính toán"}
+                      </Button>
+
+                      {/* Calculation Result */}
+                      {calculation && (
+                        <div className="p-3 bg-white rounded-lg space-y-2 border border-blue-300">
+                          <div className="flex items-center gap-2 text-green-700">
+                            <Badge className="bg-green-100 text-green-800">
+                              ✅ {calculation.calculationSource}
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-1 gap-2 text-sm">
+                            <div>
+                              <p className="text-slate-500">📏 Khoảng cách</p>
+                              <p className="font-semibold">{calculation.distanceKm} km</p>
+                            </div>
+                            <div>
+                              <p className="text-slate-500">⏱️ Thời gian ước tính</p>
+                              <p className="font-semibold">{formatDuration(calculation.durationMinutes)}</p>
+                            </div>
+                            <div>
+                              <p className="text-slate-500">💰 Giá vé đề xuất</p>
+                              <p className="font-semibold text-blue-900">{formatCurrency(calculation.basePrice)}</p>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-500">
+                            📍 Tính từ tâm {calculation.fromCity} → tâm {calculation.toCity}
+                          </p>
+                        </div>
+                      )}
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="toStation">
-                        Trạm xe đến <span className="text-red-500">*</span>
-                      </Label>
-                      <Select
-                        value={toStationId?.toString() || ""}
-                        onValueChange={(value) => setToStationId(parseInt(value))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn trạm xe đến" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {stations.map((station) => (
-                            <SelectItem key={station.id} value={station.id.toString()}>
-                              {station.name} - {station.city}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                {/* Editable fields when editing */}
+                {isEditing && (
+                  <div className="space-y-4 mt-4">
+                    <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                      <p className="text-sm text-amber-800 font-medium mb-2">📝 Chỉnh sửa tuyến đường</p>
+                      <p className="text-xs text-amber-700">Chỉ có thể chỉnh sửa giá vé và thời gian ước tính. Không thể thay đổi điểm đi, điểm đến và khoảng cách.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="space-y-2">
+                        <Label>Tuyến đường</Label>
+                        <div className="p-3 bg-slate-100 rounded-lg text-sm">
+                          <p className="font-medium text-slate-700">
+                            {formData.fromLocation} → {formData.toLocation}
+                          </p>
+                          <p className="text-slate-500 text-xs mt-1">
+                            Khoảng cách: {formData.distanceKm} km
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="basePrice">
+                          Giá vé (VND) <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          id="basePrice"
+                          type="number"
+                          min="10000"
+                          max="10000000"
+                          step="1000"
+                          value={formData.basePrice}
+                          onChange={(e) => setFormData({ ...formData, basePrice: parseFloat(e.target.value) || 0 })}
+                          placeholder="150000"
+                          required
+                        />
+                        <p className="text-xs text-slate-500">* Từ 10,000 đến 10,000,000 VND</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="estimatedDuration">
+                          Thời gian ước tính (phút) <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          id="estimatedDuration"
+                          type="number"
+                          min="30"
+                          max="4320"
+                          value={formData.estimatedDuration}
+                          onChange={(e) => setFormData({ ...formData, estimatedDuration: parseInt(e.target.value) || 0 })}
+                          placeholder="180"
+                          required
+                        />
+                        <p className="text-xs text-slate-500">* Từ 30 phút đến 4,320 phút (3 ngày)</p>
+                      </div>
                     </div>
                   </div>
+                )}
 
+                {/* Dialog Footer inside left column */}
+                <div className="pt-4 border-t flex justify-end gap-2">
                   <Button
                     type="button"
-                    onClick={handleAutoCalculate}
-                    disabled={calculating || !fromStationId || !toStationId}
-                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                    className="flex items-center gap-2"
                   >
-                    {calculating ? "Đang tính toán..." : "🧮 Tự động tính toán"}
+                    <FaTimes /> Hủy
                   </Button>
+                  <Button
+                    type="submit"
+                    className="bg-blue-950 hover:bg-blue-900 text-white flex items-center gap-2"
+                  >
+                    <FaSave /> {isEditing ? "Cập nhật" : "Lưu tuyến đường"}
+                  </Button>
+                </div>
 
-                  {/* Calculation Result */}
-                  {calculation && (
-                    <div className="p-4 bg-white rounded-lg space-y-2 border border-blue-300">
-                      <div className="flex items-center gap-2 text-green-700">
-                        <Badge className="bg-green-100 text-green-800">
-                          ✅ {calculation.calculationSource === 'google_maps' ? 'Google Maps' : 'Haversine'}
-                        </Badge>
-                      </div>
-                      <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <p className="text-slate-500">Khoảng cách</p>
-                          <p className="font-semibold">{calculation.distanceKm} km</p>
-                        </div>
-                        <div>
-                          <p className="text-slate-500">Thời gian</p>
-                          <p className="font-semibold">{formatDuration(calculation.durationMinutes)}</p>
-                        </div>
-                        <div>
-                          <p className="text-slate-500">Giá vé</p>
-                          <p className="font-semibold">{formatCurrency(calculation.basePrice)}</p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-500">
-                        📍 {calculation.fromStationName} ({calculation.fromCity}) → {calculation.toStationName} ({calculation.toCity})
-                      </p>
+              </div>
+              {/* END LEFT COLUMN */}
+
+              {/* RIGHT COLUMN: Map Visualization */}
+              <div className="space-y-4">
+                <div className="sticky top-0">
+                  <div className="bg-slate-50 rounded-lg border-2 border-slate-200 p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-xl">🗺️</span>
+                      <h3 className="font-semibold text-slate-800">Bản đồ tương tác</h3>
                     </div>
-                  )}
+
+                    {/* Route Map Visualization */}
+                    {!isEditing && calculation ? (
+                      <RouteMapVisualizer
+                        fromStation={{
+                          lat: getCityCoordinates(calculation.fromCity)[0],
+                          lng: getCityCoordinates(calculation.fromCity)[1],
+                          name: calculation.fromCity,
+                        }}
+                        toStation={{
+                          lat: getCityCoordinates(calculation.toCity)[0],
+                          lng: getCityCoordinates(calculation.toCity)[1],
+                          name: calculation.toCity,
+                        }}
+                        height="500px"
+                        showDistance={true}
+                        distanceKm={calculation.distanceKm}
+                      />
+                    ) : (
+                      <div className="bg-white rounded-lg border-2 border-dashed border-slate-300 p-12 text-center">
+                        <div className="text-slate-400 space-y-2">
+                          <div className="text-4xl">🗺️</div>
+                          <p className="text-sm">
+                            {isEditing
+                              ? "Bản đồ không khả dụng khi chỉnh sửa"
+                              : "Chọn thành phố đi và thành phố đến rồi bấm 'Tự động tính toán' để xem bản đồ"}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-
-                <div className="border-t pt-4">
-                  <p className="text-sm text-slate-600 mb-2">Hoặc nhập thủ công:</p>
-                </div>
-              </>
-            )}
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="fromLocation">
-                  Điểm đi <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.fromLocation}
-                  onValueChange={(value) => setFormData({ ...formData, fromLocation: value })}
-                  required
-                  disabled={isEditing}
-                >
-                  <SelectTrigger className={isEditing ? "bg-slate-100 cursor-not-allowed" : ""}>
-                    <SelectValue placeholder="Chọn tỉnh/thành phố đi" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {VIETNAM_PROVINCES.map((province) => (
-                      <SelectItem key={province} value={province}>
-                        {province}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {isEditing && (
-                  <p className="text-xs text-slate-500">Không thể sửa điểm đi</p>
-                )}
               </div>
+              {/* END RIGHT COLUMN */}
 
-              <div className="space-y-2">
-                <Label htmlFor="toLocation">
-                  Điểm đến <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.toLocation}
-                  onValueChange={(value) => setFormData({ ...formData, toLocation: value })}
-                  required
-                  disabled={isEditing}
-                >
-                  <SelectTrigger className={isEditing ? "bg-slate-100 cursor-not-allowed" : ""}>
-                    <SelectValue placeholder="Chọn tỉnh/thành phố đến" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {VIETNAM_PROVINCES.map((province) => (
-                      <SelectItem key={province} value={province}>
-                        {province}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {isEditing && (
-                  <p className="text-xs text-slate-500">Không thể sửa điểm đến</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="distanceKm">
-                  Khoảng cách (km) <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="distanceKm"
-                  type="number"
-                  step="0.1"
-                  min="1"
-                  max="5000"
-                  value={formData.distanceKm}
-                  onChange={(e) => setFormData({ ...formData, distanceKm: parseFloat(e.target.value) || 0 })}
-                  placeholder="120"
-                  required
-                  disabled={isEditing}
-                  className={isEditing ? "bg-slate-100 cursor-not-allowed" : ""}
-                />
-                <p className="text-xs text-slate-500">
-                  {isEditing ? "Không thể sửa khoảng cách" : "* Từ 1 đến 5,000 km"}
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="basePrice">
-                  Giá vé (VND) <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="basePrice"
-                  type="number"
-                  min="10000"
-                  max="10000000"
-                  step="1000"
-                  value={formData.basePrice}
-                  onChange={(e) => setFormData({ ...formData, basePrice: parseFloat(e.target.value) || 0 })}
-                  placeholder="150000"
-                  required
-                />
-                <p className="text-xs text-slate-500">* Từ 10,000 đến 10,000,000 VND</p>
-              </div>
-
-              <div className="space-y-2 col-span-2">
-                <Label htmlFor="estimatedDuration">
-                  Thời gian ước tính (phút) <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="estimatedDuration"
-                  type="number"
-                  min="30"
-                  max="4320"
-                  value={formData.estimatedDuration}
-                  onChange={(e) => setFormData({ ...formData, estimatedDuration: parseInt(e.target.value) || 0 })}
-                  placeholder="180"
-                  required
-                />
-                <p className="text-xs text-slate-500">* Từ 30 phút đến 4,320 phút (3 ngày)</p>
-              </div>
             </div>
-
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsDialogOpen(false)}
-                className="flex items-center gap-2"
-              >
-                <FaTimes /> Hủy
-              </Button>
-              <Button
-                type="submit"
-                className="bg-blue-950 hover:bg-blue-900 text-white flex items-center gap-2"
-              >
-                <FaSave /> {isEditing ? "Cập nhật" : "Lưu tuyến đường"}
-              </Button>
-            </DialogFooter>
+            {/* END 2-COLUMN GRID */}
           </form>
         </DialogContent>
       </Dialog>

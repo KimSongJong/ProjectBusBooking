@@ -27,6 +27,10 @@ function AdminPayments() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [methodFilter, setMethodFilter] = useState<string>("all");
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
+
   useEffect(() => {
     fetchPayments();
     fetchStats();
@@ -150,38 +154,80 @@ function AdminPayments() {
   };
 
   const getPaymentStatusBadge = (status: string) => {
-    const badges: Record<string, { label: string; className: string }> = {
-      pending: { label: "Chờ xử lý", className: "bg-yellow-100 text-yellow-800" },
-      completed: { label: "Hoàn thành", className: "bg-green-100 text-green-800" },
-      failed: { label: "Thất bại", className: "bg-red-100 text-red-800" },
-      refunded: { label: "Đã hoàn tiền", className: "bg-purple-100 text-purple-800" },
+    const badges: Record<string, { label: string; className: string; icon: string; tooltip: string }> = {
+      pending: {
+        label: "Đang chờ",
+        className: "bg-yellow-100 text-yellow-800 border border-yellow-300",
+        icon: "⏳",
+        tooltip: "Đang chờ khách thanh toán qua VNPay/MoMo"
+      },
+      completed: {
+        label: "Hoàn thành",
+        className: "bg-green-100 text-green-800",
+        icon: "✅",
+        tooltip: "Thanh toán đã hoàn tất thành công"
+      },
+      failed: {
+        label: "Thất bại",
+        className: "bg-red-100 text-red-800",
+        icon: "❌",
+        tooltip: "Thanh toán thất bại hoặc bị hủy"
+      },
+      refunded: {
+        label: "Đã hoàn tiền",
+        className: "bg-purple-100 text-purple-800",
+        icon: "💰",
+        tooltip: "Đã hoàn tiền cho khách hàng"
+      },
     };
     const badge = badges[status] || badges.pending;
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${badge.className}`}>
-        {badge.label}
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1 ${badge.className}`}
+        title={badge.tooltip}
+      >
+        <span>{badge.icon}</span>
+        <span>{badge.label}</span>
       </span>
     );
   };
 
-  const filteredPayments = payments.filter((payment) => {
-    try {
-      const matchesSearch = (
-        payment?.transactionId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        payment?.ticket?.user?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        payment?.ticket?.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        payment.id.toString().includes(searchTerm)
-      );
+  const filteredPayments = payments
+    .filter((payment) => {
+      try {
+        const matchesSearch = (
+          payment?.transactionId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          payment?.ticket?.user?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          payment?.ticket?.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          payment.id.toString().includes(searchTerm)
+        );
 
-      const matchesStatus = statusFilter === "all" || payment.paymentStatus === statusFilter;
-      const matchesMethod = methodFilter === "all" || payment.paymentMethod === methodFilter;
+        const matchesStatus = statusFilter === "all" || payment.paymentStatus === statusFilter;
+        const matchesMethod = methodFilter === "all" || payment.paymentMethod === methodFilter;
 
-      return matchesSearch && matchesStatus && matchesMethod;
-    } catch (error) {
-      console.error("❌ Error filtering payment:", payment, error);
-      return false;
-    }
-  });
+        return matchesSearch && matchesStatus && matchesMethod;
+      } catch (error) {
+        console.error("❌ Error filtering payment:", payment, error);
+        return false;
+      }
+    })
+    .sort((a, b) => {
+      // Sort by created_at DESC (newest first)
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateB - dateA;
+    });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredPayments.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedPayments = filteredPayments.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, methodFilter]);
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -255,6 +301,13 @@ function AdminPayments() {
 
         {/* Content */}
         <div className="p-8 pt-4">
+          {/* Info Banner */}
+          {stats && stats.pendingCount > 0 && (
+            <div className="mb-4 px-4 py-3 bg-yellow-50 border-l-4 border-yellow-400 rounded-r text-sm text-yellow-800">
+              ⏳ <strong>{stats.pendingCount}</strong> thanh toán đang chờ khách hoàn tất
+            </div>
+          )}
+
           <Card className="p-6">
             {/* Search & Filters */}
             <div className="space-y-4 mb-6">
@@ -363,7 +416,7 @@ function AdminPayments() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredPayments.map((payment) => (
+                    {paginatedPayments.map((payment) => (
                       <tr key={payment.id} className="border-b border-slate-100 hover:bg-slate-50">
                         <td className="py-3 px-4 font-medium">#{payment.id}</td>
                         <td className="py-3 px-4">
@@ -423,23 +476,41 @@ function AdminPayments() {
                         </td>
                         <td className="py-3 px-4">
                           {payment.transactionId ? (
-                            <div className="space-y-0.5">
-                              <div className="text-xs font-mono text-slate-600">
-                                {payment.transactionId.length > 20
-                                  ? `${payment.transactionId.substring(0, 20)}...`
-                                  : payment.transactionId
-                                }
+                            <div className="flex items-start gap-2">
+                              <div className="space-y-0.5 flex-1 min-w-0">
+                                <div className="text-xs font-mono text-slate-600 truncate" title={payment.transactionId}>
+                                  {payment.transactionId.length > 20
+                                    ? `${payment.transactionId.substring(0, 20)}...`
+                                    : payment.transactionId
+                                  }
+                                </div>
+                                <div className="text-[10px] text-slate-400">
+                                  VNPay/MoMo Order ID
+                                </div>
                               </div>
-                              <div className="text-[10px] text-slate-400">
-                                VNPay/MoMo Order ID
-                              </div>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(payment.transactionId || '');
+                                  toast.success('Đã copy Transaction ID!', { duration: 2000 });
+                                }}
+                                className="p-1.5 hover:bg-slate-100 rounded transition-colors"
+                                title="Copy Transaction ID"
+                              >
+                                <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                              </button>
                             </div>
                           ) : (
                             <span className="text-slate-400 text-xs">Chưa có</span>
                           )}
                         </td>
                         <td className="py-3 px-4 text-sm text-slate-600">
-                          {formatDateTime(payment.paymentDate)}
+                          {payment.paymentStatus === "pending" ? (
+                            <span className="text-slate-400 italic">N/A</span>
+                          ) : (
+                            formatDateTime(payment.paymentDate)
+                          )}
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex gap-2">
@@ -455,13 +526,13 @@ function AdminPayments() {
                                 <span>Hoàn tiền</span>
                               </Button>
                             )}
-                            {payment.paymentStatus === "pending" && (
+                            {payment.paymentStatus === "pending" && false && (
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleUpdateStatus(payment, "completed")}
                                 className="text-green-600 hover:text-green-700 hover:bg-green-50 text-xs flex items-center gap-1"
-                                title="Xác nhận thanh toán thành công (dùng khi VNPay callback failed)"
+                                title="DISABLED - Xác nhận thanh toán thành công (dùng khi VNPay callback failed)"
                               >
                                 ✅ <span className="font-medium">Xác nhận</span>
                               </Button>
@@ -478,6 +549,54 @@ function AdminPayments() {
                     ))}
                   </tbody>
                 </table>
+
+                {/* Pagination */}
+                <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
+                  <div className="text-sm text-slate-600">
+                    Hiển thị {startIndex + 1}-{Math.min(endIndex, filteredPayments.length)} trong tổng số {filteredPayments.length} thanh toán
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      className="text-xs"
+                    >
+                      « Đầu
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="text-xs"
+                    >
+                      ‹ Trước
+                    </Button>
+                    <span className="text-sm text-slate-600 px-3">
+                      Trang {currentPage} / {totalPages}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="text-xs"
+                    >
+                      Sau ›
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                      className="text-xs"
+                    >
+                      Cuối »
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
           </Card>

@@ -73,4 +73,18 @@ public class RouteController {
                 routeService.calculateRouteFromStations(fromStation, toStation);
         return ResponseEntity.ok(new ApiResponse<>(true, "Route calculated successfully", calculation));
     }
+
+    /**
+     * Calculate route information between two cities (not stations)
+     * Uses city center coordinates for calculation
+     * GET /routes/calculate-by-city?fromCity=TP Hồ Chí Minh&toCity=Hà Nội
+     */
+    @GetMapping("/calculate-by-city")
+    public ResponseEntity<ApiResponse<com.busbooking.dto.response.RouteCalculationResponse>> calculateRouteByCity(
+            @RequestParam String fromCity,
+            @RequestParam String toCity) {
+        com.busbooking.dto.response.RouteCalculationResponse calculation =
+                routeService.calculateRouteByCities(fromCity, toCity);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Route calculated successfully", calculation));
+    }
 }

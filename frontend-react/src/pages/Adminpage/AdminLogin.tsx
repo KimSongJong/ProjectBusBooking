@@ -4,9 +4,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import authService from "@/services/auth.service"
-import { useAuth } from "@/contexts/AuthContext"
+import { useAdminAuth } from "@/contexts/AdminAuthContext"
 import { toast } from "sonner"
 import { FaBus } from "react-icons/fa"
+import adminApi from "@/config/adminAxios" // 🔑 Use admin axios
+import { adminAuthStorage } from "@/contexts/AdminAuthContext"
 
 function AdminLogin() {
   const [username, setUsername] = useState("")
@@ -14,7 +16,7 @@ function AdminLogin() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const navigate = useNavigate()
-  const { login: setAuthUser } = useAuth()
+  const { adminLogin } = useAdminAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,8 +29,15 @@ function AdminLogin() {
       if (response.success && response.data) {
         // Check if user has admin or staff role
         if (response.data.role === "admin" || response.data.role === "staff") {
-          setAuthUser(response.data)
+          // 🔑 Save to ADMIN token (separate from customer)
+          adminApi.setAdminToken(response.data.token)
+
+          // ⭐ Use admin-specific storage and context
+          adminLogin(response.data)
+
+          console.log("✅ Admin logged in:", response.data.fullName, "Role:", response.data.role)
           toast.success(`Chào mừng quản trị viên ${response.data.fullName}!`)
+
           // Redirect to admin dashboard
           setTimeout(() => {
             navigate("/admin/dashboard")
@@ -36,8 +45,9 @@ function AdminLogin() {
         } else {
           setError("Bạn không có quyền truy cập trang quản trị")
           toast.error("Bạn không có quyền truy cập trang quản trị")
-          // Logout the user
-          await authService.logout()
+          // Clear admin storage
+          adminAuthStorage.clear()
+          adminApi.setAdminToken(null)
         }
       } else {
         setError(response.message || "Đăng nhập thất bại")

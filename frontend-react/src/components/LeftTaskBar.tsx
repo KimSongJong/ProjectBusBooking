@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { useAuth } from "@/contexts/AuthContext"
+import { useAdminAuth } from "@/contexts/AdminAuthContext"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { FaCar, FaUserTie, FaRoute, FaMapMarkedAlt, FaTicketAlt, FaChair, FaGift, FaSignOutAlt, FaTachometerAlt, FaUserCircle, FaDollarSign, FaMapMarkerAlt } from "react-icons/fa"
@@ -12,13 +12,13 @@ interface MenuItem {
 }
 
 function LeftTaskBar() {
-  const { user, logout } = useAuth()
+  const { adminUser, adminLogout } = useAdminAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
     try {
-      await logout()
+      adminLogout()
       toast.success("Đăng xuất thành công")
       navigate("/admin/login")
     } catch (error) {
@@ -56,6 +56,11 @@ function LeftTaskBar() {
       path: "/admin/stations",
     },
     {
+      title: "Duyệt thành phố mới",
+      icon: <FaMapMarkedAlt />,
+      path: "/admin/pending-cities",
+    },
+    {
       title: "Quản lý tuyến đường",
       icon: <FaRoute />,
       path: "/admin/routes",
@@ -91,14 +96,14 @@ function LeftTaskBar() {
     <div className="w-64 h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white flex flex-col shadow-2xl">
       {/* Header - User Info Only */}
       <div className="p-5 bg-slate-900 border-b border-slate-700">
-        {user && (
+        {adminUser && (
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-blue-950 rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
-              {user.fullName?.charAt(0).toUpperCase() || "A"}
+              {adminUser.fullName?.charAt(0).toUpperCase() || "A"}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm truncate">{user.fullName}</p>
-              <p className="text-xs text-slate-400 truncate capitalize">{user.role}</p>
+              <p className="font-semibold text-sm truncate">{adminUser.fullName}</p>
+              <p className="text-xs text-slate-400 truncate capitalize">{adminUser.role}</p>
             </div>
           </div>
         )}

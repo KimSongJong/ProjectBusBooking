@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider } from "./contexts/AuthContext";
+import { AdminAuthProvider } from "./contexts/AdminAuthContext";
 import { AdminProtectedRoute } from "./components/ProtectedRoute";
 import MainPage from "./pages/Mainpage";
 import Product from "./pages/Product";
@@ -28,14 +29,16 @@ import AdminSeats from "./pages/Adminpage/AdminSeats";
 import AdminPromotions from "./pages/Adminpage/AdminPromotions";
 import AdminPayments from "./pages/Adminpage/AdminPayments";
 import AdminStations from "./pages/AdminStations";
+import AdminPendingCities from "./pages/Adminpage/AdminPendingCities";
 import "./App.css";
 
 function App() {
   return (
     <Router>
       <AuthProvider>
-        <Toaster position="top-right" richColors />
-        <Routes>
+        <AdminAuthProvider>
+          <Toaster position="top-right" richColors />
+          <Routes>
           <Route path="/" element={<MainPage />} />
           <Route path="/product" element={<Product />} />
           <Route path="/booking-seat" element={<BookingSeat />} />
@@ -141,7 +144,16 @@ function App() {
               </AdminProtectedRoute>
             }
           />
+          <Route
+            path="/admin/pending-cities"
+            element={
+              <AdminProtectedRoute>
+                <AdminPendingCities />
+              </AdminProtectedRoute>
+            }
+          />
         </Routes>
+        </AdminAuthProvider>
       </AuthProvider>
     </Router>
   );

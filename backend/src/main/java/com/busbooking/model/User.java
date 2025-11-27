@@ -36,8 +36,17 @@ public class User {
     private String phone;
     
     @Column(name = "is_active")
-    private Boolean isActive = true; // Default active
-    
+    private Boolean isActive = false; // Default INACTIVE until verified
+
+    @Column(name = "email_verified")
+    private Boolean emailVerified = false; // Email verification status
+
+    @Column(name = "otp_code")
+    private String otpCode; // 6-digit OTP code
+
+    @Column(name = "otp_expires_at")
+    private LocalDateTime otpExpiresAt; // OTP expiration time
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     

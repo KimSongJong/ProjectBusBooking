@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
+import { useAdminAuth } from "@/contexts/AdminAuthContext"
 import type { ReactNode } from "react"
 
 interface ProtectedRouteProps {
@@ -36,24 +37,25 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
 
 /**
  * Admin Protected Route - requires admin or staff role
+ * ⭐ Uses separate AdminAuthContext to avoid conflicts with customer auth
  */
 export function AdminProtectedRoute({ children }: { children: ReactNode }) {
-  const { isAuthenticated, user, isLoading } = useAuth()
+  const { isAdminAuthenticated, adminUser, isAdminLoading } = useAdminAuth()
 
   // Show loading while checking authentication
-  if (isLoading) {
+  if (isAdminLoading) {
     return <div className="flex items-center justify-center min-h-screen">
       <div className="text-lg">Đang tải...</div>
     </div>
   }
 
   // Not authenticated - redirect to admin login
-  if (!isAuthenticated || !user) {
+  if (!isAdminAuthenticated || !adminUser) {
     return <Navigate to="/admin/login" replace />
   }
 
   // Check if user is admin or staff
-  if (user.role !== "admin" && user.role !== "staff") {
+  if (adminUser.role !== "admin" && adminUser.role !== "staff") {
     return <Navigate to="/" replace />
   }
 

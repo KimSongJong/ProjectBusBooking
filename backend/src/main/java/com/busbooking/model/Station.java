@@ -39,6 +39,9 @@ public class Station {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
+    @Column(name = "is_approved", nullable = false)
+    private Boolean isApproved = true;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "station_type", nullable = false)
     private StationType stationType = StationType.both;
@@ -58,6 +61,9 @@ public class Station {
         if (isActive == null) {
             isActive = true;
         }
+        if (isApproved == null) {
+            isApproved = true; // Default to approved for existing cities
+        }
         if (stationType == null) {
             stationType = StationType.both;
         }
@@ -71,6 +77,9 @@ public class Station {
         }
         if (isActive == null) {
             isActive = true;
+        }
+        if (isApproved == null) {
+            isApproved = true;
         }
     }
 }

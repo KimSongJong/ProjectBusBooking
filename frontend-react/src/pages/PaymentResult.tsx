@@ -62,12 +62,36 @@ function PaymentResult() {
 
         const paymentData = JSON.parse(paymentDataStr);
         console.log("📦 Payment data from sessionStorage:", paymentData);
-        console.log("📦 Trip type:", paymentData.tripType);
-        console.log("🎫 Ticket IDs (one-way):", paymentData.ticketIds);
-        console.log("🎫 Outbound tickets (round trip):", paymentData.outboundTickets);
-        console.log("🎫 Return tickets (round trip):", paymentData.returnTickets);
 
-        // ⭐ Extract ticket IDs based on trip type
+        // ⭐ STEP 1: UPDATE PAYMENT STATUS (FIX: Callback might fail in sandbox)
+        console.log("💳 Updating payment status to 'completed'...");
+        console.log("💳 Transaction ID:", txnRef);
+
+        try {
+          // Find payment by transactionId and update to completed
+          const paymentsResponse = await paymentService.getAllPayments();
+          if (paymentsResponse.success && paymentsResponse.data) {
+            const payment = paymentsResponse.data.find((p: any) => p.transactionId === txnRef);
+
+            if (payment) {
+              console.log("✅ Found payment record:", payment.id);
+              await paymentService.updatePaymentStatus(payment.id, "completed");
+              console.log("✅ Payment status updated to 'completed'");
+              toast.success("Đã xác nhận thanh toán!");
+            } else {
+              console.warn("⚠️ Payment record not found with transactionId:", txnRef);
+              toast.warning("Không tìm thấy payment record, nhưng vé đã được cập nhật");
+            }
+          }
+        } catch (error) {
+          console.error("❌ Failed to update payment status:", error);
+          // Don't throw - continue with ticket update
+          toast.warning("Lỗi cập nhật payment status, vui lòng liên hệ admin");
+        }
+
+        // ⭐ STEP 2: Extract ticket IDs based on trip type
+        // ...existing code...
+        // Extract ticket IDs based on trip type
         let ticketIdsToUpdate: number[] = [];
 
         if (paymentData.tripType === 'roundTrip') {

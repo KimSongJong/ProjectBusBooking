@@ -196,4 +196,84 @@ public class RouteService {
 
         return response;
     }
+
+    /**
+     * Calculate route information between two cities using city center coordinates
+     * @param fromCity Origin city name
+     * @param toCity Destination city name
+     * @return Route calculation with distance, duration, and price
+     */
+    public com.busbooking.dto.response.RouteCalculationResponse calculateRouteByCities(
+            String fromCity,
+            String toCity
+    ) {
+        log.info("🏙️ Calculating route from city {} to {}", fromCity, toCity);
+
+        // Get city center coordinates (hardcoded for major cities)
+        Map<String, double[]> cityCenters = getCityCenters();
+
+        if (!cityCenters.containsKey(fromCity)) {
+            throw new IllegalArgumentException("City not supported: " + fromCity);
+        }
+        if (!cityCenters.containsKey(toCity)) {
+            throw new IllegalArgumentException("City not supported: " + toCity);
+        }
+
+        double[] fromCoords = cityCenters.get(fromCity);
+        double[] toCoords = cityCenters.get(toCity);
+
+        log.info("✅ City centers: {} ({}, {}) → {} ({}, {})",
+                fromCity, fromCoords[0], fromCoords[1],
+                toCity, toCoords[0], toCoords[1]);
+
+        // Calculate using OpenStreetMap (OSRM)
+        // Convert double[] to BigDecimal for the service call
+        Map<String, Object> calculation = openStreetMapService.calculateRouteInfo(
+                java.math.BigDecimal.valueOf(fromCoords[0]), // latitude
+                java.math.BigDecimal.valueOf(fromCoords[1]), // longitude
+                java.math.BigDecimal.valueOf(toCoords[0]),
+                java.math.BigDecimal.valueOf(toCoords[1])
+        );
+
+        // Build response
+        com.busbooking.dto.response.RouteCalculationResponse response = new com.busbooking.dto.response.RouteCalculationResponse();
+        response.setFromCity(fromCity);
+        response.setToCity(toCity);
+        response.setDistanceKm((java.math.BigDecimal) calculation.get("distanceKm"));
+        response.setDurationMinutes((Integer) calculation.get("durationMinutes"));
+        response.setBasePrice((java.math.BigDecimal) calculation.get("basePrice"));
+        response.setCalculationSource((String) calculation.get("source"));
+        response.setMessage("Route calculated successfully from city centers");
+
+        log.info("💰 Calculated: {}km - {}min - {}đ",
+                response.getDistanceKm(),
+                response.getDurationMinutes(),
+                response.getBasePrice());
+
+        return response;
+    }
+
+    /**
+     * Get city center coordinates for major Vietnamese cities
+     * @return Map of city name to [latitude, longitude]
+     */
+    private Map<String, double[]> getCityCenters() {
+        Map<String, double[]> centers = new HashMap<>();
+        centers.put("TP Hồ Chí Minh", new double[]{10.8231, 106.6297}); // TPHCM center
+        centers.put("Hà Nội", new double[]{21.0285, 105.8542}); // Hanoi center
+        centers.put("Đà Nẵng", new double[]{16.0544, 108.2022}); // Da Nang center
+        centers.put("Nha Trang", new double[]{12.2388, 109.1967}); // Nha Trang center
+        centers.put("Đà Lạt", new double[]{11.9404, 108.4583}); // Da Lat center
+        centers.put("Vũng Tàu", new double[]{10.4113, 107.1362}); // Vung Tau center
+        centers.put("Phan Thiết", new double[]{10.9289, 108.1022}); // Phan Thiet center
+        centers.put("Cần Thơ", new double[]{10.0452, 105.7469}); // Can Tho center
+        centers.put("Huế", new double[]{16.4637, 107.5909}); // Hue center
+        centers.put("Quy Nhơn", new double[]{13.7830, 109.2196}); // Quy Nhon center
+        centers.put("Hải Phòng", new double[]{20.8449, 106.6881}); // Hai Phong center
+        centers.put("Buôn Ma Thuột", new double[]{12.6667, 108.0500}); // Buon Ma Thuot center
+        centers.put("Pleiku", new double[]{13.9833, 108.0000}); // Pleiku center
+        centers.put("Vinh", new double[]{18.6792, 105.6922}); // Vinh center
+        centers.put("Biên Hòa", new double[]{10.9510, 106.8442}); // Bien Hoa center
+        return centers;
+    }
 }

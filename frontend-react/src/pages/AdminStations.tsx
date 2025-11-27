@@ -21,8 +21,11 @@ import {
 } from '@/components/ui/select';
 import { Plus, Pencil, Trash2, Search, MapPin, Phone, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import authService from '@/services/auth.service';
+import adminApi from '@/config/adminAxios'; // 🔑 Use admin axios
 import LeftTaskBar from '@/components/LeftTaskBar';
+import StationMap from '@/components/StationMap';
+import { autoDetectCity } from '@/utils/cityNormalizer';
+import { VIETNAM_PROVINCES } from '@/constants/provinces';
 
 // Popular stations in Vietnam for quick selection
 const POPULAR_STATIONS = [
@@ -65,13 +68,12 @@ interface StationForm {
 const STATION_TYPES = [
   { value: 'both', label: 'Cả đi và đến' },
   { value: 'departure', label: 'Chỉ điểm đi' },
-  { value: 'arrival', label: 'Chỉ điểm đến' },
+  { name: 'Bến xe Cần Thơ', city: 'Cần Thơ', address: 'Nguyễn Trãi, Ninh Kiều, Cần Thơ', lat: 10.033333, lng: 105.766667 },
 ];
 
-const MAJOR_CITIES = [
-  'Hà Nội', 'Hồ Chí Minh', 'Đà Nẵng', 'Hải Phòng', 'Cần Thơ',
-  'Nha Trang', 'Huế', 'Đà Lạt', 'Vũng Tàu', 'Quy Nhơn'
-];
+// Use all Vietnam provinces from shared constants
+// This ensures consistency across admin routes and stations
+const MAJOR_CITIES = VIETNAM_PROVINCES;
 
 export default function AdminStations() {
   const [stations, setStations] = useState<Station[]>([]);
@@ -97,6 +99,15 @@ export default function AdminStations() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isGeocoding, setIsGeocoding] = useState(false);
 
+  // 🆕 City input with confirmation
+  const [cityInputValue, setCityInputValue] = useState('');
+  const [showCityConfirmDialog, setShowCityConfirmDialog] = useState(false);
+  const [pendingCityValue, setPendingCityValue] = useState('');
+
+  // Map state
+  const [mapCenter, setMapCenter] = useState({ lat: 16.0, lng: 108.0 }); // Vietnam center
+  const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number } | null>(null);
+
   // Geocode address using OpenStreetMap Nominatim (free, no API key needed)
   const geocodeAddress = async (address: string) => {
     setIsGeocoding(true);
@@ -114,12 +125,20 @@ export default function AdminStations() {
 
       if (data && data.length > 0) {
         const result = data[0];
+        const lat = parseFloat(result.lat);
+        const lng = parseFloat(result.lon);
+
         setFormData({
           ...formData,
-          latitude: parseFloat(result.lat).toFixed(6),
-          longitude: parseFloat(result.lon).toFixed(6),
+          latitude: lat.toFixed(6),
+          longitude: lng.toFixed(6),
           address: result.display_name || formData.address,
         });
+
+        // Update map position
+        setMapCenter({ lat, lng });
+        setMarkerPosition({ lat, lng });
+
         toast.success('✅ Đã tìm thấy tọa độ!');
       } else {
         toast.error('❌ Không tìm thấy địa điểm. Vui lòng nhập tọa độ thủ công.');
@@ -143,36 +162,22 @@ export default function AdminStations() {
   const fetchStations = async () => {
     setLoading(true);
     try {
-      const token = authService.getToken();
-      if (!token) {
-        toast.error('Vui lòng đăng nhập lại');
+      // 🔑 Use adminApi instead of manual fetch
+      if (!adminApi.getAdminToken()) {
+        toast.error('Vui lòng đăng nhập lại với tài khoản admin');
         return;
       }
 
-      const url = `http://localhost:8080/api/stations?_t=${Date.now()}`;
-      console.log('📡 Fetching stations from:', url);
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        cache: 'no-cache',
-      });
+      console.log('📡 Fetching stations with admin token...');
+      const response = await adminApi.get<any>('/stations', { _t: Date.now() });
 
-      console.log('📦 Response status:', response.status);
+      console.log('📦 Response:', response);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('✅ Stations loaded:', result);
-
-      if (result.success) {
-        setStations(result.data);
-        toast.success(`Đã tải ${result.data.length} trạm xe`);
+      if (response.success) {
+        setStations(response.data);
+        toast.success(`Đã tải ${response.data.length} trạm xe`);
       } else {
-        throw new Error(result.message || 'Không thể tải dữ liệu');
+        throw new Error(response.message || 'Không thể tải dữ liệu');
       }
     } catch (error: any) {
       console.error('❌ Error fetching stations:', error);
@@ -219,6 +224,11 @@ export default function AdminStations() {
         stationType: station.stationType,
         isActive: station.isActive,
       });
+      // Sync city input value
+      setCityInputValue(station.city);
+      // Set map to station location
+      setMapCenter({ lat: station.latitude, lng: station.longitude });
+      setMarkerPosition({ lat: station.latitude, lng: station.longitude });
     } else {
       setEditingStation(null);
       setFormData({
@@ -231,6 +241,11 @@ export default function AdminStations() {
         stationType: 'both',
         isActive: true,
       });
+      // Reset city input
+      setCityInputValue('');
+      // Reset map to Vietnam center
+      setMapCenter({ lat: 16.0, lng: 108.0 });
+      setMarkerPosition(null);
     }
     setIsDialogOpen(true);
   };
@@ -239,6 +254,11 @@ export default function AdminStations() {
     setIsDialogOpen(false);
     setEditingStation(null);
     setSearchQuery('');
+    setCityInputValue('');
+    setShowCityConfirmDialog(false);
+    setPendingCityValue('');
+    setMapCenter({ lat: 16.0, lng: 108.0 });
+    setMarkerPosition(null);
   };
 
   const handleSelectPopularStation = (station: typeof POPULAR_STATIONS[0]) => {
@@ -250,11 +270,72 @@ export default function AdminStations() {
       latitude: station.lat.toString(),
       longitude: station.lng.toString(),
     });
+    setMapCenter({ lat: station.lat, lng: station.lng });
+    setMarkerPosition({ lat: station.lat, lng: station.lng });
     toast.success(`✅ Đã điền thông tin: ${station.name}`);
+  };
+
+  // Map interaction handlers
+  const handleMapClick = (lat: number, lng: number) => {
+    setMarkerPosition({ lat, lng });
+    setFormData({
+      ...formData,
+      latitude: lat.toFixed(6),
+      longitude: lng.toFixed(6),
+    });
+  };
+
+  const handleMarkerDragEnd = (lat: number, lng: number) => {
+    setMarkerPosition({ lat, lng });
+    setFormData({
+      ...formData,
+      latitude: lat.toFixed(6),
+      longitude: lng.toFixed(6),
+    });
+  };
+
+  const handleReverseGeocode = (address: string) => {
+    // Auto-detect city from address
+    const detectedCity = autoDetectCity(address);
+
+    // Prepare updated formData
+    const updatedData = { ...formData };
+
+    // Auto-update address only if it's empty (don't overwrite user input)
+    if (!formData.address.trim()) {
+      updatedData.address = address;
+    }
+
+    // Auto-update city if detected
+    if (detectedCity) {
+      updatedData.city = detectedCity;
+      setCityInputValue(detectedCity); // 🆕 Sync input value
+    }
+
+    setFormData(updatedData);
+
+    // Show appropriate toast message
+    if (detectedCity) {
+      toast.success(`✅ Đã tự động chọn: ${detectedCity}`, { duration: 2500 });
+    } else {
+      toast.warning('⚠️ Không nhận diện được thành phố. Vui lòng chọn thủ công.', { duration: 3000 });
+    }
+  };
+
+  const handleResetMap = () => {
+    setMapCenter({ lat: 16.0, lng: 108.0 });
+    setMarkerPosition(null);
+    setFormData({
+      ...formData,
+      latitude: '',
+      longitude: '',
+    });
+    toast.info('🗺️ Đã đặt lại bản đồ về Việt Nam');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
 
     if (!formData.name || !formData.city || !formData.address) {
       toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
@@ -281,24 +362,11 @@ export default function AdminStations() {
         isActive: formData.isActive,
       };
 
-      const token = authService.getToken();
-      const url = editingStation
-        ? `http://localhost:8080/api/stations/${editingStation.id}`
-        : 'http://localhost:8080/api/stations';
-
-      const method = editingStation ? 'PUT' : 'POST';
-
-      console.log('📤 Saving station:', method, url);
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await response.json();
+      // 🔑 Use adminApi
+      console.log('📤 Saving station:', editingStation ? 'UPDATE' : 'CREATE');
+      const result = editingStation
+        ? await adminApi.put(`/stations/${editingStation.id}`, payload)
+        : await adminApi.post('/stations', payload);
 
       if (result.success) {
         toast.success(result.message);
@@ -316,17 +384,9 @@ export default function AdminStations() {
     if (!confirm('Bạn có chắc chắn muốn xóa trạm xe này?')) return;
 
     try {
-      const token = authService.getToken();
+      // 🔑 Use adminApi
       console.log('🗑️ Deleting station:', id);
-      const response = await fetch(`http://localhost:8080/api/stations/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const result = await response.json();
+      const result = await adminApi.delete(`/stations/${id}`);
 
       if (result.success) {
         toast.success(result.message);
@@ -509,10 +569,10 @@ export default function AdminStations() {
 
           {/* Create/Edit Dialog */}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-[95vw] w-[1400px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>
-                  {editingStation ? 'Chỉnh sửa trạm xe' : 'Thêm trạm xe mới'}
+                <DialogTitle className="text-2xl">
+                  {editingStation ? '📝 Chỉnh sửa trạm xe' : '➕ Thêm trạm xe mới'}
                 </DialogTitle>
                 <DialogDescription>
                   Điền thông tin trạm xe. Các trường có dấu * là bắt buộc.
@@ -520,111 +580,13 @@ export default function AdminStations() {
               </DialogHeader>
 
               <form onSubmit={handleSubmit}>
-                <div className="space-y-4 py-4">
-                  {/* Smart Search Bar with Mode Toggle */}
-                  <div className="space-y-3 bg-gradient-to-r from-blue-50 via-purple-50 to-green-50 p-4 rounded-lg border-2 border-blue-300">
-                    {/* Mode Toggle Buttons */}
-                    <div className="flex gap-2 mb-3">
-                      <Button
-                        type="button"
-                        onClick={() => setSearchQuery('')}
-                        className={`flex-1 ${
-                          searchQuery === ''
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        <MapPin className="w-4 h-4 mr-2" />
-                        ⚡ Chọn nhanh
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={() => setSearchQuery(' ')}
-                        className={`flex-1 ${
-                          searchQuery !== ''
-                            ? 'bg-green-600 hover:bg-green-700 text-white'
-                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        <Search className="w-4 h-4 mr-2" />
-                        🌍 Tự nhập địa chỉ
-                      </Button>
-                    </div>
+                {/* 2-Column Landscape Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-4">
 
-                    {/* Quick Select Mode */}
-                    {searchQuery === '' && (
-                      <div className="space-y-2">
-                        <Label className="flex items-center gap-2 text-blue-700 font-semibold">
-                          <MapPin className="w-4 h-4" />
-                          Chọn từ trạm xe phổ biến
-                        </Label>
-                        <Select onValueChange={(value) => {
-                          const station = POPULAR_STATIONS[parseInt(value)];
-                          if (station) handleSelectPopularStation(station);
-                        }}>
-                          <SelectTrigger className="bg-white border-2 border-blue-200">
-                            <SelectValue placeholder="-- Chọn trạm xe từ danh sách --" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {POPULAR_STATIONS.map((station, index) => (
-                              <SelectItem key={index} value={index.toString()}>
-                                <div className="flex items-center gap-2">
-                                  <MapPin className="w-3 h-3 text-blue-500" />
-                                  <span className="font-medium">{station.name}</span>
-                                  <span className="text-xs text-gray-500">({station.city})</span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-blue-600">
-                          💡 Chọn 1 trạm → Tự động điền tất cả thông tin
-                        </p>
-                      </div>
-                    )}
+                  {/* LEFT COLUMN: Form Fields */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-lg text-slate-700 border-b pb-2">📋 Thông tin trạm xe</h3>
 
-                    {/* Address Search Mode */}
-                    {searchQuery !== '' && (
-                      <div className="space-y-2">
-                        <Label htmlFor="address-search" className="flex items-center gap-2 text-green-700 font-semibold">
-                          <Search className="w-4 h-4" />
-                          Nhập địa chỉ trạm xe
-                        </Label>
-                        <div className="flex gap-2">
-                          <Input
-                            id="address-search"
-                            value={searchQuery === ' ' ? '' : searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value || ' ')}
-                            placeholder="VD: Bến xe Mỹ Đình, Hà Nội hoặc Phạm Hùng, Nam Từ Liêm"
-                            className="bg-white flex-1 border-2 border-green-200"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                const query = searchQuery.trim();
-                                if (query) geocodeAddress(query);
-                              }
-                            }}
-                          />
-                          <Button
-                            type="button"
-                            onClick={() => {
-                              const query = searchQuery.trim();
-                              if (query) geocodeAddress(query);
-                            }}
-                            disabled={isGeocoding || searchQuery.trim() === ''}
-                            className="bg-green-600 hover:bg-green-700 px-6"
-                          >
-                            {isGeocoding ? '⏳ Đang tìm...' : '🔍 Tìm'}
-                          </Button>
-                        </div>
-                        <p className="text-xs text-green-600">
-                          💡 Nhập địa chỉ → Nhấn Enter hoặc "Tìm" → Tự động điền tọa độ
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="name">Tên trạm xe *</Label>
                       <Input
@@ -640,10 +602,20 @@ export default function AdminStations() {
                       <Label htmlFor="city">Thành phố *</Label>
                       <Select
                         value={formData.city}
-                        onValueChange={(value) => setFormData({ ...formData, city: value })}
+                        onValueChange={(value) => {
+                          if (value === '__custom__') {
+                            // User wants to enter custom city
+                            setShowCityConfirmDialog(true);
+                            setPendingCityValue('');
+                          } else {
+                            // User selected from list
+                            setFormData({ ...formData, city: value });
+                            setCityInputValue(value);
+                          }
+                        }}
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn thành phố" />
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Chọn hoặc nhập thành phố" />
                         </SelectTrigger>
                         <SelectContent>
                           {MAJOR_CITIES.map((city) => (
@@ -651,112 +623,264 @@ export default function AdminStations() {
                               {city}
                             </SelectItem>
                           ))}
+                          <SelectItem value="__custom__" className="text-orange-600 font-medium border-t mt-2 pt-2">
+                            ✏️ Nhập thành phố khác...
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      {cityInputValue && !MAJOR_CITIES.includes(cityInputValue.trim()) && (
+                        <p className="text-xs text-orange-600 flex items-center gap-1">
+                          ⚠️ Thành phố này không có trong danh sách. Bấm ra ngoài để xác nhận.
+                        </p>
+                      )}
+
+                      {formData.city && MAJOR_CITIES.includes(formData.city) && (
+                        <p className="text-xs text-green-600 flex items-center gap-1">
+                          ✅ Đã chọn: {formData.city}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="address">Địa chỉ *</Label>
+                      <Input
+                        id="address"
+                        value={formData.address}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                        placeholder="VD: Phạm Hùng, Mỹ Đình, Nam Từ Liêm, Hà Nội"
+                        required
+                      />
+                      <p className="text-xs text-slate-500">
+                        💡 Địa chỉ tự động điền khi click vào bản đồ (nếu trống)
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="coordinates" className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        Tọa độ (Latitude, Longitude) *
+                      </Label>
+                      <Input
+                        id="coordinates"
+                        value={formData.latitude && formData.longitude
+                          ? `${formData.latitude}, ${formData.longitude}`
+                          : ''}
+                        readOnly
+                        placeholder="Click vào bản đồ để đặt tọa độ"
+                        required
+                        className="bg-slate-50 font-mono text-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Số điện thoại</Label>
+                      <Input
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        placeholder="VD: 024 3768 5549"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="stationType">Loại trạm</Label>
+                      <Select
+                        value={formData.stationType}
+                        onValueChange={(value) => setFormData({ ...formData, stationType: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STATION_TYPES.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
+
+                    <div className="flex items-center space-x-2 pt-2">
+                      <input
+                        type="checkbox"
+                        id="isActive"
+                        checked={formData.isActive}
+                        onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                        className="w-4 h-4"
+                      />
+                      <Label htmlFor="isActive" className="cursor-pointer">
+                        ✅ Trạm đang hoạt động
+                      </Label>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3 pt-6 border-t mt-6">
+                      <Button type="button" variant="outline" onClick={handleCloseDialog} className="flex-1">
+                        Hủy
+                      </Button>
+                      <Button type="submit" className="flex-1 bg-blue-950 hover:bg-blue-900">
+                        {editingStation ? 'Cập nhật' : 'Thêm mới'}
+                      </Button>
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Địa chỉ *</Label>
-                    <Input
-                      id="address"
-                      value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      placeholder="VD: Phạm Hùng, Mỹ Đình, Nam Từ Liêm, Hà Nội"
-                      required
-                    />
-                  </div>
+                  {/* RIGHT COLUMN: Map */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-lg text-slate-700 border-b pb-2">🗺️ Bản đồ tương tác</h3>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="coordinates" className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      Tọa độ (Latitude, Longitude) *
-                    </Label>
-                    <Input
-                      id="coordinates"
-                      value={`${formData.latitude}, ${formData.longitude}`}
-                      onChange={(e) => {
-                        const coords = e.target.value.split(',').map(s => s.trim());
-                        if (coords.length >= 2) {
-                          setFormData({
-                            ...formData,
-                            latitude: coords[0],
-                            longitude: coords[1]
-                          });
-                        } else if (coords.length === 1) {
-                          setFormData({ ...formData, latitude: coords[0] });
-                        }
-                      }}
-                      placeholder="VD: 21.028511, 105.784817"
-                      required
-                    />
-                    <p className="text-xs text-gray-500">
-                      💡 Nhập theo format: vĩ độ, kinh độ (VD: 21.028511, 105.784817)
-                    </p>
-                  </div>
+                    {/* Search Bar */}
+                    <div className="space-y-2">
+                      <Label htmlFor="address-search" className="flex items-center gap-2 text-green-700 font-medium">
+                        <Search className="w-4 h-4" />
+                        Tìm kiếm địa điểm
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="address-search"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          placeholder="VD: Bến xe Mỹ Đình, Hà Nội"
+                          className="flex-1"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const query = searchQuery.trim();
+                              if (query) geocodeAddress(query);
+                            }
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            const query = searchQuery.trim();
+                            if (query) geocodeAddress(query);
+                          }}
+                          disabled={isGeocoding || searchQuery.trim() === ''}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          {isGeocoding ? '⏳' : '🔍'}
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={handleResetMap}
+                          variant="outline"
+                          title="Đặt lại bản đồ về Việt Nam"
+                        >
+                          📍
+                        </Button>
+                      </div>
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Số điện thoại</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="VD: 024 3768 5549"
-                    />
+                    {/* Map Component */}
+                    <div className="border-2 border-slate-200 rounded-lg overflow-hidden shadow-sm">
+                      <StationMap
+                        center={mapCenter}
+                        markerPosition={markerPosition}
+                        onMapClick={handleMapClick}
+                        onMarkerDragEnd={handleMarkerDragEnd}
+                        onReverseGeocode={handleReverseGeocode}
+                        height="500px"
+                      />
+                    </div>
                   </div>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="stationType">Loại trạm</Label>
-                    <Select
-                      value={formData.stationType}
-                      onValueChange={(value) => setFormData({ ...formData, stationType: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {STATION_TYPES.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+          {/* 🆕 City Confirmation Dialog */}
+          <Dialog open={showCityConfirmDialog} onOpenChange={setShowCityConfirmDialog}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-xl flex items-center gap-2">
+                  ✏️ Nhập thành phố mới
+                </DialogTitle>
+                <DialogDescription>
+                  Thành phố này chưa có trong danh sách. Vui lòng nhập chính xác.
+                </DialogDescription>
+              </DialogHeader>
 
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="isActive"
-                      checked={formData.isActive}
-                      onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                      className="w-4 h-4"
-                    />
-                    <Label htmlFor="isActive" className="cursor-pointer">
-                      Trạm đang hoạt động
-                    </Label>
-                  </div>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="custom-city">Tên thành phố *</Label>
+                  <Input
+                    id="custom-city"
+                    value={pendingCityValue}
+                    onChange={(e) => setPendingCityValue(e.target.value)}
+                    placeholder="VD: Bình Phước, Tây Ninh..."
+                    autoFocus
+                    className="text-lg"
+                  />
+                  <p className="text-xs text-slate-500">
+                    💡 Gõ chính xác tên tỉnh/thành phố
+                  </p>
+                </div>
 
-                  <div className="bg-blue-50 p-4 rounded-lg text-sm">
-                    <p className="font-medium mb-2">💡 Mẹo: Cách lấy tọa độ từ Google Maps</p>
-                    <ol className="list-decimal list-inside space-y-1 text-gray-600">
-                      <li>Mở Google Maps và tìm địa điểm</li>
-                      <li>Click chuột phải vào vị trí trên bản đồ</li>
-                      <li>Chọn số tọa độ đầu tiên trong menu (VD: 21.028511, 105.784817)</li>
-                      <li>Số đầu là Latitude (Vĩ độ), số sau là Longitude (Kinh độ)</li>
-                    </ol>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                  <p className="text-sm text-slate-700 mb-2">
+                    💡 <strong>Danh sách thành phố phổ biến:</strong>
+                  </p>
+                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                    {MAJOR_CITIES.map((city) => (
+                      <button
+                        key={city}
+                        type="button"
+                        onClick={() => {
+                          setFormData({ ...formData, city });
+                          setCityInputValue(city);
+                          setShowCityConfirmDialog(false);
+                          toast.success(`✅ Đã chọn: ${city}`);
+                        }}
+                        className="px-3 py-1 text-xs bg-white border border-slate-300 rounded-full hover:bg-blue-50 hover:border-blue-400 transition-colors"
+                      >
+                        {city}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={handleCloseDialog}>
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setPendingCityValue('');
+                      setShowCityConfirmDialog(false);
+                      toast.info('Đã hủy. Vui lòng chọn lại.');
+                    }}
+                    className="flex-1"
+                  >
                     Hủy
                   </Button>
-                  <Button type="submit">
-                    {editingStation ? 'Cập nhật' : 'Thêm mới'}
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      const city = pendingCityValue.trim();
+                      if (!city) {
+                        toast.error('Vui lòng nhập tên thành phố');
+                        return;
+                      }
+                      setFormData({ ...formData, city });
+                      setCityInputValue(city);
+                      setShowCityConfirmDialog(false);
+                      toast.success(`✅ Đã xác nhận: ${city}`);
+                    }}
+                    disabled={!pendingCityValue.trim()}
+                    className="flex-1 bg-orange-600 hover:bg-orange-700"
+                  >
+                    ✅ Xác nhận
                   </Button>
-                </DialogFooter>
-              </form>
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <p className="text-xs text-yellow-800">
+                    ⚠️ <strong>Lưu ý:</strong> Nếu bạn chắc chắn thành phố này đúng, hãy bấm <strong>"Xác nhận"</strong>.
+                    Nếu không, hãy chọn lại từ danh sách gợi ý.
+                  </p>
+                </div>
+              </div>
             </DialogContent>
           </Dialog>
         </div>

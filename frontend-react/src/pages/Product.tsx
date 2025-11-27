@@ -246,24 +246,43 @@ function Product() {
       const response = await tripService.getAllTrips();
 
       if (response.success && response.data) {
+        console.log("🔍 SEARCH DEBUG:");
+        console.log("  Search from:", fromLocation);
+        console.log("  Search to:", toLocation);
+        console.log("  Search date:", searchDate);
+        console.log("  Total trips from API:", response.data.length);
+
         // Filter outbound trips
         const filteredTrips = response.data.filter((trip) => {
           const fromMatch = trip.route.fromLocation.toLowerCase().includes(fromLocation.toLowerCase().trim());
           const toMatch = trip.route.toLocation.toLowerCase().includes(toLocation.toLowerCase().trim());
           const matchRoute = fromMatch && toMatch;
 
-          const tripDate = new Date(trip.departureTime).toISOString().split("T")[0];
+          // ⭐ FIX: Extract date from departureTime string directly (avoid timezone issues)
+          const tripDate = trip.departureTime.split("T")[0];  // "2025-11-30T00:37:53" → "2025-11-30"
           const matchDate = tripDate === searchDate;
 
           const isScheduled = trip.status === "scheduled";
 
+          // Debug log for each trip
+          if (fromMatch && toMatch) {
+            console.log(`  Trip ${trip.id}: ${trip.route.fromLocation} → ${trip.route.toLocation}`);
+            console.log(`    Departure: ${trip.departureTime} (${tripDate})`);
+            console.log(`    Status: ${trip.status}`);
+            console.log(`    Match route: ${matchRoute}, Match date: ${matchDate} (search: ${searchDate}), Is scheduled: ${isScheduled}`);
+            console.log(`    ✅ Will include: ${matchRoute && matchDate && isScheduled}`);
+          }
+
           return matchRoute && matchDate && isScheduled;
         });
 
+        console.log("✅ Filtered trips:", filteredTrips.length);
         setTrips(filteredTrips);
 
         if (filteredTrips.length === 0) {
-          toast.warning("Không tìm thấy chuyến xe phù hợp");
+          toast.warning("Không tìm thấy chuyến xe phù hợp", {
+            description: `Tìm kiếm: ${fromLocation} → ${toLocation} ngày ${searchDate}`
+          });
         } else {
           toast.success(`Tìm thấy ${filteredTrips.length} chuyến xe`);
         }
@@ -302,7 +321,8 @@ function Product() {
           const toMatch = trip.route.toLocation.toLowerCase().includes(fromLocation.toLowerCase().trim());
           const matchRoute = fromMatch && toMatch;
 
-          const tripDate = new Date(trip.departureTime).toISOString().split("T")[0];
+          // ⭐ FIX: Extract date from departureTime string directly (avoid timezone issues)
+          const tripDate = trip.departureTime.split("T")[0];
           const matchDate = tripDate === returnDate;
 
           const isScheduled = trip.status === "scheduled";

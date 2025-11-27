@@ -1,13 +1,16 @@
 package com.busbooking.controller;
 
 import com.busbooking.dto.request.LoginRequest;
+import com.busbooking.dto.request.ResendOtpRequest;
 import com.busbooking.dto.request.UserRequest;
+import com.busbooking.dto.request.VerifyOtpRequest;
 import com.busbooking.dto.response.ApiResponse;
 import com.busbooking.dto.response.LoginResponse;
 import com.busbooking.dto.response.UserResponse;
 import com.busbooking.model.User;
 import com.busbooking.repository.UserRepository;
 import com.busbooking.security.JwtTokenProvider;
+import com.busbooking.service.EmailService;
 import com.busbooking.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +23,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.Random;
+
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -30,6 +36,7 @@ public class AuthController {
         private final UserService userService;
         private final PasswordEncoder passwordEncoder;
         private final JwtTokenProvider tokenProvider;
+        private final EmailService emailService;
 
         @PostMapping("/login")
         public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
@@ -78,11 +85,101 @@ public class AuthController {
                 String encodedPassword = passwordEncoder.encode(userRequest.getPassword());
                 userRequest.setPassword(encodedPassword);
 
-                // Create user
+                // Create user (will be INACTIVE until OTP verification)
                 UserResponse userResponse = userService.createUser(userRequest);
 
+                // Generate 6-digit OTP
+                String otpCode = generateOtp();
+                LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(5); // OTP valid for 5 minutes
+
+                // Save OTP to database
+                User user = userRepository.findById(userResponse.getId())
+                        .orElseThrow(() -> new RuntimeException("User not found"));
+                user.setOtpCode(otpCode);
+                user.setOtpExpiresAt(expiresAt);
+                userRepository.save(user);
+
+                // Send OTP email
+                emailService.sendOtpEmail(user.getEmail(), user.getUsername(), otpCode, expiresAt);
+
                 return ResponseEntity.status(HttpStatus.CREATED)
-                                .body(new ApiResponse<>(true, "User registered successfully", userResponse));
+                                .body(new ApiResponse<>(true,
+                                        "Registration successful! Please check your email for OTP verification code.",
+                                        userResponse));
+        }
+
+        /**
+         * Verify OTP code sent to user's email
+         */
+        @PostMapping("/verify-otp")
+        public ResponseEntity<ApiResponse<String>> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
+                User user = userRepository.findByEmail(request.getEmail())
+                        .orElseThrow(() -> new RuntimeException("User not found with email: " + request.getEmail()));
+
+                // Check if OTP matches
+                if (!request.getOtpCode().equals(user.getOtpCode())) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(new ApiResponse<>(false, "Invalid OTP code", null));
+                }
+
+                // Check if OTP expired
+                if (user.getOtpExpiresAt() == null || LocalDateTime.now().isAfter(user.getOtpExpiresAt())) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(new ApiResponse<>(false, "OTP code has expired. Please request a new one.", null));
+                }
+
+                // Activate user account
+                user.setIsActive(true);
+                user.setEmailVerified(true);
+                user.setOtpCode(null); // Clear OTP
+                user.setOtpExpiresAt(null);
+                userRepository.save(user);
+
+                // Send welcome email
+                emailService.sendWelcomeEmail(user.getEmail(), user.getUsername());
+
+                return ResponseEntity.ok(new ApiResponse<>(true,
+                        "Email verified successfully! You can now login.",
+                        null));
+        }
+
+        /**
+         * Resend OTP if user didn't receive it or it expired
+         */
+        @PostMapping("/resend-otp")
+        public ResponseEntity<ApiResponse<String>> resendOtp(@Valid @RequestBody ResendOtpRequest request) {
+                User user = userRepository.findByEmail(request.getEmail())
+                        .orElseThrow(() -> new RuntimeException("User not found with email: " + request.getEmail()));
+
+                // Check if already verified
+                if (Boolean.TRUE.equals(user.getEmailVerified())) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(new ApiResponse<>(false, "Email already verified", null));
+                }
+
+                // Generate new OTP
+                String otpCode = generateOtp();
+                LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(5);
+
+                user.setOtpCode(otpCode);
+                user.setOtpExpiresAt(expiresAt);
+                userRepository.save(user);
+
+                // Send new OTP email
+                emailService.sendOtpEmail(user.getEmail(), user.getUsername(), otpCode, expiresAt);
+
+                return ResponseEntity.ok(new ApiResponse<>(true,
+                        "New OTP code sent to your email",
+                        null));
+        }
+
+        /**
+         * Generate 6-digit OTP code
+         */
+        private String generateOtp() {
+                Random random = new Random();
+                int otp = 100000 + random.nextInt(900000); // 6-digit number
+                return String.valueOf(otp);
         }
 
         @PostMapping("/logout")

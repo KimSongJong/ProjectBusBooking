@@ -23,6 +23,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import tripService from "@/services/trip.service";
 import tripSeatService from "@/services/tripSeat.service";
 import ticketService from "@/services/ticket.service";
+import stationService from "@/services/station.service";
+import type { Station } from "@/services/station.service";
 import type { Trip } from "@/types/trip.types";
 import type { TripSeat } from "@/types/tripSeat.types";
 import type { PickupPoint, DropoffPoint } from "@/types/route.types";
@@ -323,39 +325,146 @@ function BookingSeat() {
         return;
       }
 
-      // ⭐ Parse outbound route pickup/dropoff points
+      // ⭐ Load outbound stations by city
       if (outboundResponse.data?.route) {
-        console.log("📍 Parsing outbound route points...");
-        const { pickupPoints, dropoffPoints } = parseRoutePoints(outboundResponse.data.route);
-        setOutboundPickupOptions(pickupPoints);
-        setOutboundDropoffOptions(dropoffPoints);
+        const fromCity = outboundResponse.data.route.fromLocation;
+        const toCity = outboundResponse.data.route.toLocation;
 
-        // Set default selections
-        if (pickupPoints.length > 0) {
-          setOutboundPickupPoint(pickupPoints[0].name);
-          console.log("✅ Default outbound pickup:", pickupPoints[0].name);
-        }
-        if (dropoffPoints.length > 0) {
-          setOutboundDropoffPoint(dropoffPoints[0].name);
-          console.log("✅ Default outbound dropoff:", dropoffPoints[0].name);
+        try {
+          console.log(`🚉 Loading outbound stations: ${fromCity} → ${toCity}`);
+          console.log(`🔍 From city type:`, typeof fromCity, `value: "${fromCity}"`);
+          console.log(`🔍 To city type:`, typeof toCity, `value: "${toCity}"`);
+
+          // Load pickup stations (from city)
+          console.log(`📡 Calling getStationsByCity("${fromCity}")...`);
+          const pickupResponse = await stationService.getStationsByCity(fromCity);
+          console.log(`📦 Pickup response:`, pickupResponse);
+          console.log(`📦 Pickup response type:`, typeof pickupResponse);
+          console.log(`📦 Pickup response.success:`, pickupResponse?.success);
+          console.log(`📦 Pickup response.data:`, pickupResponse?.data);
+
+          if (pickupResponse.success && pickupResponse.data) {
+            console.log(`📋 Raw pickup data:`, pickupResponse.data);
+            const pickupStations = pickupResponse.data.map((station: Station) => ({
+              name: station.name,
+              address: station.address,
+              latitude: station.latitude,
+              longitude: station.longitude,
+            }));
+            setOutboundPickupOptions(pickupStations);
+            if (pickupStations.length > 0) {
+              setOutboundPickupPoint(pickupStations[0].name);
+              console.log(`✅ Loaded ${pickupStations.length} outbound pickup stations`);
+            } else {
+              console.warn(`⚠️ pickupStations array is empty after mapping`);
+            }
+          } else {
+            console.error(`❌ Failed to load pickup stations - success: ${pickupResponse.success}, data:`, pickupResponse.data);
+          }
+
+          // Load dropoff stations (to city)
+          console.log(`📡 Calling getStationsByCity("${toCity}")...`);
+          const dropoffResponse = await stationService.getStationsByCity(toCity);
+          console.log(`📦 Dropoff response:`, dropoffResponse);
+
+          if (dropoffResponse.success && dropoffResponse.data) {
+            console.log(`📋 Raw dropoff data:`, dropoffResponse.data);
+            const dropoffStations = dropoffResponse.data.map((station: Station) => ({
+              name: station.name,
+              address: station.address,
+              latitude: station.latitude,
+              longitude: station.longitude,
+            }));
+            setOutboundDropoffOptions(dropoffStations);
+            if (dropoffStations.length > 0) {
+              setOutboundDropoffPoint(dropoffStations[0].name);
+              console.log(`✅ Loaded ${dropoffStations.length} outbound dropoff stations`);
+            } else {
+              console.warn(`⚠️ dropoffStations array is empty after mapping`);
+            }
+          } else {
+            console.error(`❌ Failed to load dropoff stations - success: ${dropoffResponse.success}, data:`, dropoffResponse.data);
+          }
+        } catch (error: any) {
+          console.error("❌❌❌ CRITICAL ERROR loading outbound stations:");
+          console.error("  Error type:", typeof error);
+          console.error("  Error message:", error?.message);
+          console.error("  Error stack:", error?.stack);
+          console.error("  Full error object:", error);
+
+          console.log("⚠️ Falling back to route pickup/dropoff points");
+          const { pickupPoints, dropoffPoints } = parseRoutePoints(outboundResponse.data.route);
+          setOutboundPickupOptions(pickupPoints);
+          setOutboundDropoffOptions(dropoffPoints);
+          if (pickupPoints.length > 0) setOutboundPickupPoint(pickupPoints[0].name);
+          if (dropoffPoints.length > 0) setOutboundDropoffPoint(dropoffPoints[0].name);
         }
       }
 
-      // ⭐ Parse return route pickup/dropoff points
+      // ⭐ Load return stations by city
       if (returnResponse.data?.route) {
-        console.log("📍 Parsing return route points...");
-        const { pickupPoints, dropoffPoints } = parseRoutePoints(returnResponse.data.route);
-        setReturnPickupOptions(pickupPoints);
-        setReturnDropoffOptions(dropoffPoints);
+        const fromCity = returnResponse.data.route.fromLocation;
+        const toCity = returnResponse.data.route.toLocation;
 
-        // Set default selections
-        if (pickupPoints.length > 0) {
-          setReturnPickupPoint(pickupPoints[0].name);
-          console.log("✅ Default return pickup:", pickupPoints[0].name);
-        }
-        if (dropoffPoints.length > 0) {
-          setReturnDropoffPoint(dropoffPoints[0].name);
-          console.log("✅ Default return dropoff:", dropoffPoints[0].name);
+        try {
+          console.log(`🚉 Loading return stations: ${fromCity} → ${toCity}`);
+
+          // Load pickup stations (from city)
+          console.log(`📡 [RETURN] Calling getStationsByCity("${fromCity}")...`);
+          const pickupResponse = await stationService.getStationsByCity(fromCity);
+          console.log(`📦 [RETURN] Pickup response:`, pickupResponse);
+
+          if (pickupResponse.success && pickupResponse.data) {
+            console.log(`📋 [RETURN] Raw pickup data:`, pickupResponse.data);
+            const pickupStations = pickupResponse.data.map((station: Station) => ({
+              name: station.name,
+              address: station.address,
+              latitude: station.latitude,
+              longitude: station.longitude,
+            }));
+            setReturnPickupOptions(pickupStations);
+            if (pickupStations.length > 0) {
+              setReturnPickupPoint(pickupStations[0].name);
+              console.log(`✅ Loaded ${pickupStations.length} return pickup stations`);
+            } else {
+              console.warn(`⚠️ [RETURN] pickupStations array is empty`);
+            }
+          } else {
+            console.error(`❌ [RETURN] Failed to load pickup stations`);
+          }
+
+          // Load dropoff stations (to city)
+          console.log(`📡 [RETURN] Calling getStationsByCity("${toCity}")...`);
+          const dropoffResponse = await stationService.getStationsByCity(toCity);
+          console.log(`📦 [RETURN] Dropoff response:`, dropoffResponse);
+
+          if (dropoffResponse.success && dropoffResponse.data) {
+            console.log(`📋 [RETURN] Raw dropoff data:`, dropoffResponse.data);
+            const dropoffStations = dropoffResponse.data.map((station: Station) => ({
+              name: station.name,
+              address: station.address,
+              latitude: station.latitude,
+              longitude: station.longitude,
+            }));
+            setReturnDropoffOptions(dropoffStations);
+            if (dropoffStations.length > 0) {
+              setReturnDropoffPoint(dropoffStations[0].name);
+              console.log(`✅ Loaded ${dropoffStations.length} return dropoff stations`);
+            }
+          }
+        } catch (error: any) {
+          console.error("❌❌❌ CRITICAL ERROR loading return stations:");
+          console.error("  Error type:", typeof error);
+          console.error("  Error message:", error?.message);
+          console.error("  Error stack:", error?.stack);
+          console.error("  Full error object:", error);
+
+          console.log("⚠️ Falling back to route pickup/dropoff points");
+          const { pickupPoints, dropoffPoints } = parseRoutePoints(returnResponse.data.route);
+          setReturnPickupOptions(pickupPoints);
+          setReturnDropoffOptions(dropoffPoints);
+          if (pickupPoints.length > 0) setReturnPickupPoint(pickupPoints[0].name);
+          if (dropoffPoints.length > 0) setReturnDropoffPoint(dropoffPoints[0].name);
         }
       }
 
@@ -591,7 +700,53 @@ function BookingSeat() {
     });
   };
 
-  // ⭐ NEW: Parse pickup/dropoff points from route JSON
+  // ⭐ NEW: Load ALL stations by city (not just from route)
+  const loadStationsByCity = async (fromCity: string, toCity: string) => {
+    try {
+      console.log(`🚉 Loading stations for ${fromCity} → ${toCity}`);
+
+      // Load pickup stations (from city)
+      const pickupResponse = await stationService.getStationsByCity(fromCity);
+      if (pickupResponse.success && pickupResponse.data) {
+        const pickupStations = pickupResponse.data.map((station: Station) => ({
+          name: station.name,
+          address: station.address,
+          latitude: station.latitude,
+          longitude: station.longitude,
+        }));
+        setPickupOptions(pickupStations);
+        console.log(`✅ Loaded ${pickupStations.length} pickup stations for ${fromCity}`);
+
+        // Set default first option
+        if (pickupStations.length > 0 && !pickupPoint) {
+          setPickupPoint(pickupStations[0].name);
+        }
+      }
+
+      // Load dropoff stations (to city)
+      const dropoffResponse = await stationService.getStationsByCity(toCity);
+      if (dropoffResponse.success && dropoffResponse.data) {
+        const dropoffStations = dropoffResponse.data.map((station: Station) => ({
+          name: station.name,
+          address: station.address,
+          latitude: station.latitude,
+          longitude: station.longitude,
+        }));
+        setDropoffOptions(dropoffStations);
+        console.log(`✅ Loaded ${dropoffStations.length} dropoff stations for ${toCity}`);
+
+        // Set default first option
+        if (dropoffStations.length > 0 && !dropoffPoint) {
+          setDropoffPoint(dropoffStations[0].name);
+        }
+      }
+    } catch (error) {
+      console.error("❌ Error loading stations by city:", error);
+      toast.error("Không thể tải danh sách trạm xe");
+    }
+  };
+
+  // ⭐ FALLBACK: Parse pickup/dropoff points from route JSON (if stations not available)
   const parsePickupDropoffPoints = () => {
     if (!trip?.route) return;
 
@@ -632,10 +787,18 @@ function BookingSeat() {
     }
   };
 
-  // ⭐ NEW: useEffect to parse when trip loads
+  // ⭐ NEW: useEffect to load stations when trip loads
   useEffect(() => {
-    if (trip) {
-      parsePickupDropoffPoints();
+    if (trip?.route) {
+      const fromCity = trip.route.fromLocation;
+      const toCity = trip.route.toLocation;
+
+      // Try to load stations by city first
+      loadStationsByCity(fromCity, toCity).catch(() => {
+        // Fallback to parsing from route if city-based loading fails
+        console.log("⚠️ Falling back to route-based pickup/dropoff points");
+        parsePickupDropoffPoints();
+      });
     }
   }, [trip]);
 

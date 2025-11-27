@@ -47,6 +47,10 @@ function AdminTickets() {
   const [tripTypeFilter, setTripTypeFilter] = useState<"all" | "one_way" | "round_trip">("all");
   const [directionFilter, setDirectionFilter] = useState<"all" | "outbound" | "return">("all");
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
+
   // Dialog states
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -220,34 +224,52 @@ function AdminTickets() {
     }).format(amount);
   };
 
-  const filteredTickets = tickets.filter((ticket) => {
-    try {
-      // Search filter
-      const matchesSearch = (
-        ticket?.user?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ticket?.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ticket?.trip?.route?.fromLocation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ticket?.trip?.route?.toLocation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ticket?.seat?.seatNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ticket?.bookingGroupId?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  const filteredTickets = tickets
+    .filter((ticket) => {
+      try {
+        // Search filter
+        const matchesSearch = (
+          ticket?.user?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          ticket?.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          ticket?.trip?.route?.fromLocation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          ticket?.trip?.route?.toLocation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          ticket?.seat?.seatNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          ticket?.bookingGroupId?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
 
-      // Trip type filter
-      const matchesTripType = tripTypeFilter === "all" ||
-        (tripTypeFilter === "one_way" && ticket.tripType === "one_way") ||
-        (tripTypeFilter === "round_trip" && ticket.tripType === "round_trip");
+        // Trip type filter
+        const matchesTripType = tripTypeFilter === "all" ||
+          (tripTypeFilter === "one_way" && ticket.tripType === "one_way") ||
+          (tripTypeFilter === "round_trip" && ticket.tripType === "round_trip");
 
-      // Direction filter (only for round trip)
-      const matchesDirection = directionFilter === "all" ||
-        (directionFilter === "outbound" && !ticket.isReturnTrip) ||
-        (directionFilter === "return" && ticket.isReturnTrip);
+        // Direction filter (only for round trip)
+        const matchesDirection = directionFilter === "all" ||
+          (directionFilter === "outbound" && !ticket.isReturnTrip) ||
+          (directionFilter === "return" && ticket.isReturnTrip);
 
-      return matchesSearch && matchesTripType && matchesDirection;
-    } catch (error) {
-      console.error("❌ Error filtering ticket:", ticket, error);
-      return false;
-    }
-  });
+        return matchesSearch && matchesTripType && matchesDirection;
+      } catch (error) {
+        console.error("❌ Error filtering ticket:", ticket, error);
+        return false;
+      }
+    })
+    .sort((a, b) => {
+      // Sort by created_at DESC (newest first)
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateB - dateA;
+    });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredTickets.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedTickets = filteredTickets.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, tripTypeFilter, directionFilter]);
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -364,7 +386,7 @@ function AdminTickets() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredTickets.map((ticket) => (
+                    {paginatedTickets.map((ticket) => (
                       <tr key={ticket.id} className="border-b border-slate-100 hover:bg-slate-50">
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-1">
@@ -484,6 +506,54 @@ function AdminTickets() {
                     ))}
                   </tbody>
                 </table>
+
+                {/* Pagination */}
+                <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
+                  <div className="text-sm text-slate-600">
+                    Hiển thị {startIndex + 1}-{Math.min(endIndex, filteredTickets.length)} trong tổng số {filteredTickets.length} vé
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      className="text-xs"
+                    >
+                      « Đầu
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="text-xs"
+                    >
+                      ‹ Trước
+                    </Button>
+                    <span className="text-sm text-slate-600 px-3">
+                      Trang {currentPage} / {totalPages}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="text-xs"
+                    >
+                      Sau ›
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                      className="text-xs"
+                    >
+                      Cuối »
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
           </Card>

@@ -23,10 +23,12 @@ START_FRONTEND.bat
 
 | Service | URL | Tài khoản |
 |---------|-----|-----------|
-| **Customer** | http://localhost:5173 | **User1** / **123456** |
-| **Admin Dashboard** | http://localhost:5173/admin/login | **LNNT** / **123456** |
+| **Customer** | http://localhost:5173 | **user1** / **123456** |
+| **Admin Dashboard** | http://localhost:5173/admin/login | **admin** / **123456** |
 | **Backend API** | http://localhost:8080/api | - |
 | **Database** | localhost:3306/bus_booking | root / (no password) |
+
+> **🔐 Lưu ý:** Admin và Customer có auth riêng biệt - có thể login đồng thời trên cùng browser!
 
 ---
 

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * ⏰ Scheduled Job: Auto-cancel expired tickets
+ * Scheduled Job: Auto-cancel expired tickets
  *
  * Runs every 1 minute to check for tickets that:
  * - Status = BOOKED

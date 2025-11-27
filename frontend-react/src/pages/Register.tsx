@@ -22,6 +22,13 @@ function Register() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const navigate = useNavigate()
 
+  // OTP Verification State
+  const [showOtpModal, setShowOtpModal] = useState(false)
+  const [otpCode, setOtpCode] = useState("")
+  const [otpLoading, setOtpLoading] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState("")
+  const [resendCooldown, setResendCooldown] = useState(0)
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
@@ -89,10 +96,9 @@ function Register() {
       })
 
       if (response.success) {
-        toast.success("Đăng ký thành công! Vui lòng đăng nhập.")
-        setTimeout(() => {
-          navigate("/login")
-        }, 1000)
+        toast.success("Đăng ký thành công! Vui lòng kiểm tra email để nhận mã OTP.")
+        setRegisteredEmail(formData.email)
+        setShowOtpModal(true)
       } else {
         toast.error(response.message || "Đăng ký thất bại")
         // Set backend error messages if available
@@ -108,6 +114,67 @@ function Register() {
       setErrors(prev => ({ ...prev, general: errorMessage }))
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!otpCode || otpCode.length !== 6) {
+      toast.error("Vui lòng nhập mã OTP 6 số")
+      return
+    }
+
+    setOtpLoading(true)
+
+    try {
+      const response = await authService.verifyOtp(registeredEmail, otpCode)
+
+      if (response.success) {
+        toast.success("Xác thực thành công! Đang chuyển đến trang đăng nhập...")
+        setShowOtpModal(false)
+        setTimeout(() => {
+          navigate("/login")
+        }, 1500)
+      } else {
+        toast.error(response.message || "Mã OTP không đúng hoặc đã hết hạn")
+      }
+    } catch (err: any) {
+      const errorMessage = err.payload?.message || err.message || "Lỗi xác thực OTP"
+      toast.error(errorMessage)
+    } finally {
+      setOtpLoading(false)
+    }
+  }
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) {
+      toast.error(`Vui lòng đợi ${resendCooldown}s trước khi gửi lại`)
+      return
+    }
+
+    try {
+      const response = await authService.resendOtp(registeredEmail)
+
+      if (response.success) {
+        toast.success("Mã OTP mới đã được gửi đến email của bạn")
+        // Start 60s cooldown
+        setResendCooldown(60)
+        const interval = setInterval(() => {
+          setResendCooldown(prev => {
+            if (prev <= 1) {
+              clearInterval(interval)
+              return 0
+            }
+            return prev - 1
+          })
+        }, 1000)
+      } else {
+        toast.error(response.message || "Không thể gửi lại OTP")
+      }
+    } catch (err: any) {
+      const errorMessage = err.payload?.message || err.message || "Lỗi gửi lại OTP"
+      toast.error(errorMessage)
     }
   }
 
@@ -269,6 +336,77 @@ function Register() {
       </main>
 
       <Footer />
+
+      {/* ============================================ */}
+      {/* OTP VERIFICATION MODAL */}
+      {/* ============================================ */}
+      {showOtpModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-950 to-blue-900 p-6 text-white">
+              <h3 className="text-2xl font-bold mb-2">Xác thực Email</h3>
+              <p className="text-orange-100">Mã OTP đã được gửi đến email của bạn</p>
+            </div>
+
+            <div className="p-6">
+              <form onSubmit={handleVerifyOtp} className="space-y-4">
+                <div>
+                  <Label htmlFor="otpCode">
+                    Mã OTP (6 số) <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="otpCode"
+                    type="text"
+                    maxLength={6}
+                    placeholder="Nhập mã OTP"
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                    className="mt-2 text-center text-2xl tracking-widest font-bold"
+                  />
+                  <p className="text-sm text-gray-500 mt-2">
+                    Email: <span className="font-semibold">{registeredEmail}</span>
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    type="submit"
+                    className="flex-1 bg-blue-950 hover:bg-blue-900"
+                    disabled={otpLoading || otpCode.length !== 6}
+                  >
+                    {otpLoading ? "Đang xác thực..." : "Xác thực"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowOtpModal(false)}
+                    disabled={otpLoading}
+                  >
+                    Hủy
+                  </Button>
+                </div>
+
+                <div className="text-center pt-2 border-t">
+                  <p className="text-sm text-gray-600 mb-2">
+                    Không nhận được mã?
+                  </p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handleResendOtp}
+                    disabled={resendCooldown > 0}
+                    className="text-blue-950 hover:text-blue-900"
+                  >
+                    {resendCooldown > 0
+                      ? `Gửi lại sau ${resendCooldown}s`
+                      : "Gửi lại mã OTP"}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

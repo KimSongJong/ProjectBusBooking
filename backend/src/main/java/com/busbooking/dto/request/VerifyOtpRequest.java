@@ -1,0 +1,31 @@
+package com.busbooking.dto.request;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class VerifyOtpRequest {
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
+    private String email;
+
+    @NotBlank(message = "OTP code is required")
+    @Pattern(regexp = "^[0-9]{6}$", message = "OTP must be 6 digits")
+    @JsonProperty(value = "otpCode", access = JsonProperty.Access.WRITE_ONLY)
+    private String otpCode;
+
+    // Support both "otp" and "otpCode" from frontend
+    @JsonProperty("otp")
+    public void setOtp(String otp) {
+        this.otpCode = otp;
+    }
+}
+
