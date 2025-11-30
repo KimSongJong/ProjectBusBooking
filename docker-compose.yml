@@ -1,0 +1,168 @@
+# ============================================
+# DOCKER COMPOSE FOR BUS BOOKING SYSTEM
+# ============================================
+# Complete stack: MySQL + Backend + Frontend
+# ============================================
+
+version: '3.8'
+
+services:
+  # ============================================
+  # DATABASE SERVICE (MySQL)
+  # ============================================
+  database:
+    image: mysql:8.0
+    container_name: bus-booking-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_DATABASE: bus_booking
+      MYSQL_USER: busbooking_user
+      MYSQL_PASSWORD: busbooking_pass
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "3307:3306"  # Expose on 3307 to avoid conflict with local MySQL
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./bus_booking.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - bus-booking-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ============================================
+  # phpMyAdmin SERVICE (Database Management)
+  # ============================================
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: bus-booking-phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      - database
+    environment:
+      PMA_HOST: database
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: root123456
+      UPLOAD_LIMIT: 500M
+      MEMORY_LIMIT: 512M
+      MAX_EXECUTION_TIME: 600
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "8081:80"  # Access at http://localhost:8081
+    networks:
+      - bus-booking-network
+
+  # ============================================
+  # BACKEND SERVICE (Spring Boot)
+  # ============================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bus-booking-backend
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      # Database connection
+      SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/bus_booking?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: busbooking_user
+      SPRING_DATASOURCE_PASSWORD: busbooking_pass
+
+      # JPA settings
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: false
+
+      # Server settings
+      SERVER_PORT: 8080
+
+      # CORS (allow frontend)
+      CORS_ALLOWED_ORIGINS: http://localhost,http://localhost:3000,http://localhost:5173,http://frontend
+
+      # JWT secret
+      JWT_SECRET: your-secret-key-change-this-in-production-minimum-256-bits
+      JWT_EXPIRATION: 86400000
+
+      # Email settings (Gmail SMTP)
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: ${GMAIL_USERNAME:-12345levan@gmail.com}
+      SPRING_MAIL_PASSWORD: ${GMAIL_APP_PASSWORD:-your-app-password}
+
+      # VNPay settings
+      VNPAY_TMN_CODE: ${VNPAY_TMN_CODE:-}
+      VNPAY_HASH_SECRET: ${VNPAY_HASH_SECRET:-}
+
+      # MoMo settings
+      MOMO_PARTNER_CODE: ${MOMO_PARTNER_CODE:-}
+      MOMO_ACCESS_KEY: ${MOMO_ACCESS_KEY:-}
+      MOMO_SECRET_KEY: ${MOMO_SECRET_KEY:-}
+
+      # Google Maps API
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+
+      # Java options
+      JAVA_OPTS: -Xms512m -Xmx1024m
+
+      # Timezone
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "8080:8080"
+    networks:
+      - bus-booking-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    volumes:
+      - backend_logs:/app/logs
+
+  # ============================================
+  # FRONTEND SERVICE (React + Nginx)
+  # ============================================
+  frontend:
+    build:
+      context: ./frontend-react
+      dockerfile: Dockerfile
+    container_name: bus-booking-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"  # Access via http://localhost:3000
+    networks:
+      - bus-booking-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+
+# ============================================
+# NETWORKS
+# ============================================
+networks:
+  bus-booking-network:
+    driver: bridge
+    name: bus-booking-net
+
+# ============================================
+# VOLUMES (Persistent data)
+# ============================================
+volumes:
+  mysql_data:
+    name: bus-booking-mysql-data
+  backend_logs:
+    name: bus-booking-backend-logs
+
