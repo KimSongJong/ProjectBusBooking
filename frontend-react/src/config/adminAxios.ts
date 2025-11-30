@@ -40,6 +40,12 @@ function getAdminToken() {
 async function request<T = any>(method: HttpMethod, path: string, data?: any, options: RequestOptions = {}) {
   const url = buildUrl(path, options.params)
 
+  // 🔍 DEBUG: Log the actual URL being requested
+  console.log(`📡 Admin API ${method}:`, url)
+  if (options.params) {
+    console.log("  └─ Params:", options.params)
+  }
+
   const headers: Record<string, string> = {
     ...(options.headers || {}),
   }
@@ -53,9 +59,9 @@ async function request<T = any>(method: HttpMethod, path: string, data?: any, op
   const token = getAdminToken()
   if (token) {
     headers["Authorization"] = `Bearer ${token}`
-    console.log("🔐 Admin request with token:", token.substring(0, 20) + "...")
+    console.log("  └─ 🔐 Using admin_token")
   } else {
-    console.warn("⚠️ Admin request WITHOUT token!")
+    console.warn("  └─ ⚠️ NO TOKEN!")
   }
 
   const init: RequestInit = {

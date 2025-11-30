@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -24,12 +24,13 @@ function AdminLogin() {
     setLoading(true)
 
     try {
-      const response = await authService.login({ username, password })
-      
+      // ✅ Use adminApi directly to avoid storing customer token
+      const response = await adminApi.post<any>("/auth/login", { username, password })
+
       if (response.success && response.data) {
         // Check if user has admin or staff role
         if (response.data.role === "admin" || response.data.role === "staff") {
-          // 🔑 Save to ADMIN token (separate from customer)
+          // 🔑 Save ONLY to admin token (NOT customer token)
           adminApi.setAdminToken(response.data.token)
 
           // ⭐ Use admin-specific storage and context
@@ -118,15 +119,9 @@ function AdminLogin() {
                 />
               </div>
 
-              <div className="flex items-center justify-between text-sm">
-                <Link to="/admin/forgot-password" className="text-orange-400 hover:text-orange-300 transition">
-                  Quên mật khẩu?
-                </Link>
-              </div>
-
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-950 to-blue-900 hover:from-blue-900 hover:to-orange-700 text-white font-semibold py-3 shadow-lg shadow-blue-950/30"
+                className="w-full bg-gradient-to-r from-blue-950 to-blue-900 hover:from-blue-900 hover:to-orange-700 text-white font-semibold py-3 shadow-lg shadow-blue-950/30 mt-6"
                 disabled={loading}
               >
                 {loading ? (

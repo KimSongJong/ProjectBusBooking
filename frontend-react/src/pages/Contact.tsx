@@ -20,7 +20,7 @@ function Contact() {
     note: ""
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     // Validate form
@@ -29,19 +29,43 @@ function Contact() {
       return
     }
 
-    // TODO: Send to API
-    console.log("Form data:", formData)
-    toast.success("Gửi thông tin thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.")
-    
-    // Reset form
-    setFormData({
-      subject: "",
-      name: "",
-      email: "",
-      phone: "",
-      title: "",
-      note: ""
-    })
+    try {
+      // Send to API
+      const response = await fetch("http://localhost:8080/api/contact-messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          subject: formData.subject,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          title: formData.title,
+          message: formData.note,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        toast.success("Gửi thông tin thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.")
+        // Reset form
+        setFormData({
+          subject: "",
+          name: "",
+          email: "",
+          phone: "",
+          title: "",
+          note: ""
+        })
+      } else {
+        toast.error(result.message || "Có lỗi xảy ra, vui lòng thử lại")
+      }
+    } catch (error) {
+      console.error("Error sending contact message:", error)
+      toast.error("Không thể gửi tin nhắn. Vui lòng thử lại sau.")
+    }
   }
 
   const handleChange = (field: string, value: string) => {

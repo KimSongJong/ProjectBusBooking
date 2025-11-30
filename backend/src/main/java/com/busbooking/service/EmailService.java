@@ -101,6 +101,26 @@ public class EmailService {
     }
 
     /**
+     * Send simple text email (general purpose)
+     */
+    public void sendEmail(String toEmail, String subject, String body) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmail);
+            message.setSubject(subject);
+            message.setText(body);
+
+            mailSender.send(message);
+            log.info("✅ Email sent successfully to: {}", toEmail);
+
+        } catch (Exception e) {
+            log.error("❌ Failed to send email to: {}", toEmail, e);
+            throw new RuntimeException("Failed to send email: " + e.getMessage(), e);
+        }
+    }
+
+    /**
      * Send HTML email using Thymeleaf template
      */
     private void sendHtmlEmail(String toEmail, String subject, String templateName, Map<String, Object> variables) {

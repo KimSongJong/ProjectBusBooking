@@ -62,7 +62,8 @@ public class AuthController {
                                 user.getEmail(),
                                 user.getRole().name(),
                                 user.getFullName(),
-                                user.getPhone());
+                                user.getPhone(),
+                                user.getEmailVerified());
 
                 return ResponseEntity.ok(new ApiResponse<>(true, "Login successful", loginResponse));
         }
@@ -210,5 +211,126 @@ public class AuthController {
                                 user.getCreatedAt());
 
                 return ResponseEntity.ok(new ApiResponse<>(true, "User details retrieved", userResponse));
+        }
+
+        /**
+         * Forgot Password - Send temporary password to email
+         */
+        @PostMapping("/forgot-password")
+        public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+                try {
+                        // Find user by username and email
+                        User user = userRepository.findByUsername(request.getUsername())
+                                        .orElse(null);
+
+                        if (user == null || !user.getEmail().equals(request.getEmail())) {
+                                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                                .body(new ApiResponse<>(false, "Không tìm thấy tài khoản với thông tin này", null));
+                        }
+
+                        // Generate 6-digit temporary password
+                        Random random = new Random();
+                        String tempPassword = String.format("%06d", random.nextInt(1000000));
+
+                        // Update user password
+                        user.setPassword(passwordEncoder.encode(tempPassword));
+                        userRepository.save(user);
+
+                        // Send email with temporary password
+                        String subject = "Mật khẩu tạm thời - TPT Bus";
+                        String body = String.format(
+                                        "Xin chào %s,\n\n" +
+                                                        "Bạn đã yêu cầu đặt lại mật khẩu.\n\n" +
+                                                        "Mật khẩu tạm thời của bạn là: %s\n\n" +
+                                                        "Vui lòng đăng nhập và đổi mật khẩu trong mục Thông tin cá nhân.\n\n" +
+                                                        "Trân trọng,\n" +
+                                                        "TPT Bus",
+                                        user.getFullName() != null ? user.getFullName() : user.getUsername(),
+                                        tempPassword);
+
+                        emailService.sendEmail(user.getEmail(), subject, body);
+
+                        return ResponseEntity.ok(new ApiResponse<>(true, "Mật khẩu tạm thời đã được gửi đến email của bạn", null));
+                } catch (Exception e) {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                        .body(new ApiResponse<>(false, "Có lỗi xảy ra: " + e.getMessage(), null));
+                }
+        }
+
+        /**
+         * Change Password
+         */
+        @PutMapping("/change-password")
+        public ResponseEntity<ApiResponse<Void>> changePassword(
+                        @RequestBody ChangePasswordRequest request,
+                        Authentication authentication) {
+                try {
+                        if (authentication == null || !authentication.isAuthenticated()) {
+                                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                                                .body(new ApiResponse<>(false, "Vui lòng đăng nhập", null));
+                        }
+
+                        String username = authentication.getName();
+                        User user = userRepository.findByUsername(username)
+                                        .orElseThrow(() -> new RuntimeException("User not found"));
+
+                        // Verify current password
+                        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+                                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                                .body(new ApiResponse<>(false, "Mật khẩu hiện tại không đúng", null));
+                        }
+
+                        // Update to new password
+                        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+                        userRepository.save(user);
+
+                        return ResponseEntity.ok(new ApiResponse<>(true, "Đổi mật khẩu thành công", null));
+                } catch (Exception e) {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                        .body(new ApiResponse<>(false, "Có lỗi xảy ra: " + e.getMessage(), null));
+                }
+        }
+
+        // DTO classes for forgot password and change password
+        public static class ForgotPasswordRequest {
+                private String username;
+                private String email;
+
+                public String getUsername() {
+                        return username;
+                }
+
+                public void setUsername(String username) {
+                        this.username = username;
+                }
+
+                public String getEmail() {
+                        return email;
+                }
+
+                public void setEmail(String email) {
+                        this.email = email;
+                }
+        }
+
+        public static class ChangePasswordRequest {
+                private String currentPassword;
+                private String newPassword;
+
+                public String getCurrentPassword() {
+                        return currentPassword;
+                }
+
+                public void setCurrentPassword(String currentPassword) {
+                        this.currentPassword = currentPassword;
+                }
+
+                public String getNewPassword() {
+                        return newPassword;
+                }
+
+                public void setNewPassword(String newPassword) {
+                        this.newPassword = newPassword;
+                }
         }
 }

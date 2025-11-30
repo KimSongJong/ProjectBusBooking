@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+              http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="payment_report_excel"
+              pageWidth="842"
+              pageHeight="595"
+              columnWidth="802"
+              leftMargin="20"
+              rightMargin="20"
+              topMargin="20"
+              bottomMargin="20"
+              orientation="Landscape"
+              printOrder="Horizontal">
+
+    <!-- Fields from data source - Only essential columns -->
+    <field name="paymentId" class="java.lang.Integer"/>
+    <field name="bookingGroupId" class="java.lang.String"/>
+    <field name="amount" class="java.lang.String"/>
+    <field name="paymentMethod" class="java.lang.String"/>
+    <field name="paymentDate" class="java.lang.String"/>
+    <field name="status" class="java.lang.String"/>
+
+    <!-- Column Header - Simple, no title bands -->
+    <columnHeader>
+        <band height="25">
+            <!-- ID -->
+            <staticText>
+                <reportElement mode="Opaque" x="0" y="0" width="60" height="25" backcolor="#4472C4"/>
+                <box>
+                    <pen lineWidth="1.0" lineColor="#FFFFFF"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="11" isBold="true" pdfEncoding="Identity-H"/>
+                </textElement>
+                <text><![CDATA[ID]]></text>
+            </staticText>
+
+            <!-- Mã đặt vé -->
+            <staticText>
+                <reportElement mode="Opaque" x="60" y="0" width="200" height="25" backcolor="#4472C4"/>
+                <box>
+                    <pen lineWidth="1.0" lineColor="#FFFFFF"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="11" isBold="true" pdfEncoding="Identity-H"/>
+                </textElement>
+                <text><![CDATA[Mã đặt vé]]></text>
+            </staticText>
+
+            <!-- Số tiền -->
+            <staticText>
+                <reportElement mode="Opaque" x="260" y="0" width="150" height="25" backcolor="#4472C4"/>
+                <box>
+                    <pen lineWidth="1.0" lineColor="#FFFFFF"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="11" isBold="true" pdfEncoding="Identity-H"/>
+                </textElement>
+                <text><![CDATA[Số tiền]]></text>
+            </staticText>
+
+            <!-- Phương thức -->
+            <staticText>
+                <reportElement mode="Opaque" x="410" y="0" width="120" height="25" backcolor="#4472C4"/>
+                <box>
+                    <pen lineWidth="1.0" lineColor="#FFFFFF"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="11" isBold="true" pdfEncoding="Identity-H"/>
+                </textElement>
+                <text><![CDATA[Phương thức]]></text>
+            </staticText>
+
+            <!-- Ngày thanh toán -->
+            <staticText>
+                <reportElement mode="Opaque" x="530" y="0" width="140" height="25" backcolor="#4472C4"/>
+                <box>
+                    <pen lineWidth="1.0" lineColor="#FFFFFF"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="11" isBold="true" pdfEncoding="Identity-H"/>
+                </textElement>
+                <text><![CDATA[Ngày thanh toán]]></text>
+            </staticText>
+
+            <!-- Trạng thái -->
+            <staticText>
+                <reportElement mode="Opaque" x="670" y="0" width="132" height="25" backcolor="#4472C4"/>
+                <box>
+                    <pen lineWidth="1.0" lineColor="#FFFFFF"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="11" isBold="true" pdfEncoding="Identity-H"/>
+                </textElement>
+                <text><![CDATA[Trạng thái]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+
+    <!-- Detail Band - Data rows -->
+    <detail>
+        <band height="22">
+            <!-- ID -->
+            <textField>
+                <reportElement x="0" y="0" width="60" height="22"/>
+                <box>
+                    <pen lineWidth="0.5" lineColor="#DDDDDD"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="10" pdfEncoding="Identity-H"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{paymentId}]]></textFieldExpression>
+            </textField>
+
+            <!-- Mã đặt vé -->
+            <textField textAdjust="StretchHeight">
+                <reportElement x="60" y="0" width="200" height="22"/>
+                <box leftPadding="5" rightPadding="5">
+                    <pen lineWidth="0.5" lineColor="#DDDDDD"/>
+                </box>
+                <textElement textAlignment="Left" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="9" pdfEncoding="Identity-H"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{bookingGroupId}]]></textFieldExpression>
+            </textField>
+
+            <!-- Số tiền -->
+            <textField>
+                <reportElement x="260" y="0" width="150" height="22"/>
+                <box rightPadding="10">
+                    <pen lineWidth="0.5" lineColor="#DDDDDD"/>
+                </box>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="10" pdfEncoding="Identity-H"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{amount}]]></textFieldExpression>
+            </textField>
+
+            <!-- Phương thức -->
+            <textField>
+                <reportElement x="410" y="0" width="120" height="22"/>
+                <box>
+                    <pen lineWidth="0.5" lineColor="#DDDDDD"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="10" pdfEncoding="Identity-H"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{paymentMethod}]]></textFieldExpression>
+            </textField>
+
+            <!-- Ngày thanh toán -->
+            <textField>
+                <reportElement x="530" y="0" width="140" height="22"/>
+                <box>
+                    <pen lineWidth="0.5" lineColor="#DDDDDD"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="10" pdfEncoding="Identity-H"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{paymentDate}]]></textFieldExpression>
+            </textField>
+
+            <!-- Trạng thái -->
+            <textField>
+                <reportElement x="670" y="0" width="132" height="22"/>
+                <box>
+                    <pen lineWidth="0.5" lineColor="#DDDDDD"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="10" pdfEncoding="Identity-H"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{status}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+</jasperReport>
+

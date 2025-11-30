@@ -27,6 +27,10 @@ function AdminPayments() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [methodFilter, setMethodFilter] = useState<string>("all");
 
+  // ✅ Date filters for payment_date (ngày xác nhận thanh toán)
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 20;
@@ -35,6 +39,11 @@ function AdminPayments() {
     fetchPayments();
     fetchStats();
   }, []);
+
+  // ✅ Auto-reload when filters change
+  useEffect(() => {
+    fetchPayments();
+  }, [statusFilter, methodFilter, startDate, endDate]);
 
   const fetchPayments = async () => {
     try {
@@ -95,6 +104,156 @@ function AdminPayments() {
     }
   };
 
+  const handleExportPDF = async () => {
+    try {
+      setLoading(true);
+      // ✅ Use admin_token instead of token
+      const token = localStorage.getItem("admin_token");
+
+      if (!token) {
+        toast.error("Vui lòng đăng nhập admin để xuất báo cáo");
+        return;
+      }
+
+      // Build query params based on current filters
+      const params = new URLSearchParams();
+      if (statusFilter !== "all") params.append("status", statusFilter);
+      if (methodFilter !== "all") params.append("paymentMethod", methodFilter);
+
+      // ✅ Add date filters (ngày xác nhận thanh toán)
+      if (startDate) params.append("startDate", startDate);
+      if (endDate) params.append("endDate", endDate);
+
+      const url = `http://localhost:8080/api/reports/payments/pdf?${params.toString()}`;
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate PDF report");
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+
+      // ✅ Dynamic filename based on filters
+      let dateStr = "";
+      if (startDate && endDate) {
+        if (startDate === endDate) {
+          // Ngày 28 -> 28: "Ngay_20251128"
+          dateStr = `Ngay_${startDate.replace(/-/g, '')}`;
+        } else {
+          // Ngày 27 -> 28: "Tu_20251127_Den_20251128"
+          dateStr = `Tu_${startDate.replace(/-/g, '')}_Den_${endDate.replace(/-/g, '')}`;
+        }
+      } else if (startDate) {
+        dateStr = `Tu_${startDate.replace(/-/g, '')}`;
+      } else if (endDate) {
+        dateStr = `Den_${endDate.replace(/-/g, '')}`;
+      } else {
+        // Không có filter ngày -> dùng ngày hiện tại
+        dateStr = `TatCa_${new Date().toISOString().split("T")[0].replace(/-/g, '')}`;
+      }
+      link.download = `Payment_Report_${dateStr}.pdf`;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      console.log("✅ PDF exported with filters:", { startDate, endDate, statusFilter });
+      toast.success("✅ Xuất PDF thành công!");
+    } catch (error: any) {
+      console.error("❌ Error exporting PDF:", error);
+      toast.error("Lỗi khi xuất PDF: " + (error.message || "Unknown error"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      setLoading(true);
+      // ✅ Use admin_token instead of token
+      const token = localStorage.getItem("admin_token");
+
+      if (!token) {
+        toast.error("Vui lòng đăng nhập admin để xuất báo cáo");
+        return;
+      }
+
+      // Build query params based on current filters
+      const params = new URLSearchParams();
+      if (statusFilter !== "all") params.append("status", statusFilter);
+      if (methodFilter !== "all") params.append("paymentMethod", methodFilter);
+
+      // ✅ Add date filters (ngày xác nhận thanh toán)
+      if (startDate) params.append("startDate", startDate);
+      if (endDate) params.append("endDate", endDate);
+
+      const url = `http://localhost:8080/api/reports/payments/excel?${params.toString()}`;
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate Excel report");
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+
+      // ✅ Dynamic filename based on filters
+      let dateStr = "";
+      if (startDate && endDate) {
+        if (startDate === endDate) {
+          // Ngày 28 -> 28: "Ngay_20251128"
+          dateStr = `Ngay_${startDate.replace(/-/g, '')}`;
+        } else {
+          // Ngày 27 -> 28: "Tu_20251127_Den_20251128"
+          dateStr = `Tu_${startDate.replace(/-/g, '')}_Den_${endDate.replace(/-/g, '')}`;
+        }
+      } else if (startDate) {
+        dateStr = `Tu_${startDate.replace(/-/g, '')}`;
+      } else if (endDate) {
+        dateStr = `Den_${endDate.replace(/-/g, '')}`;
+      } else {
+        // Không có filter ngày -> dùng ngày hiện tại
+        dateStr = `TatCa_${new Date().toISOString().split("T")[0].replace(/-/g, '')}`;
+      }
+      link.download = `Payment_Report_${dateStr}.xlsx`;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      console.log("✅ Excel exported with filters:", { startDate, endDate, statusFilter });
+      toast.success("✅ Xuất Excel thành công!");
+    } catch (error: any) {
+      console.error("❌ Error exporting Excel:", error);
+      toast.error("Lỗi khi xuất Excel: " + (error.message || "Unknown error"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const [showExportMenu, setShowExportMenu] = useState(false);
+
+  const handleExport = () => {
+    setShowExportMenu(!showExportMenu);
+  };
+
   const handleUpdateStatus = async (payment: Payment, newStatus: string) => {
     try {
       const response = await paymentService.updatePaymentStatus(payment.id, newStatus);
@@ -110,10 +269,6 @@ function AdminPayments() {
     }
   };
 
-  const handleExport = () => {
-    // TODO: Implement export to CSV
-    toast.info("Tính năng export đang phát triển");
-  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -205,7 +360,36 @@ function AdminPayments() {
         const matchesStatus = statusFilter === "all" || payment.paymentStatus === statusFilter;
         const matchesMethod = methodFilter === "all" || payment.paymentMethod === methodFilter;
 
-        return matchesSearch && matchesStatus && matchesMethod;
+        // ✅ Filter by payment_date (ngày xác nhận thanh toán)
+        let matchesDate = true;
+        if (startDate || endDate) {
+          const paymentDate = payment.paymentDate ? new Date(payment.paymentDate) : null;
+
+          if (paymentDate) {
+            // ✅ Extract date in LOCAL timezone (YYYY-MM-DD) - ignore time
+            const year = paymentDate.getFullYear();
+            const month = String(paymentDate.getMonth() + 1).padStart(2, '0');
+            const day = String(paymentDate.getDate()).padStart(2, '0');
+            const paymentDateOnly = `${year}-${month}-${day}`; // "2025-11-28"
+
+            // ✅ Compare date ONLY (inclusive on both ends)
+            if (startDate && endDate) {
+              // Range filter: startDate <= paymentDate <= endDate (inclusive both ends)
+              matchesDate = paymentDateOnly >= startDate && paymentDateOnly <= endDate;
+            } else if (startDate) {
+              // From startDate onwards
+              matchesDate = paymentDateOnly >= startDate;
+            } else if (endDate) {
+              // Up to endDate (inclusive)
+              matchesDate = paymentDateOnly <= endDate;
+            }
+          } else {
+            // No payment_date means not yet confirmed, exclude from filtered results if date filter is active
+            matchesDate = false;
+          }
+        }
+
+        return matchesSearch && matchesStatus && matchesMethod && matchesDate;
       } catch (error) {
         console.error("❌ Error filtering payment:", payment, error);
         return false;
@@ -322,12 +506,42 @@ function AdminPayments() {
                     className="pl-10"
                   />
                 </div>
-                <Button
-                  onClick={handleExport}
-                  className="bg-blue-950 hover:bg-blue-900 text-white flex items-center gap-2"
-                >
-                  <FaDownload /> Export
-                </Button>
+                <div className="relative">
+                  <Button
+                    onClick={handleExport}
+                    disabled={loading}
+                    className="bg-blue-950 hover:bg-blue-900 text-white flex items-center gap-2"
+                  >
+                    <FaDownload /> Xuất báo cáo
+                  </Button>
+
+                  {showExportMenu && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-slate-200">
+                      <button
+                        onClick={() => {
+                          handleExportPDF();
+                          setShowExportMenu(false);
+                        }}
+                        disabled={loading}
+                        className="w-full px-4 py-2 text-left hover:bg-slate-100 flex items-center gap-2 text-sm text-slate-700"
+                      >
+                        <FaDownload className="text-red-600" />
+                        <span>Xuất PDF</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleExportExcel();
+                          setShowExportMenu(false);
+                        }}
+                        disabled={loading}
+                        className="w-full px-4 py-2 text-left hover:bg-slate-100 flex items-center gap-2 text-sm text-slate-700 border-t"
+                      >
+                        <FaDownload className="text-green-600" />
+                        <span>Xuất Excel</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Filters Row */}
@@ -360,17 +574,60 @@ function AdminPayments() {
                   <option value="zalopay">ZaloPay</option>
                 </select>
 
-                {(statusFilter !== "all" || methodFilter !== "all" || searchTerm) && (
-                  <button
+                {/* ✅ Quick filter: Today - Redesigned to match UI */}
+                <Button
+                  onClick={() => {
+                    const today = new Date().toISOString().split('T')[0];
+                    setStartDate(today);
+                    setEndDate(today);
+                    toast.success("Lọc thanh toán hôm nay");
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:text-blue-800 font-medium"
+                >
+                  <FaSearch className="mr-1.5" size={12} />
+                  Hôm nay
+                </Button>
+
+                {/* ✅ Date Filters - Ngày xác nhận thanh toán */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-600">Từ ngày:</span>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="px-2 py-1 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-600">Đến ngày:</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="px-2 py-1 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                {(statusFilter !== "all" || methodFilter !== "all" || searchTerm || startDate || endDate) && (
+                  <Button
                     onClick={() => {
                       setStatusFilter("all");
                       setMethodFilter("all");
                       setSearchTerm("");
+                      setStartDate("");
+                      setEndDate("");
+                      toast.info("Đã xóa bộ lọc");
                     }}
-                    className="px-3 py-1.5 text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-md"
+                    variant="ghost"
+                    size="sm"
+                    className="text-slate-600 hover:text-slate-800"
                   >
+                    <FaUndo className="mr-1.5" size={12} />
                     Xóa bộ lọc
-                  </button>
+                  </Button>
                 )}
 
                 <div className="ml-auto text-sm text-slate-600">

@@ -438,62 +438,62 @@ function AdminRoutes() {
           </DialogHeader>
 
           <form onSubmit={handleSubmit}>
-            {/* 2-Column Layout: Form Left, Map Right */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Conditional Layout: 2 columns when creating, 1 column when editing */}
+            <div className={isEditing ? "space-y-4" : "grid grid-cols-1 lg:grid-cols-2 gap-6"}>
 
-              {/* LEFT COLUMN: Form Inputs */}
+              {/* LEFT COLUMN / MAIN COLUMN: Form */}
               <div className="space-y-4">
-                    {/* City Selection with Auto Calculate */}
-                    <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-blue-900">🏙️ Chọn thành phố & Tự động tính toán</h3>
-                      </div>
+                {/* City Selection with Auto Calculate */}
+                <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-blue-900">🏙️ Chọn thành phố & Tự động tính toán</h3>
+                </div>
 
-                      <div className="grid grid-cols-1 gap-3">
-                        <div className="space-y-2">
-                          <Label htmlFor="fromCity">
-                            Thành phố đi <span className="text-red-500">*</span>
-                          </Label>
-                          <Select
-                            value={fromCity}
-                            onValueChange={setFromCity}
-                            disabled={isEditing}
-                          >
-                            <SelectTrigger className={isEditing ? "bg-slate-100 cursor-not-allowed" : ""}>
-                              <SelectValue placeholder="Chọn thành phố đi" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {sortedCities.map((city) => (
-                                <SelectItem key={city} value={city} disabled={city === toCity}>
-                                  {city}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="fromCity">
+                      Thành phố đi <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                      value={fromCity}
+                      onValueChange={setFromCity}
+                      disabled={isEditing}
+                    >
+                      <SelectTrigger className={isEditing ? "bg-slate-100 cursor-not-allowed" : ""}>
+                        <SelectValue placeholder="Chọn thành phố đi" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sortedCities.map((city) => (
+                          <SelectItem key={city} value={city} disabled={city === toCity}>
+                            {city}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="toCity">
-                            Thành phố đến <span className="text-red-500">*</span>
-                          </Label>
-                          <Select
-                            value={toCity}
-                            onValueChange={setToCity}
-                            disabled={isEditing}
-                          >
-                            <SelectTrigger className={isEditing ? "bg-slate-100 cursor-not-allowed" : ""}>
-                              <SelectValue placeholder="Chọn thành phố đến" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {sortedCities.map((city) => (
-                                <SelectItem key={city} value={city} disabled={city === fromCity}>
-                                  {city}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="toCity">
+                      Thành phố đến <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                      value={toCity}
+                      onValueChange={setToCity}
+                      disabled={isEditing}
+                    >
+                      <SelectTrigger className={isEditing ? "bg-slate-100 cursor-not-allowed" : ""}>
+                        <SelectValue placeholder="Chọn thành phố đến" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sortedCities.map((city) => (
+                          <SelectItem key={city} value={city} disabled={city === fromCity}>
+                            {city}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
                       <Button
                         type="button"
@@ -504,36 +504,36 @@ function AdminRoutes() {
                         {calculating ? "⏳ Đang tính toán..." : "🧮 Tự động tính toán"}
                       </Button>
 
-                      {/* Calculation Result */}
-                      {calculation && (
-                        <div className="p-3 bg-white rounded-lg space-y-2 border border-blue-300">
-                          <div className="flex items-center gap-2 text-green-700">
-                            <Badge className="bg-green-100 text-green-800">
-                              ✅ {calculation.calculationSource}
-                            </Badge>
-                          </div>
-                          <div className="grid grid-cols-1 gap-2 text-sm">
-                            <div>
-                              <p className="text-slate-500">📏 Khoảng cách</p>
-                              <p className="font-semibold">{calculation.distanceKm} km</p>
-                            </div>
-                            <div>
-                              <p className="text-slate-500">⏱️ Thời gian ước tính</p>
-                              <p className="font-semibold">{formatDuration(calculation.durationMinutes)}</p>
-                            </div>
-                            <div>
-                              <p className="text-slate-500">💰 Giá vé đề xuất</p>
-                              <p className="font-semibold text-blue-900">{formatCurrency(calculation.basePrice)}</p>
-                            </div>
-                          </div>
-                          <p className="text-xs text-slate-500">
-                            📍 Tính từ tâm {calculation.fromCity} → tâm {calculation.toCity}
-                          </p>
-                        </div>
-                      )}
+                {/* Calculation Result */}
+                {calculation && (
+                  <div className="p-4 bg-white rounded-lg border border-green-300 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Badge className="bg-green-100 text-green-800">
+                        ✅ {calculation.calculationSource}
+                      </Badge>
+                      <span className="text-xs text-slate-500">
+                        {calculation.fromCity} → {calculation.toCity}
+                      </span>
                     </div>
+                    <div className="grid grid-cols-3 gap-3 text-sm">
+                      <div className="text-center p-2 bg-slate-50 rounded">
+                        <p className="text-slate-500 text-xs">Khoảng cách</p>
+                        <p className="font-semibold text-lg">{calculation.distanceKm} km</p>
+                      </div>
+                      <div className="text-center p-2 bg-slate-50 rounded">
+                        <p className="text-slate-500 text-xs">Thời gian</p>
+                        <p className="font-semibold text-lg">{formatDuration(calculation.durationMinutes)}</p>
+                      </div>
+                      <div className="text-center p-2 bg-blue-50 rounded">
+                        <p className="text-slate-500 text-xs">Giá đề xuất</p>
+                        <p className="font-semibold text-lg text-blue-900">{formatCurrency(calculation.basePrice)}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
 
-                {/* Editable fields when editing */}
+                {/* Editable fields when editing - 2 columns layout */}
                 {isEditing && (
                   <div className="space-y-4 mt-4">
                     <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
@@ -541,19 +541,21 @@ function AdminRoutes() {
                       <p className="text-xs text-amber-700">Chỉ có thể chỉnh sửa giá vé và thời gian ước tính. Không thể thay đổi điểm đi, điểm đến và khoảng cách.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4">
-                      <div className="space-y-2">
-                        <Label>Tuyến đường</Label>
-                        <div className="p-3 bg-slate-100 rounded-lg text-sm">
-                          <p className="font-medium text-slate-700">
-                            {formData.fromLocation} → {formData.toLocation}
-                          </p>
-                          <p className="text-slate-500 text-xs mt-1">
-                            Khoảng cách: {formData.distanceKm} km
-                          </p>
-                        </div>
+                    {/* Route Info - Full Width */}
+                    <div className="space-y-2">
+                      <Label>Tuyến đường</Label>
+                      <div className="p-3 bg-slate-100 rounded-lg text-sm">
+                        <p className="font-medium text-slate-700">
+                          {formData.fromLocation} → {formData.toLocation}
+                        </p>
+                        <p className="text-slate-500 text-xs mt-1">
+                          Khoảng cách: {formData.distanceKm} km
+                        </p>
                       </div>
+                    </div>
 
+                    {/* Editable Fields - 2 Columns */}
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="basePrice">
                           Giá vé (VND) <span className="text-red-500">*</span>
@@ -592,72 +594,72 @@ function AdminRoutes() {
                   </div>
                 )}
 
-                {/* Dialog Footer inside left column */}
-                <div className="pt-4 border-t flex justify-end gap-2">
+                {/* Dialog Footer - inside left column */}
+                <DialogFooter className="pt-4 border-t gap-3">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setIsDialogOpen(false)}
-                    className="flex items-center gap-2"
+                    className="flex items-center justify-center gap-2 min-w-[140px] px-6"
                   >
                     <FaTimes /> Hủy
                   </Button>
                   <Button
                     type="submit"
-                    className="bg-blue-950 hover:bg-blue-900 text-white flex items-center gap-2"
+                    className="bg-blue-950 hover:bg-blue-900 text-white flex items-center justify-center gap-2 min-w-[180px] px-6"
                   >
                     <FaSave /> {isEditing ? "Cập nhật" : "Lưu tuyến đường"}
                   </Button>
-                </div>
-
+                </DialogFooter>
               </div>
-              {/* END LEFT COLUMN */}
+              {/* END LEFT/MAIN COLUMN */}
 
-              {/* RIGHT COLUMN: Map Visualization */}
-              <div className="space-y-4">
-                <div className="sticky top-0">
-                  <div className="bg-slate-50 rounded-lg border-2 border-slate-200 p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-xl">🗺️</span>
-                      <h3 className="font-semibold text-slate-800">Bản đồ tương tác</h3>
-                    </div>
-
-                    {/* Route Map Visualization */}
-                    {!isEditing && calculation ? (
-                      <RouteMapVisualizer
-                        fromStation={{
-                          lat: getCityCoordinates(calculation.fromCity)[0],
-                          lng: getCityCoordinates(calculation.fromCity)[1],
-                          name: calculation.fromCity,
-                        }}
-                        toStation={{
-                          lat: getCityCoordinates(calculation.toCity)[0],
-                          lng: getCityCoordinates(calculation.toCity)[1],
-                          name: calculation.toCity,
-                        }}
-                        height="500px"
-                        showDistance={true}
-                        distanceKm={calculation.distanceKm}
-                      />
-                    ) : (
-                      <div className="bg-white rounded-lg border-2 border-dashed border-slate-300 p-12 text-center">
-                        <div className="text-slate-400 space-y-2">
-                          <div className="text-4xl">🗺️</div>
-                          <p className="text-sm">
-                            {isEditing
-                              ? "Bản đồ không khả dụng khi chỉnh sửa"
-                              : "Chọn thành phố đi và thành phố đến rồi bấm 'Tự động tính toán' để xem bản đồ"}
-                          </p>
-                        </div>
+              {/* RIGHT COLUMN: Map Visualization - Only show when CREATING */}
+              {!isEditing && (
+                <div className="space-y-4">
+                  <div className="sticky top-0">
+                    <div className="bg-slate-50 rounded-lg border-2 border-slate-200 p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-xl">🗺️</span>
+                        <h3 className="font-semibold text-slate-800">Bản đồ tương tác</h3>
                       </div>
-                    )}
+
+                      {/* Route Map Visualization */}
+                      {calculation ? (
+                        <RouteMapVisualizer
+                          fromStation={{
+                            lat: getCityCoordinates(calculation.fromCity)[0],
+                            lng: getCityCoordinates(calculation.fromCity)[1],
+                            name: calculation.fromCity,
+                          }}
+                          toStation={{
+                            lat: getCityCoordinates(calculation.toCity)[0],
+                            lng: getCityCoordinates(calculation.toCity)[1],
+                            name: calculation.toCity,
+                          }}
+                          height="500px"
+                          showDistance={true}
+                          distanceKm={calculation.distanceKm}
+                        />
+                      ) : (
+                        <div className="bg-white rounded-lg border-2 border-dashed border-slate-300 p-12 text-center">
+                          <div className="text-slate-400 space-y-2">
+                            <div className="text-4xl">🗺️</div>
+                            <p className="text-sm">
+                              Chọn thành phố đi và thành phố đến<br/>
+                              rồi bấm "Tự động tính toán" để xem bản đồ
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
               {/* END RIGHT COLUMN */}
 
             </div>
-            {/* END 2-COLUMN GRID */}
+            {/* END CONDITIONAL LAYOUT */}
           </form>
         </DialogContent>
       </Dialog>

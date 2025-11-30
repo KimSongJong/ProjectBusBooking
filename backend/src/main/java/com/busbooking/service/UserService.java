@@ -63,4 +63,10 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         userRepository.delete(u);
     }
+
+    public UserResponse getUserByUsername(String username) {
+        User u = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
+        return userMapper.toResponse(u);
+    }
 }

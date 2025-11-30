@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useAdminAuth } from "@/contexts/AdminAuthContext"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { FaCar, FaUserTie, FaRoute, FaMapMarkedAlt, FaTicketAlt, FaChair, FaGift, FaSignOutAlt, FaTachometerAlt, FaUserCircle, FaDollarSign, FaMapMarkerAlt } from "react-icons/fa"
+import { FaCar, FaUserTie, FaRoute, FaMapMarkedAlt, FaTicketAlt, FaChair, FaGift, FaSignOutAlt, FaTachometerAlt, FaUserCircle, FaDollarSign, FaMapMarkerAlt, FaEnvelope } from "react-icons/fa"
 
 interface MenuItem {
   title: string
@@ -79,6 +79,11 @@ function LeftTaskBar() {
       title: "Quản lý thanh toán",
       icon: <FaDollarSign />,
       path: "/admin/payments",
+    },
+    {
+      title: "Phản hồi khách hàng",
+      icon: <FaEnvelope />,
+      path: "/admin/feedback",
     },
     {
       title: "Quản lý ghế",

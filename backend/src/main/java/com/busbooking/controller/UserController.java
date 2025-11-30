@@ -57,4 +57,75 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.ok(new ApiResponse<>(true, "User deleted", null));
     }
+
+    /**
+     * Get current user profile
+     */
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUserProfile(
+            org.springframework.security.core.Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(false, "Vui lòng đăng nhập", null));
+        }
+
+        String username = authentication.getName();
+        UserResponse user = userService.getUserByUsername(username);
+        return ResponseEntity.ok(new ApiResponse<>(true, "User profile retrieved", user));
+    }
+
+    /**
+     * Update current user profile
+     */
+    @PutMapping("/me")
+    public ResponseEntity<ApiResponse<UserResponse>> updateCurrentUserProfile(
+            @RequestBody UpdateProfileRequest request,
+            org.springframework.security.core.Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(false, "Vui lòng đăng nhập", null));
+        }
+
+        String username = authentication.getName();
+        UserResponse currentUser = userService.getUserByUsername(username);
+
+        UpdateUserRequest updateRequest = new UpdateUserRequest();
+        updateRequest.setFullName(request.getFullName());
+        updateRequest.setPhone(request.getPhone());
+        updateRequest.setEmail(request.getEmail());
+
+        UserResponse updated = userService.updateUser(currentUser.getId(), updateRequest);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Cập nhật thông tin thành công", updated));
+    }
+
+    // DTO for update profile
+    public static class UpdateProfileRequest {
+        private String fullName;
+        private String phone;
+        private String email;
+
+        public String getFullName() {
+            return fullName;
+        }
+
+        public void setFullName(String fullName) {
+            this.fullName = fullName;
+        }
+
+        public String getPhone() {
+            return phone;
+        }
+
+        public void setPhone(String phone) {
+            this.phone = phone;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+    }
 }

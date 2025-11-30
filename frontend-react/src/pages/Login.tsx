@@ -125,7 +125,9 @@ function Login() {
                   </div>
 
                   <div className="flex items-center justify-between mt-2">
-                    <a href="#" className="text-sm text-blue-950 hover:underline">Quên mật khẩu</a>
+                    <Link to="/forgot-password" className="text-sm text-blue-950 hover:underline">
+                      Quên mật khẩu?
+                    </Link>
                   </div>
 
                   <div className="pt-4">

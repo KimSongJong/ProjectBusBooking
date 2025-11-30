@@ -29,6 +29,7 @@ public class UserMapper {
                 user.getFullName(),
                 user.getPhone(),
                 user.getIsActive(),
+                user.getEmailVerified(),
                 user.getCreatedAt()
         );
     }

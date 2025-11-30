@@ -23,7 +23,21 @@ function buildUrl(path: string, params?: Record<string, any>) {
 
 function getToken() {
   try {
-    return localStorage.getItem("access_token")
+    // ✅ Check admin_token first, then fallback to access_token (customer)
+    // This allows both admin and customer to use the same axios instance
+    const adminToken = localStorage.getItem("admin_token")
+    if (adminToken) {
+      console.log("🔐 Using admin_token for request")
+      return adminToken
+    }
+
+    const customerToken = localStorage.getItem("access_token")
+    if (customerToken) {
+      console.log("🔐 Using access_token (customer) for request")
+      return customerToken
+    }
+
+    return null
   } catch (e) {
     return null
   }

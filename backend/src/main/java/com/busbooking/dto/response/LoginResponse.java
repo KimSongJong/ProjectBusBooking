@@ -15,10 +15,11 @@ public class LoginResponse {
     private String email;
     private String role;
     private String fullName;
-    private String phone; // THÊM FIELD NÀY
+    private String phone;
+    private Boolean emailVerified;
 
     public LoginResponse(String token, Integer userId, String username, String email, String role, String fullName,
-            String phone) {
+            String phone, Boolean emailVerified) {
         this.token = token;
         this.type = "Bearer";
         this.userId = userId;
@@ -27,5 +28,6 @@ public class LoginResponse {
         this.role = role;
         this.fullName = fullName;
         this.phone = phone;
+        this.emailVerified = emailVerified;
     }
 }

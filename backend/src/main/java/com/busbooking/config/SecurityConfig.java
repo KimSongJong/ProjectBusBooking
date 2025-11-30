@@ -54,6 +54,10 @@ public class SecurityConfig {
                 // CORS preflight requests - must be first!
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
 
+                // ⚠️ IMPORTANT: Admin endpoints MUST be before permitAll() rules!
+                // Admin endpoints - require ADMIN role (note: context-path is /api, so /admin/** maps to /api/admin/**)
+                .requestMatchers("/admin/**").hasRole("ADMIN")  // All admin endpoints (maps to /api/admin/**)
+
                 // Public endpoints - no authentication required
                 .requestMatchers("/auth/**").permitAll()  // Authentication endpoints
                 .requestMatchers("/test/**").permitAll()  // Test endpoints (DEVELOPMENT ONLY)
@@ -78,8 +82,12 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.PUT, "/tickets/**").permitAll()  // Allow PUT
                 .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/tickets/**").permitAll()  // Allow PATCH
 
-                // Admin endpoints - require ADMIN role
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")  // All admin endpoints
+                // Report endpoints - require authentication (role check in @PreAuthorize)
+                .requestMatchers("/reports/**").authenticated()  // Report generation (maps to /api/reports)
+
+                // Contact/Feedback endpoints - allow public POST
+                .requestMatchers("/contact/**").permitAll()  // Allow public to send feedback (maps to /api/contact)
+
 
                 // Protected endpoints - require authentication
                 .requestMatchers("/users/**").authenticated()     // User management

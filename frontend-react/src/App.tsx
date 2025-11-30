@@ -17,6 +17,8 @@ import Contact from "./pages/Contact";
 import About from "./pages/About";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import UserProfile from "./pages/UserProfile";
 import AdminLogin from "./pages/Adminpage/AdminLogin";
 import AdminDashboard from "./pages/Adminpage/AdminDashBoard";
 import AdminAccount from "./pages/Adminpage/AdminAccount";
@@ -30,6 +32,7 @@ import AdminPromotions from "./pages/Adminpage/AdminPromotions";
 import AdminPayments from "./pages/Adminpage/AdminPayments";
 import AdminStations from "./pages/AdminStations";
 import AdminPendingCities from "./pages/Adminpage/AdminPendingCities";
+import AdminFeedback from "./pages/Adminpage/AdminFeedback";
 import "./App.css";
 
 function App() {
@@ -53,6 +56,8 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/profile" element={<UserProfile />} />
           <Route path="/admin/login" element={<AdminLogin />} />
 
           {/* Protected Admin Routes */}
@@ -149,6 +154,14 @@ function App() {
             element={
               <AdminProtectedRoute>
                 <AdminPendingCities />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/feedback"
+            element={
+              <AdminProtectedRoute>
+                <AdminFeedback />
               </AdminProtectedRoute>
             }
           />
