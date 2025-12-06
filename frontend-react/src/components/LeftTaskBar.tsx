@@ -56,9 +56,9 @@ function LeftTaskBar() {
       path: "/admin/stations",
     },
     {
-      title: "Duyệt thành phố mới",
+      title: "Quản lý thành phố",
       icon: <FaMapMarkedAlt />,
-      path: "/admin/pending-cities",
+      path: "/admin/cities",
     },
     {
       title: "Quản lý tuyến đường",

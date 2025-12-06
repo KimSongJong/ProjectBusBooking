@@ -475,26 +475,10 @@ function Product() {
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      {/* Banner with buses - FUTA Style */}
-      <div className="bg-gradient-to-r from-green-50 to-yellow-50 py-12 border-b">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-center gap-8">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold text-green-800 mb-2">24</h1>
-              <p className="text-xl font-semibold text-green-700">VỮNG TIN & PHÁT TRIỂN</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-6xl">🚌</div>
-              <div className="text-7xl">🚌</div>
-              <div className="text-6xl">🚌</div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Search Form - FUTA Style with all options */}
-        <Card className="shadow-lg mb-6">
+        <Card className="shadow-md mb-6">
           <CardContent className="p-6">
             {/* Trip Type */}
             <div className="flex items-center gap-6 mb-6">
@@ -655,61 +639,82 @@ function Product() {
             <div className="grid grid-cols-12 gap-6">
               {/* Filters Sidebar - FUTA Style */}
               <div className="col-span-12 lg:col-span-3">
-                <Card className="p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-bold">BỘ LỌC TÌM KIẾM</h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearFilters}
-                      className="text-red-500 text-sm"
-                    >
-                      Bỏ lọc 🗑️
-                    </Button>
+                <Card className="shadow-lg border-0 rounded-xl overflow-hidden sticky top-6">
+                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-bold text-lg">🔍 BỘ LỌC</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearFilters}
+                        className="text-white hover:bg-white/20 text-sm"
+                      >
+                        Xóa lọc
+                      </Button>
+                    </div>
                   </div>
+                  <div className="p-5">
 
                   {/* Time Slots */}
-                  <div className="mb-6">
-                    <h4 className="font-semibold mb-3">Giờ đi</h4>
-                    <div className="space-y-2">
+                  <div className="mb-6 pb-6 border-b border-gray-200">
+                    <h4 className="font-bold mb-4 text-gray-800 flex items-center gap-2">
+                      🕒 Giờ đi
+                    </h4>
+                    <div className="space-y-3">
                       {[
-                        { label: "Sáng sớm 00:00 - 06:00", value: "early" },
-                        { label: "Buổi sáng 06:00 - 12:00", value: "morning" },
-                        { label: "Buổi chiều 12:00 - 18:00", value: "afternoon" },
-                        { label: "Buổi tối 18:00 - 24:00", value: "evening" }
+                        { label: "Sáng sớm 00:00 - 06:00", value: "early", icon: "🌅" },
+                        { label: "Buổi sáng 06:00 - 12:00", value: "morning", icon: "☀️" },
+                        { label: "Buổi chiều 12:00 - 18:00", value: "afternoon", icon: "🌤️" },
+                        { label: "Buổi tối 18:00 - 24:00", value: "evening", icon: "🌙" }
                       ].map((slot) => (
-                        <label key={slot.value} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <label key={slot.value} className="flex items-center gap-3 text-sm cursor-pointer p-2 rounded-lg hover:bg-gray-50 transition-colors">
                           <input
                             type="checkbox"
-                            className="w-4 h-4 cursor-pointer"
+                            className="w-4 h-4 cursor-pointer accent-orange-500"
                             checked={selectedTimeSlots.includes(slot.value)}
                             onChange={() => toggleTimeSlot(slot.value)}
                           />
-                          <span>{slot.label} ({getTimeSlotCount(slot.value)})</span>
+                          <span className="text-lg">{slot.icon}</span>
+                          <span className="flex-1">{slot.label}</span>
+                          <span className="text-xs bg-gray-100 px-2 py-1 rounded-full font-medium">
+                            {getTimeSlotCount(slot.value)}
+                          </span>
                         </label>
                       ))}
                     </div>
                   </div>
 
                   {/* Vehicle Type */}
-                  <div className="mb-6">
-                    <h4 className="font-semibold mb-3">Loại xe</h4>
-                    <div className="flex flex-wrap gap-2">
+                  <div className="mb-6 pb-6 border-b border-gray-200">
+                    <h4 className="font-bold mb-4 text-gray-800 flex items-center gap-2">
+                      🚌 Loại xe
+                    </h4>
+                    <div className="flex flex-col gap-2">
                       {[
-                        { label: "Ghế", value: "standard" },
-                        { label: "Giường", value: "bed" },
-                        { label: "Limousine", value: "vip" }
+                        { label: "Ghế", value: "standard", icon: "💺" },
+                        { label: "Giường", value: "bed", icon: "🛏️" },
+                        { label: "Limousine", value: "vip", icon: "✨" }
                       ].map((type) => (
                         <button
                           key={type.value}
                           onClick={() => toggleVehicleType(type.value)}
-                          className={`px-4 py-2 rounded-md text-sm border transition-colors ${
+                          className={`px-4 py-3 rounded-lg text-sm font-medium border-2 transition-all flex items-center justify-between ${
                             selectedVehicleTypes.includes(type.value)
-                              ? "bg-orange-500 text-white border-orange-500"
-                              : "hover:bg-gray-100"
+                              ? "bg-orange-500 text-white border-orange-500 shadow-md"
+                              : "hover:bg-gray-50 border-gray-200"
                           }`}
                         >
-                          {type.label} ({getVehicleTypeCount(type.value)})
+                          <span className="flex items-center gap-2">
+                            <span>{type.icon}</span>
+                            <span>{type.label}</span>
+                          </span>
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            selectedVehicleTypes.includes(type.value)
+                              ? "bg-white/20"
+                              : "bg-gray-100"
+                          }`}>
+                            {getVehicleTypeCount(type.value)}
+                          </span>
                         </button>
                       ))}
                     </div>
@@ -761,6 +766,7 @@ function Product() {
                       ))}
                     </div>
                   </div>
+                  </div>
                 </Card>
               </div>
 
@@ -807,58 +813,63 @@ function Product() {
                     )}
 
                     {loading ? (
-                      <Card>
+                      <Card className="shadow-md">
                         <CardContent className="p-12 text-center">
                           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
                           <p className="mt-4">Đang tìm kiếm...</p>
                         </CardContent>
                       </Card>
                     ) : finalFilteredTrips.length === 0 ? (
-                      <Card>
+                      <Card className="shadow-md">
                         <CardContent className="p-12 text-center text-gray-500">
-                          <div className="text-6xl mb-4">📋</div>
-                          <p className="text-xl">Không có kết quả được tìm thấy với bộ lọc này.</p>
+                          <div className="text-6xl mb-4">🚌</div>
+                          <p className="text-xl">Không tìm thấy chuyến xe nào</p>
                           <p className="text-sm mt-2 text-gray-400">Thử bỏ bớt bộ lọc để xem thêm chuyến xe.</p>
                         </CardContent>
                       </Card>
                     ) : (
                       <div className="space-y-4">
                         {finalFilteredTrips.map((trip) => (
-                          <Card key={trip.id} className="hover:shadow-lg transition-shadow">
-                            <CardContent className="p-6">
-                              <div className="flex items-center justify-between">
+                          <Card key={trip.id} className="shadow-lg hover:shadow-xl transition-all duration-200 border-0 rounded-xl overflow-hidden">
+                            <CardContent className="p-0">
+                              <div className="flex items-center justify-between p-6 bg-gradient-to-r from-white to-gray-50">
                                 {/* Time */}
-                                <div className="flex items-center gap-8">
+                                <div className="flex items-center gap-10">
                                   <div className="text-center">
-                                    <div className="text-2xl font-bold">{formatTime(trip.departureTime)}</div>
-                                    <div className="text-sm text-gray-500">{trip.route.fromLocation}</div>
+                                    <div className="text-3xl font-bold text-gray-900">{formatTime(trip.departureTime)}</div>
+                                    <div className="text-sm text-gray-600 font-medium mt-1">{trip.route.fromLocation}</div>
+                                  </div>
+
+                                  <div className="text-center px-4">
+                                    <div className="text-xs text-gray-500 mb-1">{formatDuration(trip.route.estimatedDuration || 0)}</div>
+                                    <div className="text-3xl">🚌</div>
+                                    <div className="text-xs text-gray-400 mt-1">-----</div>
                                   </div>
 
                                   <div className="text-center">
-                                    <div className="text-sm text-gray-500">{formatDuration(trip.route.estimatedDuration || 0)}</div>
-                                    <div className="text-2xl">🚌</div>
-                                  </div>
-
-                                  <div className="text-center">
-                                    <div className="text-2xl font-bold">{formatTime(trip.arrivalTime)}</div>
-                                    <div className="text-sm text-gray-500">{trip.route.toLocation}</div>
+                                    <div className="text-3xl font-bold text-gray-900">{formatTime(trip.arrivalTime)}</div>
+                                    <div className="text-sm text-gray-600 font-medium mt-1">{trip.route.toLocation}</div>
                                   </div>
                                 </div>
 
                                 {/* Info */}
-                                <div className="text-right">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-sm">{getVehicleTypeLabel(trip.vehicle.vehicleType)}</span>
-                                    <span className="text-sm">• {getAvailableSeats(trip)} chỗ trống</span>
+                                <div className="text-right flex flex-col items-end gap-3">
+                                  <div className="flex items-center gap-2">
+                                    <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-semibold">
+                                      {getVehicleTypeLabel(trip.vehicle.vehicleType)}
+                                    </span>
+                                    <span className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-semibold">
+                                      {getAvailableSeats(trip)} chỗ
+                                    </span>
                                   </div>
-                                  <div className="text-2xl font-bold text-orange-600 mb-2">
+                                  <div className="text-3xl font-bold text-orange-600">
                                     {formatPrice(Number(trip.route.basePrice))}đ
                                   </div>
                                   <Button
                                     onClick={() => handleSelectOutboundTrip(trip)}
-                                    className="bg-orange-100 hover:bg-orange-200 text-orange-600 rounded-full"
+                                    className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold px-6 py-2 rounded-full shadow-md hover:shadow-lg transition-all duration-200"
                                   >
-                                    Chọn chuyến
+                                    Chọn chuyến →
                                   </Button>
                                 </div>
                               </div>
@@ -878,16 +889,16 @@ function Product() {
                     </h3>
 
                     {loading ? (
-                      <Card>
+                      <Card className="shadow-md">
                         <CardContent className="p-12 text-center">
                           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
                           <p className="mt-4">Đang tìm chuyến về...</p>
                         </CardContent>
                       </Card>
                     ) : returnTrips.length === 0 ? (
-                      <Card>
+                      <Card className="shadow-md">
                         <CardContent className="p-12 text-center text-gray-500">
-                          <div className="text-6xl mb-4">😕</div>
+                          <div className="text-6xl mb-4">🚌</div>
                           <p className="text-xl">Không tìm thấy chuyến về phù hợp</p>
                           <p className="text-sm mt-2 text-gray-400">Vui lòng chọn ngày khác hoặc đặt vé một chiều</p>
                         </CardContent>
@@ -897,8 +908,8 @@ function Product() {
                         {returnTrips.map((trip) => (
                           <Card
                             key={trip.id}
-                            className={`hover:shadow-lg transition-shadow ${
-                              selectedReturnTrip?.id === trip.id ? 'border-2 border-blue-500' : ''
+                            className={`shadow-md hover:shadow-lg transition-shadow ${
+                              selectedReturnTrip?.id === trip.id ? 'border-2 border-green-500' : ''
                             }`}
                           >
                             <CardContent className="p-6">
@@ -932,10 +943,10 @@ function Product() {
                                   </div>
                                   <Button
                                     onClick={() => handleSelectReturnTrip(trip)}
-                                    className={`rounded-full ${
+                                    className={`rounded-full font-medium px-4 ${
                                       selectedReturnTrip?.id === trip.id
-                                        ? 'bg-blue-500 text-white hover:bg-blue-600'
-                                        : 'bg-orange-100 hover:bg-orange-200 text-orange-600'
+                                        ? 'bg-green-500 text-white hover:bg-green-600'
+                                        : 'bg-orange-500 hover:bg-orange-600 text-white'
                                     }`}
                                   >
                                     {selectedReturnTrip?.id === trip.id ? '✓ Đã chọn' : 'Chọn chuyến'}

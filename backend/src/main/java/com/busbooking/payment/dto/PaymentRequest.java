@@ -25,5 +25,8 @@ public class PaymentRequest {
 
     @NotBlank(message = "Order info is required")
     private String orderInfo;
+
+    // ⭐ ADD: Promotion code to track which promotion was applied
+    private String promotionCode;
 }
 

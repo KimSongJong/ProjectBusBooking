@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.3
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Nov 30, 2025 at 05:19 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Host: database:3306
+-- Generation Time: Dec 07, 2025 at 03:12 AM
+-- Server version: 8.0.43
+-- PHP Version: 8.3.28
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -30,7 +30,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `create_trip_seats_for_new_trips` ()
   DECLARE v_trip_id INT;
   DECLARE v_vehicle_id INT;
   
-  -- Cursor để lấy các trips chưa có trip_seats
+  
   DECLARE cur CURSOR FOR 
     SELECT t.id, t.vehicle_id 
     FROM trips t 
@@ -49,7 +49,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `create_trip_seats_for_new_trips` ()
       LEAVE read_loop;
     END IF;
     
-    -- Tạo trip_seats từ seats của vehicle
+    
     INSERT INTO trip_seats (trip_id, seat_id, seat_number, seat_type, status, floor, row_position)
     SELECT 
       v_trip_id,
@@ -72,17 +72,21 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `booking_history`
+-- Table structure for table `contact_messages`
 --
 
-CREATE TABLE `booking_history` (
-  `id` int(11) NOT NULL,
-  `ticket_id` int(11) NOT NULL,
-  `action` enum('created','confirmed','cancelled','refunded') NOT NULL,
-  `action_by` int(11) DEFAULT NULL,
-  `notes` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `contact_messages` (
+  `id` int NOT NULL,
+  `user_id` int DEFAULT NULL COMMENT 'ID user (náº¿u Ä‘Äƒng nháº­p)',
+  `subject` varchar(200) NOT NULL,
+  `name` varchar(100) NOT NULL COMMENT 'TÃªn ngÆ°á»i gá»­i',
+  `email` varchar(100) NOT NULL COMMENT 'Email liÃªn há»‡',
+  `phone` varchar(20) NOT NULL COMMENT 'Sá»‘ Ä‘iá»‡n thoáº¡i',
+  `title` varchar(200) DEFAULT NULL,
+  `message` text NOT NULL COMMENT 'Ná»™i dung tin nháº¯n',
+  `status` varchar(50) DEFAULT 'pending',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Tin nháº¯n tá»« trang Contact';
 
 -- --------------------------------------------------------
 
@@ -91,32 +95,32 @@ CREATE TABLE `booking_history` (
 --
 
 CREATE TABLE `drivers` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `full_name` varchar(255) NOT NULL,
-  `license_number` varchar(50) DEFAULT NULL,
-  `phone` varchar(20) DEFAULT NULL,
-  `experience_years` int(11) DEFAULT NULL,
-  `image_url` varchar(500) DEFAULT NULL,
-  `is_active` tinyint(1) DEFAULT 1,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `full_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `license_number` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `phone` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `experience_years` int DEFAULT NULL,
+  `image_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT '1',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `drivers`
 --
 
-INSERT INTO `drivers` (`id`, `name`, `full_name`, `license_number`, `phone`, `experience_years`, `image_url`, `is_active`, `created_at`) VALUES
-(1, 'Nguyễn Văn An', 'Nguyễn Văn An', 'B2-123456', '0901234567', 10, 'https://res.cloudinary.com/dncl2jdhn/image/upload/v1764424248/drivers/drivers/47327c72-8249-4746-acff-73fcbfd2af50.png', 1, '2025-11-23 14:12:35'),
-(2, 'Trần Văn Bình', 'Trần Văn Bình', 'B2-123457', '0901234568', 8, 'https://res.cloudinary.com/dncl2jdhn/image/upload/v1764424966/drivers/drivers/197b385f-378b-485f-9b05-b2324947f737.png', 1, '2025-11-23 14:12:35'),
-(3, 'Lê Văn Cường', 'Lê Văn Cường', 'B2-123458', '0901234569', 12, NULL, 1, '2025-11-23 14:12:35'),
-(4, 'Phạm Văn Dũng', 'Phạm Văn Dũng', 'B2-123459', '0901234570', 7, NULL, 1, '2025-11-23 14:12:35'),
-(5, 'Hoàng Văn Em', 'Hoàng Văn Em', 'B2-123460', '0901234571', 9, NULL, 1, '2025-11-23 14:12:35'),
-(6, 'Vũ Văn Phúc', 'Vũ Văn Phúc', 'B2-123461', '0901234572', 11, NULL, 1, '2025-11-23 14:12:35'),
-(7, 'Đỗ Văn Giang', 'Đỗ Văn Giang', 'B2-123462', '0901234573', 5, NULL, 1, '2025-11-23 14:12:35'),
-(8, 'Bùi Văn Hải', 'Bùi Văn Hải', 'B2-123463', '0901234574', 6, NULL, 1, '2025-11-23 14:12:35'),
-(9, 'Đặng Văn Ích', 'Đặng Văn Ích', 'B2-123464', '0901234575', 8, NULL, 1, '2025-11-23 14:12:35'),
-(10, 'Ngô Văn Kiên', 'Ngô Văn Kiên', 'B2-123465', '0901234576', 11, '', 1, '2025-11-23 14:12:35');
+INSERT INTO `drivers` (`id`, `full_name`, `license_number`, `phone`, `experience_years`, `image_url`, `is_active`, `created_at`) VALUES
+(1, 'Nguyễn Văn An', 'B2-123456', '0901234567', 10, 'https://res.cloudinary.com/dncl2jdhn/image/upload/v1764478353/drivers/drivers/24b8a344-f7a5-4af6-92ce-2b9d776d9105.png', 1, '2025-11-23 14:12:35'),
+(2, 'Trần Văn Bình', 'B2-123457', '0901234568', 8, 'https://res.cloudinary.com/dncl2jdhn/image/upload/v1764494287/drivers/drivers/a492eebe-019b-4d68-8d9b-57d684d9c956.png', 1, '2025-11-23 14:12:35'),
+(3, 'Lê Văn Cường', 'B2-123458', '0901234569', 12, NULL, 1, '2025-11-23 14:12:35'),
+(4, 'Phạm Văn Dũng', 'B2-123459', '0901234570', 7, NULL, 1, '2025-11-23 14:12:35'),
+(5, 'Hoàng Văn Em', 'B2-123460', '0901234571', 9, NULL, 1, '2025-11-23 14:12:35'),
+(6, 'Vũ Văn Phúc', 'B2-123461', '0901234572', 11, NULL, 1, '2025-11-23 14:12:35'),
+(7, 'Đỗ Văn Giang', 'B2-123462', '0901234573', 5, NULL, 1, '2025-11-23 14:12:35'),
+(8, 'Bùi Văn Hải', 'B2-123463', '0901234574', 6, NULL, 1, '2025-11-23 14:12:35'),
+(9, 'Đặng Văn Ích', 'B2-123464', '0901234575', 8, NULL, 1, '2025-11-23 14:12:35'),
+(10, 'Ngô Văn Kiên', 'B2-123465', '0901234576', 11, '', 1, '2025-11-23 14:12:35'),
+(11, 'Nguyễn Đức Phát', 'B2-123489', '0868253509', 12, '', 1, '2025-11-30 04:53:05');
 
 -- --------------------------------------------------------
 
@@ -125,13 +129,13 @@ INSERT INTO `drivers` (`id`, `name`, `full_name`, `license_number`, `phone`, `ex
 --
 
 CREATE TABLE `feedback` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `trip_id` int(11) NOT NULL,
-  `rating` int(11) NOT NULL CHECK (`rating` >= 1 and `rating` <= 5),
-  `comment` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `trip_id` int NOT NULL,
+  `rating` int NOT NULL,
+  `comment` text COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ;
 
 -- --------------------------------------------------------
 
@@ -140,18 +144,18 @@ CREATE TABLE `feedback` (
 --
 
 CREATE TABLE `invoices` (
-  `id` int(11) NOT NULL COMMENT 'Invoice ID',
-  `invoice_number` varchar(50) NOT NULL COMMENT 'Số hóa đơn (INV-20251126-001)',
-  `booking_group_id` varchar(50) NOT NULL COMMENT 'ID nhóm đặt vé',
-  `payment_id` int(11) DEFAULT NULL COMMENT 'ID thanh toán',
-  `user_id` int(11) NOT NULL COMMENT 'ID khách hàng',
+  `id` int NOT NULL COMMENT 'Invoice ID',
+  `invoice_number` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Số hóa đơn (INV-20251126-001)',
+  `booking_group_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'ID nhóm đặt vé',
+  `payment_id` int DEFAULT NULL COMMENT 'ID thanh toán',
+  `user_id` int NOT NULL COMMENT 'ID khách hàng',
   `total_amount` decimal(10,2) NOT NULL COMMENT 'Tổng tiền trước giảm giá',
-  `discount_amount` decimal(10,2) DEFAULT 0.00 COMMENT 'Số tiền giảm giá',
+  `discount_amount` decimal(10,2) DEFAULT '0.00' COMMENT 'Số tiền giảm giá',
   `final_amount` decimal(10,2) NOT NULL COMMENT 'Số tiền cuối cùng phải trả',
-  `invoice_data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'Chi tiết hóa đơn đầy đủ (tickets, trip info, customer, etc.)' CHECK (json_valid(`invoice_data`)),
+  `invoice_data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'Chi tiết hóa đơn đầy đủ (tickets, trip info, customer, etc.)',
   `issued_at` datetime NOT NULL COMMENT 'Thời gian xuất hóa đơn',
-  `created_at` datetime DEFAULT current_timestamp() COMMENT 'Thời gian tạo bản ghi'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng hóa đơn thanh toán - lưu trữ tất cả invoices đã xuất';
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo bản ghi'
+) ;
 
 -- --------------------------------------------------------
 
@@ -160,13 +164,13 @@ CREATE TABLE `invoices` (
 --
 
 CREATE TABLE `notifications` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `message` text NOT NULL,
-  `type` enum('info','success','warning','error') NOT NULL DEFAULT 'info',
-  `is_read` tinyint(1) DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `message` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `type` enum('info','success','warning','error') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'info',
+  `is_read` tinyint(1) DEFAULT '0',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -176,15 +180,15 @@ CREATE TABLE `notifications` (
 --
 
 CREATE TABLE `payments` (
-  `id` int(11) NOT NULL,
-  `booking_group_id` varchar(50) DEFAULT NULL COMMENT 'ID nhóm đặt vé (link tất cả tickets trong 1 booking)',
-  `ticket_count` int(11) DEFAULT 1 COMMENT 'Số lượng vé trong booking (1=đơn, 2+=khứ hồi)',
-  `amount` decimal(10,2) NOT NULL,
-  `payment_method` enum('vnpay','momo','cash') NOT NULL,
-  `payment_status` enum('pending','completed','failed','refunded') NOT NULL DEFAULT 'pending',
-  `transaction_id` varchar(255) DEFAULT NULL,
+  `id` int NOT NULL,
+  `booking_group_id` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'ID nhóm đặt vé (link tất cả tickets trong 1 booking)',
+  `ticket_count` int DEFAULT '1' COMMENT 'Số lượng vé trong booking (1=đơn, 2+=khứ hồi)',
+  `amount` decimal(38,2) NOT NULL,
+  `payment_method` enum('vnpay','momo','cash') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payment_status` enum('pending','completed','failed','refunded') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
+  `transaction_id` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `payment_date` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -252,60 +256,24 @@ INSERT INTO `payments` (`id`, `booking_group_id`, `ticket_count`, `amount`, `pay
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pending_cities`
---
-
-CREATE TABLE `pending_cities` (
-  `id` int(11) NOT NULL,
-  `city_name` varchar(100) NOT NULL,
-  `normalized_name` varchar(100) NOT NULL,
-  `latitude` decimal(10,8) NOT NULL COMMENT 'City center latitude',
-  `longitude` decimal(11,8) NOT NULL COMMENT 'City center longitude',
-  `suggested_by_station_id` int(11) DEFAULT NULL COMMENT 'Station that triggered this city addition',
-  `status` enum('pending','approved','rejected') DEFAULT 'pending',
-  `created_at` datetime DEFAULT current_timestamp(),
-  `approved_at` datetime DEFAULT NULL,
-  `approved_by` int(11) DEFAULT NULL COMMENT 'Admin user ID'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `pending_cities`
---
-
-INSERT INTO `pending_cities` (`id`, `city_name`, `normalized_name`, `latitude`, `longitude`, `suggested_by_station_id`, `status`, `created_at`, `approved_at`, `approved_by`) VALUES
-(1, 'Cần Thơ', 'Cần Thơ', 10.03337700, 105.77277300, NULL, 'approved', '2025-11-27 23:17:26', '2025-11-27 23:17:26', NULL),
-(2, 'Đà Lạt', 'Đà Lạt', 11.94236050, 108.44826450, NULL, 'approved', '2025-11-27 23:17:26', '2025-11-27 23:17:26', NULL),
-(3, 'Đà Nẵng', 'Đà Nẵng', 16.06249950, 108.20601450, NULL, 'approved', '2025-11-27 23:17:26', '2025-11-27 23:17:26', NULL),
-(4, 'Hà Nội', 'Hà Nội', 21.00022320, 105.81830900, NULL, 'approved', '2025-11-27 23:17:26', '2025-11-27 23:17:26', NULL),
-(5, 'Hải Phòng', 'Hải Phòng', 20.86141900, 106.68397300, NULL, 'approved', '2025-11-27 23:17:26', '2025-11-27 23:17:26', NULL),
-(6, 'Huế', 'Huế', 16.46098900, 107.59522450, NULL, 'approved', '2025-11-27 23:17:26', '2025-11-27 23:17:26', NULL),
-(7, 'Lào Cai', 'Lào Cai', 0.00000000, 0.00000000, NULL, 'approved', '2025-11-27 23:17:26', '2025-11-27 23:17:26', NULL),
-(8, 'Nha Trang', 'Nha Trang', 12.25164750, 109.19210200, NULL, 'approved', '2025-11-27 23:17:26', '2025-11-27 23:17:26', NULL),
-(9, 'Phan Thiết', 'Phan Thiết', 0.00000000, 0.00000000, NULL, 'approved', '2025-11-27 23:17:26', '2025-11-27 23:17:26', NULL),
-(10, 'TP Hồ Chí Minh', 'TP Hồ Chí Minh', 10.82305414, 106.67013614, NULL, 'approved', '2025-11-27 23:17:26', '2025-11-27 23:17:26', NULL),
-(11, 'Vũng Tàu', 'Vũng Tàu', 0.00000000, 0.00000000, NULL, 'approved', '2025-11-27 23:17:26', '2025-11-27 23:17:26', NULL);
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `promotions`
 --
 
 CREATE TABLE `promotions` (
-  `id` int(11) NOT NULL,
-  `code` varchar(50) NOT NULL,
-  `description` text DEFAULT NULL,
-  `discount_type` enum('percentage','fixed') NOT NULL,
-  `discount_value` decimal(10,2) NOT NULL,
-  `min_amount` decimal(10,2) DEFAULT 0.00,
-  `max_discount` decimal(10,2) DEFAULT NULL,
+  `id` int NOT NULL,
+  `code` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `discount_type` enum('percentage','fixed') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `discount_value` decimal(38,2) NOT NULL,
+  `min_amount` decimal(38,2) DEFAULT NULL,
+  `max_discount` decimal(38,2) DEFAULT NULL,
   `start_date` datetime NOT NULL,
   `end_date` datetime NOT NULL,
-  `usage_limit` int(11) DEFAULT NULL,
-  `used_count` int(11) DEFAULT 0,
-  `is_active` tinyint(1) DEFAULT 1,
-  `applicable_to_round_trip` tinyint(1) DEFAULT 0 COMMENT 'Áp dụng cho vé khứ hồi',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `usage_limit` int DEFAULT NULL,
+  `used_count` int DEFAULT '0',
+  `is_active` tinyint(1) DEFAULT '1',
+  `applicable_to_round_trip` tinyint(1) DEFAULT '0' COMMENT 'Áp dụng cho vé khứ hồi',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -325,63 +293,48 @@ INSERT INTO `promotions` (`id`, `code`, `description`, `discount_type`, `discoun
 --
 
 CREATE TABLE `routes` (
-  `id` int(11) NOT NULL,
-  `from_location` varchar(100) NOT NULL,
-  `to_location` varchar(100) NOT NULL,
-  `distance_km` int(11) NOT NULL,
-  `base_price` decimal(10,2) NOT NULL,
-  `estimated_duration` int(11) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `pickup_points` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'Danh sách điểm đón (JSON array)' CHECK (json_valid(`pickup_points`)),
-  `dropoff_points` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'Danh sách điểm trả (JSON array)' CHECK (json_valid(`dropoff_points`))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `id` int NOT NULL,
+  `from_location` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `to_location` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `distance_km` decimal(38,2) DEFAULT NULL,
+  `base_price` decimal(38,2) NOT NULL,
+  `estimated_duration` int NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `pickup_points` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'Danh sách điểm đón (JSON array)',
+  `dropoff_points` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'Danh sách điểm trả (JSON array)'
+) ;
 
 --
 -- Dumping data for table `routes`
 --
 
 INSERT INTO `routes` (`id`, `from_location`, `to_location`, `distance_km`, `base_price`, `estimated_duration`, `created_at`, `pickup_points`, `dropoff_points`) VALUES
-(1, 'TP Hồ Chí Minh', 'Vũng Tàu', 125, 120000.00, 150, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"Bến xe Miền Tây\", \"address\": \"395 Kinh Dương Vương, An Lạc\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Vũng Tàu\", \"address\": \"52 Nam Kỳ Khởi Nghĩa, Vũng Tàu\"}, {\"name\": \"Trung tâm Vũng Tàu\", \"address\": \"Thùy Vân, Vũng Tàu\"}]'),
-(2, 'Vũng Tàu', 'TP Hồ Chí Minh', 125, 120000.00, 150, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Vũng Tàu\", \"address\": \"52 Nam Kỳ Khởi Nghĩa, Vũng Tàu\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"Bến xe Miền Tây\", \"address\": \"395 Kinh Dương Vương, An Lạc\"}]'),
-(3, 'TP Hồ Chí Minh', 'Đà Lạt', 308, 250000.00, 390, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Đà Lạt\", \"address\": \"01 Tô Hiến Thành, Đà Lạt\"}, {\"name\": \"Trung tâm Đà Lạt\", \"address\": \"Hồ Xuân Hương, Đà Lạt\"}]'),
-(4, 'Đà Lạt', 'TP Hồ Chí Minh', 308, 250000.00, 390, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Lạt\", \"address\": \"01 Tô Hiến Thành, Đà Lạt\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
-(5, 'TP Hồ Chí Minh', 'Nha Trang', 450, 350000.00, 570, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}, {\"name\": \"Trung tâm Nha Trang\", \"address\": \"Trần Phú, Nha Trang\"}]'),
-(6, 'Nha Trang', 'TP Hồ Chí Minh', 450, 350000.00, 570, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
-(7, 'TP Hồ Chí Minh', 'Cần Thơ', 169, 150000.00, 210, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Tây\", \"address\": \"395 Kinh Dương Vương, An Lạc\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Cần Thơ\", \"address\": \"Nguyễn Trãi, Cần Thơ\"}, {\"name\": \"Trung tâm Cần Thơ\", \"address\": \"Chợ Cần Thơ\"}]'),
-(8, 'Cần Thơ', 'TP Hồ Chí Minh', 169, 150000.00, 210, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Cần Thơ\", \"address\": \"Nguyễn Trãi, Cần Thơ\"}]', '[{\"name\": \"Bến xe Miền Tây\", \"address\": \"395 Kinh Dương Vương, An Lạc\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
-(9, 'TP Hồ Chí Minh', 'Phan Thiết', 200, 170000.00, 240, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Phan Thiết\", \"address\": \"Tôn Đức Thắng, Phan Thiết\"}, {\"name\": \"Mũi Né\", \"address\": \"Nguyễn Đình Chiểu, Mũi Né\"}]'),
-(10, 'Phan Thiết', 'TP Hồ Chí Minh', 200, 170000.00, 240, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Phan Thiết\", \"address\": \"Tôn Đức Thắng, Phan Thiết\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
-(11, 'Đà Nẵng', 'Huế', 100, 95000.00, 125, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]', '[{\"name\": \"Bến xe Huế\", \"address\": \"An Cựu, Huế\"}, {\"name\": \"Trung tâm Huế\", \"address\": \"Lê Duẩn, Huế\"}]'),
-(12, 'Huế', 'Đà Nẵng', 100, 95000.00, 125, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Huế\", \"address\": \"An Cựu, Huế\"}]', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]'),
-(13, 'Đà Nẵng', 'Nha Trang', 520, 100000.00, 690, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}, {\"name\": \"Trung tâm Nha Trang\", \"address\": \"Trần Phú, Nha Trang\"}]'),
-(14, 'Nha Trang', 'Đà Nẵng', 520, 100000.00, 690, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}]', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]'),
-(15, 'Nha Trang', 'Đà Lạt', 140, 130000.00, 180, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}, {\"name\": \"Trung tâm Nha Trang\", \"address\": \"Trần Phú, Nha Trang\"}]', '[{\"name\": \"Bến xe Đà Lạt\", \"address\": \"01 Tô Hiến Thành, Đà Lạt\"}, {\"name\": \"Trung tâm Đà Lạt\", \"address\": \"Hồ Xuân Hương, Đà Lạt\"}]'),
-(16, 'Đà Lạt', 'Nha Trang', 140, 130000.00, 180, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Lạt\", \"address\": \"01 Tô Hiến Thành, Đà Lạt\"}]', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}, {\"name\": \"Trung tâm Nha Trang\", \"address\": \"Trần Phú, Nha Trang\"}]'),
-(17, 'Hà Nội', 'Hải Phòng', 105, 100000.00, 135, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"Bến xe Giáp Bát\", \"address\": \"Giải Phóng, Hoàng Mai, Hà Nội\"}, {\"name\": \"VP TPT Hà Nội\", \"address\": \"Hoàn Kiếm, Hà Nội\"}]', '[{\"name\": \"Bến xe Hải Phòng\", \"address\": \"Lê Thánh Tông, Hải Phòng\"}, {\"name\": \"Trung tâm Hải Phòng\", \"address\": \"Hoàng Văn Thụ, Hải Phòng\"}]'),
-(18, 'Hải Phòng', 'Hà Nội', 105, 100000.00, 135, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Hải Phòng\", \"address\": \"Lê Thánh Tông, Hải Phòng\"}]', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"Bến xe Giáp Bát\", \"address\": \"Giải Phóng, Hoàng Mai, Hà Nội\"}]'),
-(19, 'Hà Nội', 'Lào Cai', 340, 275000.00, 450, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"VP TPT Hà Nội\", \"address\": \"Hoàn Kiếm, Hà Nội\"}]', '[{\"name\": \"Bến xe Lào Cai\", \"address\": \"Quốc lộ 4D, Lào Cai\"}, {\"name\": \"Sa Pa\", \"address\": \"Trung tâm Sa Pa\"}]'),
-(20, 'Lào Cai', 'Hà Nội', 340, 275000.00, 450, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Lào Cai\", \"address\": \"Quốc lộ 4D, Lào Cai\"}]', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"VP TPT Hà Nội\", \"address\": \"Hoàn Kiếm, Hà Nội\"}]'),
-(21, 'TP Hồ Chí Minh', 'Hà Nội', 1700, 1200000.00, 2100, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"Bến xe Giáp Bát\", \"address\": \"Giải Phóng, Hoàng Mai, Hà Nội\"}]'),
-(22, 'Hà Nội', 'TP Hồ Chí Minh', 1700, 1200000.00, 2100, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"Bến xe Giáp Bát\", \"address\": \"Giải Phóng, Hoàng Mai, Hà Nội\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
-(23, 'TP Hồ Chí Minh', 'Đà Nẵng', 970, 700000.00, 1260, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]'),
-(24, 'Đà Nẵng', 'TP Hồ Chí Minh', 970, 700000.00, 1260, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
-(25, 'Nha Trang', 'Huế', 612, 595000.00, 453, '2025-11-27 17:36:02', NULL, NULL),
-(26, 'Huế', 'Nha Trang', 608, 591000.00, 453, '2025-11-27 17:41:10', NULL, NULL);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `route_stations`
---
-
-CREATE TABLE `route_stations` (
-  `id` int(11) NOT NULL,
-  `route_id` int(11) NOT NULL,
-  `station_id` int(11) NOT NULL,
-  `station_type` enum('pickup','dropoff') NOT NULL COMMENT 'Điểm đón hay trả',
-  `stop_order` int(11) DEFAULT 1 COMMENT 'Thứ tự điểm dừng',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Liên kết tuyến đường với các trạm đón/trả';
+(1, 'TP Hồ Chí Minh', 'Vũng Tàu', 125.00, 120000.00, 150, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"Bến xe Miền Tây\", \"address\": \"395 Kinh Dương Vương, An Lạc\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Vũng Tàu\", \"address\": \"52 Nam Kỳ Khởi Nghĩa, Vũng Tàu\"}, {\"name\": \"Trung tâm Vũng Tàu\", \"address\": \"Thùy Vân, Vũng Tàu\"}]'),
+(2, 'Vũng Tàu', 'TP Hồ Chí Minh', 125.00, 120000.00, 150, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Vũng Tàu\", \"address\": \"52 Nam Kỳ Khởi Nghĩa, Vũng Tàu\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"Bến xe Miền Tây\", \"address\": \"395 Kinh Dương Vương, An Lạc\"}]'),
+(3, 'TP Hồ Chí Minh', 'Đà Lạt', 308.00, 250000.00, 390, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Đà Lạt\", \"address\": \"01 Tô Hiến Thành, Đà Lạt\"}, {\"name\": \"Trung tâm Đà Lạt\", \"address\": \"Hồ Xuân Hương, Đà Lạt\"}]'),
+(4, 'Đà Lạt', 'TP Hồ Chí Minh', 308.00, 250000.00, 390, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Lạt\", \"address\": \"01 Tô Hiến Thành, Đà Lạt\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
+(5, 'TP Hồ Chí Minh', 'Nha Trang', 450.00, 350000.00, 570, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}, {\"name\": \"Trung tâm Nha Trang\", \"address\": \"Trần Phú, Nha Trang\"}]'),
+(6, 'Nha Trang', 'TP Hồ Chí Minh', 450.00, 350000.00, 570, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
+(7, 'TP Hồ Chí Minh', 'Cần Thơ', 169.00, 150000.00, 210, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Tây\", \"address\": \"395 Kinh Dương Vương, An Lạc\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Cần Thơ\", \"address\": \"Nguyễn Trãi, Cần Thơ\"}, {\"name\": \"Trung tâm Cần Thơ\", \"address\": \"Chợ Cần Thơ\"}]'),
+(8, 'Cần Thơ', 'TP Hồ Chí Minh', 169.00, 150000.00, 210, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Cần Thơ\", \"address\": \"Nguyễn Trãi, Cần Thơ\"}]', '[{\"name\": \"Bến xe Miền Tây\", \"address\": \"395 Kinh Dương Vương, An Lạc\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
+(9, 'TP Hồ Chí Minh', 'Phan Thiết', 200.00, 170000.00, 240, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Phan Thiết\", \"address\": \"Tôn Đức Thắng, Phan Thiết\"}, {\"name\": \"Mũi Né\", \"address\": \"Nguyễn Đình Chiểu, Mũi Né\"}]'),
+(10, 'Phan Thiết', 'TP Hồ Chí Minh', 200.00, 170000.00, 240, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Phan Thiết\", \"address\": \"Tôn Đức Thắng, Phan Thiết\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
+(11, 'Đà Nẵng', 'Huế', 100.00, 95000.00, 125, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]', '[{\"name\": \"Bến xe Huế\", \"address\": \"An Cựu, Huế\"}, {\"name\": \"Trung tâm Huế\", \"address\": \"Lê Duẩn, Huế\"}]'),
+(12, 'Huế', 'Đà Nẵng', 100.00, 95000.00, 125, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Huế\", \"address\": \"An Cựu, Huế\"}]', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]'),
+(13, 'Đà Nẵng', 'Nha Trang', 520.00, 100000.00, 690, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}, {\"name\": \"Trung tâm Nha Trang\", \"address\": \"Trần Phú, Nha Trang\"}]'),
+(14, 'Nha Trang', 'Đà Nẵng', 520.00, 100000.00, 690, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}]', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]'),
+(15, 'Nha Trang', 'Đà Lạt', 140.00, 130000.00, 180, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}, {\"name\": \"Trung tâm Nha Trang\", \"address\": \"Trần Phú, Nha Trang\"}]', '[{\"name\": \"Bến xe Đà Lạt\", \"address\": \"01 Tô Hiến Thành, Đà Lạt\"}, {\"name\": \"Trung tâm Đà Lạt\", \"address\": \"Hồ Xuân Hương, Đà Lạt\"}]'),
+(16, 'Đà Lạt', 'Nha Trang', 140.00, 130000.00, 180, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Lạt\", \"address\": \"01 Tô Hiến Thành, Đà Lạt\"}]', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}, {\"name\": \"Trung tâm Nha Trang\", \"address\": \"Trần Phú, Nha Trang\"}]'),
+(17, 'Hà Nội', 'Hải Phòng', 105.00, 100000.00, 135, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"Bến xe Giáp Bát\", \"address\": \"Giải Phóng, Hoàng Mai, Hà Nội\"}, {\"name\": \"VP TPT Hà Nội\", \"address\": \"Hoàn Kiếm, Hà Nội\"}]', '[{\"name\": \"Bến xe Hải Phòng\", \"address\": \"Lê Thánh Tông, Hải Phòng\"}, {\"name\": \"Trung tâm Hải Phòng\", \"address\": \"Hoàng Văn Thụ, Hải Phòng\"}]'),
+(18, 'Hải Phòng', 'Hà Nội', 105.00, 100000.00, 135, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Hải Phòng\", \"address\": \"Lê Thánh Tông, Hải Phòng\"}]', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"Bến xe Giáp Bát\", \"address\": \"Giải Phóng, Hoàng Mai, Hà Nội\"}]'),
+(19, 'Hà Nội', 'Lào Cai', 340.00, 275000.00, 450, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"VP TPT Hà Nội\", \"address\": \"Hoàn Kiếm, Hà Nội\"}]', '[{\"name\": \"Bến xe Lào Cai\", \"address\": \"Quốc lộ 4D, Lào Cai\"}, {\"name\": \"Sa Pa\", \"address\": \"Trung tâm Sa Pa\"}]'),
+(20, 'Lào Cai', 'Hà Nội', 340.00, 275000.00, 450, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Lào Cai\", \"address\": \"Quốc lộ 4D, Lào Cai\"}]', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"VP TPT Hà Nội\", \"address\": \"Hoàn Kiếm, Hà Nội\"}]'),
+(21, 'TP Hồ Chí Minh', 'Hà Nội', 1700.00, 1200000.00, 2100, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"Bến xe Giáp Bát\", \"address\": \"Giải Phóng, Hoàng Mai, Hà Nội\"}]'),
+(22, 'Hà Nội', 'TP Hồ Chí Minh', 1700.00, 1200000.00, 2100, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"Bến xe Giáp Bát\", \"address\": \"Giải Phóng, Hoàng Mai, Hà Nội\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
+(23, 'TP Hồ Chí Minh', 'Đà Nẵng', 970.00, 700000.00, 1260, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]'),
+(24, 'Đà Nẵng', 'TP Hồ Chí Minh', 970.00, 700000.00, 1260, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
+(25, 'Nha Trang', 'Huế', 612.00, 595000.00, 453, '2025-11-27 17:36:02', NULL, NULL),
+(26, 'Huế', 'Nha Trang', 608.00, 591000.00, 453, '2025-11-27 17:41:10', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -390,14 +343,14 @@ CREATE TABLE `route_stations` (
 --
 
 CREATE TABLE `seats` (
-  `id` int(11) NOT NULL,
-  `vehicle_id` int(11) NOT NULL,
-  `seat_number` varchar(10) NOT NULL,
-  `seat_type` enum('standard','vip','bed') NOT NULL DEFAULT 'standard',
-  `floor` tinyint(1) DEFAULT 1 COMMENT '1=Tầng 1, 2=Tầng 2',
-  `row_position` enum('front','middle','back') DEFAULT 'middle' COMMENT 'Vị trí hàng ghế',
-  `is_available` tinyint(1) DEFAULT 1,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `vehicle_id` int NOT NULL,
+  `seat_number` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `seat_type` enum('standard','vip','bed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'standard',
+  `floor` tinyint(1) DEFAULT '1' COMMENT '1=Tầng 1, 2=Tầng 2',
+  `row_position` enum('front','middle','back') COLLATE utf8mb4_unicode_ci DEFAULT 'middle' COMMENT 'Vị trí hàng ghế',
+  `is_available` tinyint(1) DEFAULT '1',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -749,54 +702,54 @@ INSERT INTO `seats` (`id`, `vehicle_id`, `seat_number`, `seat_type`, `floor`, `r
 --
 
 CREATE TABLE `stations` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL COMMENT 'Tên trạm xe',
-  `address` text NOT NULL COMMENT 'Địa chỉ đầy đủ',
-  `city` varchar(100) NOT NULL COMMENT 'Tỉnh/Thành phố',
+  `id` int NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Tên trạm xe',
+  `address` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Địa chỉ đầy đủ',
+  `city` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Tỉnh/Thành phố',
   `latitude` decimal(10,8) NOT NULL COMMENT 'Vĩ độ (Google Maps)',
   `longitude` decimal(11,8) NOT NULL COMMENT 'Kinh độ (Google Maps)',
-  `phone` varchar(20) DEFAULT NULL COMMENT 'Số điện thoại trạm',
-  `is_active` tinyint(1) DEFAULT 1 COMMENT 'Trạm đang hoạt động',
-  `station_type` enum('departure','arrival','both') DEFAULT 'both' COMMENT 'Loại trạm',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `is_approved` tinyint(1) DEFAULT 1 COMMENT 'False if station uses unapproved city'
+  `phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Số điện thoại trạm',
+  `is_active` tinyint(1) DEFAULT '1' COMMENT 'Trạm đang hoạt động',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `is_approved` tinyint(1) DEFAULT '1' COMMENT 'False if station uses unapproved city',
+  `station_type` enum('arrival','both','departure') COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Trạm xe bus thực tế với tọa độ Google Maps';
 
 --
 -- Dumping data for table `stations`
 --
 
-INSERT INTO `stations` (`id`, `name`, `address`, `city`, `latitude`, `longitude`, `phone`, `is_active`, `station_type`, `created_at`, `is_approved`) VALUES
-(1, 'Bến xe Giáp Bát', 'Đường Giải Phóng, Giáp Bát, Hoàng Mai, Hà Nội', 'Hà Nội', 20.98170000, 105.84080000, '02436414704', 1, 'both', '2025-11-25 10:39:40', 1),
-(2, 'Bến xe Mỹ Đình', 'Phạm Hùng, Mỹ Đình, Nam Từ Liêm, Hà Nội', 'Hà Nội', 21.02850000, 105.78480000, '02437685549', 1, 'both', '2025-11-25 10:39:40', 1),
-(3, 'Bến xe Miền Đông', '292 Đinh Bộ Lĩnh, Phường 26, Bình Thạnh, TP.HCM', 'TP Hồ Chí Minh', 10.81420000, 106.71050000, '02838294056', 1, 'both', '2025-11-25 10:39:40', 1),
-(4, 'Bến xe Miền Tây', '395 Kinh Dương Vương, An Lạc, Bình Tân, TP.HCM', 'TP Hồ Chí Minh', 10.73820000, 106.61820000, '02838753082', 1, 'both', '2025-11-25 10:39:40', 1),
-(5, 'Bến xe Đà Nẵng', 'Đường Điện Biên Phủ, Thanh Khê, Đà Nẵng', 'Đà Nẵng', 16.05440000, 108.20220000, '02363826140', 1, 'both', '2025-11-25 10:39:40', 1),
-(6, 'Bến xe Huế', 'Đường An Cựu, An Cựu, TP Huế', 'Huế', 16.46370000, 107.60000000, '02343822175', 1, 'both', '2025-11-25 10:39:40', 1),
-(7, 'Bến xe Nha Trang', '23 Tháng 10, Phường Vĩnh Hòa, Nha Trang', 'Nha Trang', 12.26470000, 109.18990000, '02583822895', 0, 'both', '2025-11-25 10:39:40', 1),
-(8, 'Bến xe Đà Lạt', '1 Tô Hiến Thành, Phường 3, Đà Lạt, Lâm Đồng', 'Đà Lạt', 11.94040000, 108.45830000, '02633837291', 1, 'both', '2025-11-25 10:39:40', 1),
-(9, 'Bến xe Nước Ngầm', 'Giải Phóng, Hoàng Mai, Hà Nội', 'Hà Nội', 20.98146500, 105.84381700, NULL, 1, 'both', '2025-11-25 18:33:31', 1),
-(10, 'Bến xe Nhà Rồng', 'Nha Rong Port Historic Site, Phường Xóm Chiếu, Thủ Đức, Ho Chi Minh City, Vietnam', 'Hồ Chí Minh', 10.76821100, 106.70667000, NULL, 1, 'both', '2025-11-25 19:10:28', 1),
-(11, 'Bến xe Miền Đông 2', '292 Đinh Bộ Lĩnh, Phường 26, Bình Thạnh, TP HCM', 'TP Hồ Chí Minh', 10.81502300, 106.71241600, '028 3899 4056', 1, 'both', '2025-11-25 19:12:18', 1),
-(12, 'Bến xe Miền Tây 2', '395 Kinh Dương Vương, Phường An Lạc, Quận Bình Tân, TP HCM', 'TP Hồ Chí Minh', 10.73905900, 106.60515800, '028 3877 5569', 1, 'both', '2025-11-25 19:12:18', 1),
-(13, 'Bến xe Miền Đông Mới', 'Đường Võ Nguyên Giáp, Phường Long Bình, TP Thủ Đức, TP HCM', 'TP Hồ Chí Minh', 10.83963600, 106.81748700, '028 3719 3773', 1, 'both', '2025-11-25 19:12:18', 1),
-(14, 'Bến xe Đà Lạt', '01 Tô Hiến Thành, Phường 3, Đà Lạt, Lâm Đồng', 'Đà Lạt', 11.94432100, 108.43822900, '0263 3822 635', 1, 'both', '2025-11-25 19:12:18', 1),
-(15, 'Bến xe Nha Trang 3', '23 Tháng 10, Phường Vĩnh Phước, Nha Trang, Khánh Hòa', 'Nha Trang', 12.23859500, 109.19430400, '0258 3822 862', 1, 'both', '2025-11-25 19:12:18', 1),
-(16, 'Bến xe Đà Nẵng', 'Đường Điện Biên Phủ, Hải Châu, Đà Nẵng', 'Đà Nẵng', 16.07059900, 108.20982900, '0236 3821 265', 1, 'both', '2025-11-25 19:12:18', 1),
-(17, 'Bến xe Huế 3', '48 An Dương Vương, Phường Phú Hội, Huế, Thừa Thiên Huế', 'Huế', 16.45659100, 107.58987900, '0234 3822 175', 1, 'both', '2025-11-25 19:12:18', 1),
-(18, 'Bến xe Mỹ Đình', 'Phạm Hùng, Mỹ Đình, Nam Từ Liêm, Hà Nội', 'Hà Nội', 21.02766900, 105.78078300, '024 3768 5549', 1, 'both', '2025-11-25 19:12:18', 1),
-(19, 'Bến xe Giáp Bát', 'Đường Giải Phóng, Hoàng Mai, Hà Nội', 'Hà Nội', 20.98178200, 105.84134500, '024 3864 1467', 1, 'both', '2025-11-25 19:12:18', 1),
-(20, 'Bến xe Hải Phòng', '01 Lê Thánh Tông, Ngô Quyền, Hải Phòng', 'Hải Phòng', 20.86141900, 106.68397300, '0225 3842 748', 1, 'both', '2025-11-25 19:12:18', 1),
-(21, 'Bến xe Cần Thơ', 'Đường Nguyễn Văn Linh, Hưng Lợi, Ninh Kiều, Cần Thơ', 'Cần Thơ', 10.03337700, 105.77277300, '0292 3821 259', 1, 'both', '2025-11-25 19:12:18', 1),
-(22, 'Bến xe nhà bè', 'Bến xe Bình Khánh, Huynh Tan Phat, Xã Nhà Bè, Ho Chi Minh City, Vietnam', 'TP Hồ Chí Minh', 10.67435600, 106.76614100, NULL, 1, 'both', '2025-11-27 13:37:25', 1),
-(23, 'Bến phú mỹ hưng', 'Ben Duoc Tunnels - Liberation Area, Đường tỉnh 789, Ấp Phú Hiệp, Xã An Nhơn Tây, Ho Chi Minh City, Xã Hưng Thuận, Tây Ninh Province, Vietnam', 'TP Hồ Chí Minh', 11.14090500, 106.46105100, NULL, 1, 'both', '2025-11-27 13:48:00', 1),
-(24, 'Trạm Bàn Cờ', 'Dự án đường Vành đai 2, Khu phố 8, Phường Thủ Đức, Thủ Đức, Ho Chi Minh City, 71221, Vietnam', 'TP Hồ Chí Minh', 10.76891000, 106.68136100, NULL, 1, 'both', '2025-11-27 16:27:31', 1),
-(25, 'Bến test', 'Xã Châu Pha, Ho Chi Minh City, Vietnam', 'TP Hồ Chí Minh', 10.66614300, 106.54401100, NULL, 1, 'both', '2025-11-27 17:13:48', 1),
-(26, 'Bến xe nha trang 1', 'Nha Trang Bus station (North), 2 Tháng 4, Bắc Nha Trang, Phường Bắc Nha Trang, Khánh Hòa Province, 57100, Vietnam', 'Nha Trang', 12.28868500, 109.19058400, NULL, 1, 'both', '2025-11-27 17:36:53', 1),
-(27, 'Bến xe nha trang 2', 'Nha Trang Bus station (North), 2 Tháng 4, Bắc Nha Trang, Phường Bắc Nha Trang, Khánh Hòa Province, 57100, Vietnam', 'Nha Trang', 12.22997100, 109.17527100, NULL, 1, 'both', '2025-11-27 17:37:24', 1),
-(28, 'Bến xe Cá', 'Huynh Gia Bus Station, 16-18, Nguyen Chanh Street, Phuoc Hoa, Nha Trang, Khánh Hòa Province, 57100, Vietnam', 'Nha Trang', 12.23574300, 109.16906700, NULL, 1, 'both', '2025-11-27 17:49:43', 1),
-(29, 'Bến xe phan thiết', 'Sông Sa Lung, Phan Xá, Vĩnh Linh Commune, Quảng Trị Province, Vietnam', 'Phan Thiết', 17.04499700, 107.01073500, NULL, 1, 'both', '2025-11-27 20:27:11', 1),
-(30, 'Bến xe Vũng Tàu', 'Vũng Tàu Bus Station, 192, Nam Kỳ Khởi Nghĩa, Phường Vũng Tàu, Ho Chi Minh City, 76666, Vietnam', 'Vũng Tàu', 10.35044700, 107.08704800, NULL, 1, 'both', '2025-11-30 02:52:50', 1);
+INSERT INTO `stations` (`id`, `name`, `address`, `city`, `latitude`, `longitude`, `phone`, `is_active`, `created_at`, `is_approved`, `station_type`) VALUES
+(1, 'Bến xe Giáp Bát', 'Đường Giải Phóng, Giáp Bát, Hoàng Mai, Hà Nội', 'Hà Nội', 20.98170000, 105.84080000, '02436414704', 1, '2025-11-25 10:39:40', 1, 'arrival'),
+(2, 'Bến xe Mỹ Đình', 'Phạm Hùng, Mỹ Đình, Nam Từ Liêm, Hà Nội', 'Hà Nội', 21.02850000, 105.78480000, '02437685549', 1, '2025-11-25 10:39:40', 1, 'arrival'),
+(3, 'Bến xe Miền Đông', '292 Đinh Bộ Lĩnh, Phường 26, Bình Thạnh, TP.HCM', 'TP Hồ Chí Minh', 10.81420000, 106.71050000, '02838294056', 1, '2025-11-25 10:39:40', 1, 'arrival'),
+(4, 'Bến xe Miền Tây', '395 Kinh Dương Vương, An Lạc, Bình Tân, TP.HCM', 'TP Hồ Chí Minh', 10.73820000, 106.61820000, '02838753082', 1, '2025-11-25 10:39:40', 1, 'arrival'),
+(5, 'Bến xe Đà Nẵng', 'Đường Điện Biên Phủ, Thanh Khê, Đà Nẵng', 'Đà Nẵng', 16.05440000, 108.20220000, '02363826140', 1, '2025-11-25 10:39:40', 1, 'arrival'),
+(6, 'Bến xe Huế', 'Đường An Cựu, An Cựu, TP Huế', 'Huế', 16.46370000, 107.60000000, '02343822175', 1, '2025-11-25 10:39:40', 1, 'arrival'),
+(7, 'Bến xe Nha Trang', '23 Tháng 10, Phường Vĩnh Hòa, Nha Trang', 'Nha Trang', 12.26470000, 109.18990000, '02583822895', 0, '2025-11-25 10:39:40', 1, 'arrival'),
+(8, 'Bến xe Đà Lạt', '1 Tô Hiến Thành, Phường 3, Đà Lạt, Lâm Đồng', 'Đà Lạt', 11.94040000, 108.45830000, '02633837291', 1, '2025-11-25 10:39:40', 1, 'arrival'),
+(9, 'Bến xe Nước Ngầm', 'Giải Phóng, Hoàng Mai, Hà Nội', 'Hà Nội', 20.98146500, 105.84381700, NULL, 1, '2025-11-25 18:33:31', 1, 'arrival'),
+(10, 'Bến xe Nhà Rồng', 'Nha Rong Port Historic Site, Phường Xóm Chiếu, Thủ Đức, Ho Chi Minh City, Vietnam', 'Hồ Chí Minh', 10.76821100, 106.70667000, NULL, 1, '2025-11-25 19:10:28', 1, 'arrival'),
+(11, 'Bến xe Miền Đông 2', '292 Đinh Bộ Lĩnh, Phường 26, Bình Thạnh, TP HCM', 'TP Hồ Chí Minh', 10.81502300, 106.71241600, '028 3899 4056', 1, '2025-11-25 19:12:18', 1, 'arrival'),
+(12, 'Bến xe Miền Tây 2', '395 Kinh Dương Vương, Phường An Lạc, Quận Bình Tân, TP HCM', 'TP Hồ Chí Minh', 10.73905900, 106.60515800, '028 3877 5569', 1, '2025-11-25 19:12:18', 1, 'arrival'),
+(13, 'Bến xe Miền Đông Mới', 'Đường Võ Nguyên Giáp, Phường Long Bình, TP Thủ Đức, TP HCM', 'TP Hồ Chí Minh', 10.83963600, 106.81748700, '028 3719 3773', 1, '2025-11-25 19:12:18', 1, 'arrival'),
+(14, 'Bến xe Đà Lạt', '01 Tô Hiến Thành, Phường 3, Đà Lạt, Lâm Đồng', 'Đà Lạt', 11.94432100, 108.43822900, '0263 3822 635', 1, '2025-11-25 19:12:18', 1, 'arrival'),
+(15, 'Bến xe Nha Trang 3', '23 Tháng 10, Phường Vĩnh Phước, Nha Trang, Khánh Hòa', 'Nha Trang', 12.23859500, 109.19430400, '0258 3822 862', 1, '2025-11-25 19:12:18', 1, 'arrival'),
+(16, 'Bến xe Đà Nẵng', 'Đường Điện Biên Phủ, Hải Châu, Đà Nẵng', 'Đà Nẵng', 16.07059900, 108.20982900, '0236 3821 265', 1, '2025-11-25 19:12:18', 1, 'arrival'),
+(17, 'Bến xe Huế 3', '48 An Dương Vương, Phường Phú Hội, Huế, Thừa Thiên Huế', 'Huế', 16.45659100, 107.58987900, '0234 3822 175', 1, '2025-11-25 19:12:18', 1, 'arrival'),
+(18, 'Bến xe Mỹ Đình', 'Phạm Hùng, Mỹ Đình, Nam Từ Liêm, Hà Nội', 'Hà Nội', 21.02766900, 105.78078300, '024 3768 5549', 1, '2025-11-25 19:12:18', 1, 'arrival'),
+(19, 'Bến xe Giáp Bát', 'Đường Giải Phóng, Hoàng Mai, Hà Nội', 'Hà Nội', 20.98178200, 105.84134500, '024 3864 1467', 1, '2025-11-25 19:12:18', 1, 'arrival'),
+(20, 'Bến xe Hải Phòng', '01 Lê Thánh Tông, Ngô Quyền, Hải Phòng', 'Hải Phòng', 20.86141900, 106.68397300, '0225 3842 748', 1, '2025-11-25 19:12:18', 1, 'arrival'),
+(21, 'Bến xe Cần Thơ', 'Đường Nguyễn Văn Linh, Hưng Lợi, Ninh Kiều, Cần Thơ', 'Cần Thơ', 10.03337700, 105.77277300, '0292 3821 259', 1, '2025-11-25 19:12:18', 1, 'arrival'),
+(22, 'Bến xe nhà bè', 'Bến xe Bình Khánh, Huynh Tan Phat, Xã Nhà Bè, Ho Chi Minh City, Vietnam', 'TP Hồ Chí Minh', 10.67435600, 106.76614100, NULL, 1, '2025-11-27 13:37:25', 1, 'arrival'),
+(23, 'Bến phú mỹ hưng', 'Ben Duoc Tunnels - Liberation Area, Đường tỉnh 789, Ấp Phú Hiệp, Xã An Nhơn Tây, Ho Chi Minh City, Xã Hưng Thuận, Tây Ninh Province, Vietnam', 'TP Hồ Chí Minh', 11.14090500, 106.46105100, NULL, 1, '2025-11-27 13:48:00', 1, 'arrival'),
+(24, 'Trạm Bàn Cờ', 'Dự án đường Vành đai 2, Khu phố 8, Phường Thủ Đức, Thủ Đức, Ho Chi Minh City, 71221, Vietnam', 'TP Hồ Chí Minh', 10.76891000, 106.68136100, NULL, 1, '2025-11-27 16:27:31', 1, 'arrival'),
+(25, 'Bến test', 'Xã Châu Pha, Ho Chi Minh City, Vietnam', 'TP Hồ Chí Minh', 10.66614300, 106.54401100, NULL, 1, '2025-11-27 17:13:48', 1, 'arrival'),
+(26, 'Bến xe nha trang 1', 'Nha Trang Bus station (North), 2 Tháng 4, Bắc Nha Trang, Phường Bắc Nha Trang, Khánh Hòa Province, 57100, Vietnam', 'Nha Trang', 12.28868500, 109.19058400, NULL, 1, '2025-11-27 17:36:53', 1, 'arrival'),
+(27, 'Bến xe nha trang 2', 'Nha Trang Bus station (North), 2 Tháng 4, Bắc Nha Trang, Phường Bắc Nha Trang, Khánh Hòa Province, 57100, Vietnam', 'Nha Trang', 12.22997100, 109.17527100, NULL, 1, '2025-11-27 17:37:24', 1, 'arrival'),
+(28, 'Bến xe Cá', 'Huynh Gia Bus Station, 16-18, Nguyen Chanh Street, Phuoc Hoa, Nha Trang, Khánh Hòa Province, 57100, Vietnam', 'Nha Trang', 12.23574300, 109.16906700, NULL, 1, '2025-11-27 17:49:43', 1, 'arrival'),
+(29, 'Bến xe phan thiết', 'Sông Sa Lung, Phan Xá, Vĩnh Linh Commune, Quảng Trị Province, Vietnam', 'Phan Thiết', 17.04499700, 107.01073500, NULL, 1, '2025-11-27 20:27:11', 1, 'arrival'),
+(30, 'Bến xe Vũng Tàu', 'Vũng Tàu Bus Station, 192, Nam Kỳ Khởi Nghĩa, Phường Vũng Tàu, Ho Chi Minh City, 76666, Vietnam', 'Vũng Tàu', 10.35044700, 107.08704800, NULL, 1, '2025-11-30 02:52:50', 1, 'arrival');
 
 -- --------------------------------------------------------
 
@@ -805,29 +758,29 @@ INSERT INTO `stations` (`id`, `name`, `address`, `city`, `latitude`, `longitude`
 --
 
 CREATE TABLE `tickets` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `trip_id` int(11) NOT NULL,
-  `seat_id` int(11) DEFAULT NULL,
-  `trip_seat_id` int(11) DEFAULT NULL,
-  `promotion_id` int(11) DEFAULT NULL,
-  `pickup_point` varchar(255) DEFAULT NULL COMMENT 'Điểm đón khách',
-  `dropoff_point` varchar(255) DEFAULT NULL COMMENT 'Điểm trả khách',
-  `customer_name` varchar(255) DEFAULT NULL COMMENT 'Tên khách hàng',
-  `customer_phone` varchar(20) DEFAULT NULL COMMENT 'SĐT khách hàng',
-  `customer_email` varchar(255) DEFAULT NULL COMMENT 'Email khách hàng',
-  `notes` text DEFAULT NULL COMMENT 'Ghi chú',
-  `price` decimal(10,2) NOT NULL,
-  `booking_method` enum('online','offline') NOT NULL DEFAULT 'online',
-  `status` enum('booked','confirmed','cancelled') NOT NULL DEFAULT 'booked',
-  `trip_type` enum('one_way','round_trip') DEFAULT 'one_way' COMMENT 'Loại vé: một chiều hoặc khứ hồi',
-  `is_return_trip` tinyint(1) DEFAULT 0 COMMENT 'TRUE = vé về, FALSE = vé đi',
-  `linked_ticket_id` int(11) DEFAULT NULL COMMENT 'ID của vé liên kết (vé đi ↔ vé về)',
-  `booking_group_id` varchar(50) DEFAULT NULL COMMENT 'UUID để group vé đi + vé về cùng booking',
-  `booked_at` timestamp NULL DEFAULT current_timestamp(),
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `trip_id` int NOT NULL,
+  `seat_id` int DEFAULT NULL,
+  `trip_seat_id` int DEFAULT NULL,
+  `promotion_id` int DEFAULT NULL,
+  `pickup_point` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Điểm đón khách',
+  `dropoff_point` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Điểm trả khách',
+  `customer_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Tên khách hàng',
+  `customer_phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'SĐT khách hàng',
+  `customer_email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Email khách hàng',
+  `notes` text COLLATE utf8mb4_unicode_ci COMMENT 'Ghi chú',
+  `price` decimal(38,2) NOT NULL,
+  `booking_method` enum('online','offline') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'online',
+  `status` enum('booked','confirmed','cancelled') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'booked',
+  `trip_type` enum('one_way','round_trip') COLLATE utf8mb4_unicode_ci DEFAULT 'one_way' COMMENT 'Loại vé: một chiều hoặc khứ hồi',
+  `is_return_trip` tinyint(1) DEFAULT '0' COMMENT 'TRUE = vé về, FALSE = vé đi',
+  `linked_ticket_id` int DEFAULT NULL COMMENT 'ID của vé liên kết (vé đi ↔ vé về)',
+  `booking_group_id` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'UUID để group vé đi + vé về cùng booking',
+  `booked_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `cancelled_at` timestamp NULL DEFAULT NULL,
   `paid_at` datetime DEFAULT NULL COMMENT 'Thời gian thanh toán',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `expires_at` datetime DEFAULT NULL COMMENT 'Thời gian hết hạn thanh toán (5 phút sau created_at)'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -988,14 +941,14 @@ INSERT INTO `tickets` (`id`, `user_id`, `trip_id`, `seat_id`, `trip_seat_id`, `p
 --
 
 CREATE TABLE `trips` (
-  `id` int(11) NOT NULL,
-  `route_id` int(11) NOT NULL,
-  `vehicle_id` int(11) NOT NULL,
-  `driver_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `route_id` int NOT NULL,
+  `vehicle_id` int NOT NULL,
+  `driver_id` int NOT NULL,
   `departure_time` datetime NOT NULL,
   `arrival_time` datetime NOT NULL,
-  `status` enum('scheduled','ongoing','completed','cancelled') NOT NULL DEFAULT 'scheduled',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `status` enum('scheduled','ongoing','completed','cancelled') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'scheduled',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -1136,10 +1089,10 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (131, 1, 1, 5, '2025-11-29 15:00:00', '2025-11-29 17:30:00', 'completed', '2025-11-24 19:30:04'),
 (132, 1, 1, 1, '2025-11-30 05:30:00', '2025-11-30 08:00:00', 'completed', '2025-11-24 19:30:04'),
 (133, 1, 2, 2, '2025-11-30 07:00:00', '2025-11-30 09:30:00', 'completed', '2025-11-24 19:30:04'),
-(134, 1, 3, 3, '2025-11-30 09:00:00', '2025-11-30 11:30:00', 'ongoing', '2025-11-24 19:30:04'),
-(135, 1, 4, 4, '2025-11-30 11:00:00', '2025-11-30 13:30:00', 'scheduled', '2025-11-24 19:30:04'),
-(136, 1, 1, 5, '2025-11-30 14:00:00', '2025-11-30 16:30:00', 'scheduled', '2025-11-24 19:30:04'),
-(137, 1, 2, 6, '2025-11-30 16:00:00', '2025-11-30 18:30:00', 'scheduled', '2025-11-24 19:30:04'),
+(134, 1, 3, 3, '2025-11-30 09:00:00', '2025-11-30 11:30:00', 'completed', '2025-11-24 19:30:04'),
+(135, 1, 4, 4, '2025-11-30 11:00:00', '2025-11-30 13:30:00', 'completed', '2025-11-24 19:30:04'),
+(136, 1, 1, 5, '2025-11-30 14:00:00', '2025-11-30 16:30:00', 'completed', '2025-11-24 19:30:04'),
+(137, 1, 2, 6, '2025-11-30 16:00:00', '2025-11-30 18:30:00', 'completed', '2025-11-24 19:30:04'),
 (138, 1, 1, 1, '2025-12-01 06:00:00', '2025-12-01 08:30:00', 'scheduled', '2025-11-24 19:30:04'),
 (139, 1, 2, 2, '2025-12-01 08:00:00', '2025-12-01 10:30:00', 'scheduled', '2025-11-24 19:30:04'),
 (140, 1, 3, 3, '2025-12-01 10:00:00', '2025-12-01 12:30:00', 'scheduled', '2025-11-24 19:30:04'),
@@ -1169,9 +1122,9 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (164, 2, 3, 3, '2025-11-29 13:00:00', '2025-11-29 15:30:00', 'completed', '2025-11-24 19:30:04'),
 (165, 2, 4, 4, '2025-11-29 16:00:00', '2025-11-29 18:30:00', 'completed', '2025-11-24 19:30:04'),
 (166, 2, 1, 1, '2025-11-30 07:30:00', '2025-11-30 10:00:00', 'completed', '2025-11-24 19:30:04'),
-(167, 2, 2, 2, '2025-11-30 10:00:00', '2025-11-30 12:30:00', 'ongoing', '2025-11-24 19:30:04'),
-(168, 2, 3, 3, '2025-11-30 13:00:00', '2025-11-30 15:30:00', 'scheduled', '2025-11-24 19:30:04'),
-(169, 2, 4, 4, '2025-11-30 15:30:00', '2025-11-30 18:00:00', 'scheduled', '2025-11-24 19:30:04'),
+(167, 2, 2, 2, '2025-11-30 10:00:00', '2025-11-30 12:30:00', 'completed', '2025-11-24 19:30:04'),
+(168, 2, 3, 3, '2025-11-30 13:00:00', '2025-11-30 15:30:00', 'completed', '2025-11-24 19:30:04'),
+(169, 2, 4, 4, '2025-11-30 15:30:00', '2025-11-30 18:00:00', 'completed', '2025-11-24 19:30:04'),
 (170, 2, 1, 1, '2025-12-01 07:00:00', '2025-12-01 09:30:00', 'scheduled', '2025-11-24 19:30:04'),
 (171, 2, 2, 2, '2025-12-01 09:30:00', '2025-12-01 12:00:00', 'scheduled', '2025-11-24 19:30:04'),
 (172, 2, 3, 3, '2025-12-01 12:00:00', '2025-12-01 14:30:00', 'scheduled', '2025-11-24 19:30:04'),
@@ -1195,9 +1148,9 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (190, 3, 1, 1, '2025-11-29 05:00:00', '2025-11-29 11:30:00', 'completed', '2025-11-24 19:30:04'),
 (191, 3, 5, 2, '2025-11-29 08:00:00', '2025-11-29 14:30:00', 'completed', '2025-11-24 19:30:04'),
 (192, 3, 2, 3, '2025-11-29 13:00:00', '2025-11-29 19:30:00', 'completed', '2025-11-24 19:30:04'),
-(193, 3, 1, 1, '2025-11-30 06:00:00', '2025-11-30 12:30:00', 'ongoing', '2025-11-24 19:30:04'),
-(194, 3, 5, 2, '2025-11-30 09:00:00', '2025-11-30 15:30:00', 'ongoing', '2025-11-24 19:30:04'),
-(195, 3, 2, 3, '2025-11-30 14:00:00', '2025-11-30 20:30:00', 'scheduled', '2025-11-24 19:30:04'),
+(193, 3, 1, 1, '2025-11-30 06:00:00', '2025-11-30 12:30:00', 'completed', '2025-11-24 19:30:04'),
+(194, 3, 5, 2, '2025-11-30 09:00:00', '2025-11-30 15:30:00', 'completed', '2025-11-24 19:30:04'),
+(195, 3, 2, 3, '2025-11-30 14:00:00', '2025-11-30 20:30:00', 'completed', '2025-11-24 19:30:04'),
 (196, 3, 1, 1, '2025-12-01 05:00:00', '2025-12-01 11:30:00', 'scheduled', '2025-11-24 19:30:04'),
 (197, 3, 5, 2, '2025-12-01 08:00:00', '2025-12-01 14:30:00', 'scheduled', '2025-11-24 19:30:04'),
 (198, 3, 2, 3, '2025-12-01 13:00:00', '2025-12-01 19:30:00', 'scheduled', '2025-11-24 19:30:04'),
@@ -1216,9 +1169,9 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (211, 4, 1, 1, '2025-11-29 06:00:00', '2025-11-29 12:30:00', 'completed', '2025-11-24 19:30:04'),
 (212, 4, 5, 2, '2025-11-29 10:00:00', '2025-11-29 16:30:00', 'completed', '2025-11-24 19:30:04'),
 (213, 4, 2, 3, '2025-11-29 14:00:00', '2025-11-29 20:30:00', 'completed', '2025-11-24 19:30:04'),
-(214, 4, 1, 1, '2025-11-30 07:00:00', '2025-11-30 13:30:00', 'ongoing', '2025-11-24 19:30:04'),
-(215, 4, 5, 2, '2025-11-30 11:00:00', '2025-11-30 17:30:00', 'scheduled', '2025-11-24 19:30:04'),
-(216, 4, 2, 3, '2025-11-30 15:00:00', '2025-11-30 21:30:00', 'scheduled', '2025-11-24 19:30:04'),
+(214, 4, 1, 1, '2025-11-30 07:00:00', '2025-11-30 13:30:00', 'completed', '2025-11-24 19:30:04'),
+(215, 4, 5, 2, '2025-11-30 11:00:00', '2025-11-30 17:30:00', 'completed', '2025-11-24 19:30:04'),
+(216, 4, 2, 3, '2025-11-30 15:00:00', '2025-11-30 21:30:00', 'ongoing', '2025-11-24 19:30:04'),
 (217, 4, 1, 1, '2025-12-01 06:00:00', '2025-12-01 12:30:00', 'scheduled', '2025-11-24 19:30:04'),
 (218, 4, 5, 2, '2025-12-01 10:00:00', '2025-12-01 16:30:00', 'scheduled', '2025-11-24 19:30:04'),
 (219, 4, 2, 3, '2025-12-01 14:00:00', '2025-12-01 20:30:00', 'scheduled', '2025-11-24 19:30:04'),
@@ -1249,9 +1202,9 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (244, 7, 1, 3, '2025-11-29 10:30:00', '2025-11-29 14:00:00', 'completed', '2025-11-24 19:30:04'),
 (245, 7, 2, 4, '2025-11-29 13:00:00', '2025-11-29 16:30:00', 'completed', '2025-11-24 19:30:04'),
 (246, 7, 1, 1, '2025-11-30 06:00:00', '2025-11-30 09:30:00', 'completed', '2025-11-24 19:30:04'),
-(247, 7, 2, 2, '2025-11-30 08:30:00', '2025-11-30 12:00:00', 'ongoing', '2025-11-24 19:30:04'),
-(248, 7, 1, 3, '2025-11-30 11:00:00', '2025-11-30 14:30:00', 'scheduled', '2025-11-24 19:30:04'),
-(249, 7, 2, 4, '2025-11-30 13:30:00', '2025-11-30 17:00:00', 'scheduled', '2025-11-24 19:30:04'),
+(247, 7, 2, 2, '2025-11-30 08:30:00', '2025-11-30 12:00:00', 'completed', '2025-11-24 19:30:04'),
+(248, 7, 1, 3, '2025-11-30 11:00:00', '2025-11-30 14:30:00', 'completed', '2025-11-24 19:30:04'),
+(249, 7, 2, 4, '2025-11-30 13:30:00', '2025-11-30 17:00:00', 'completed', '2025-11-24 19:30:04'),
 (250, 7, 1, 1, '2025-12-01 05:30:00', '2025-12-01 09:00:00', 'scheduled', '2025-11-24 19:30:04'),
 (251, 7, 2, 2, '2025-12-01 08:00:00', '2025-12-01 11:30:00', 'scheduled', '2025-11-24 19:30:04'),
 (252, 7, 1, 3, '2025-12-01 10:30:00', '2025-12-01 14:00:00', 'scheduled', '2025-11-24 19:30:04'),
@@ -1277,8 +1230,8 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (272, 8, 2, 2, '2025-11-29 09:30:00', '2025-11-29 13:00:00', 'completed', '2025-11-24 19:30:04'),
 (273, 8, 1, 3, '2025-11-29 12:30:00', '2025-11-29 16:00:00', 'completed', '2025-11-24 19:30:04'),
 (274, 8, 1, 1, '2025-11-30 07:00:00', '2025-11-30 10:30:00', 'completed', '2025-11-24 19:30:04'),
-(275, 8, 2, 2, '2025-11-30 10:00:00', '2025-11-30 13:30:00', 'ongoing', '2025-11-24 19:30:04'),
-(276, 8, 1, 3, '2025-11-30 13:00:00', '2025-11-30 16:30:00', 'scheduled', '2025-11-24 19:30:04'),
+(275, 8, 2, 2, '2025-11-30 10:00:00', '2025-11-30 13:30:00', 'completed', '2025-11-24 19:30:04'),
+(276, 8, 1, 3, '2025-11-30 13:00:00', '2025-11-30 16:30:00', 'completed', '2025-11-24 19:30:04'),
 (277, 8, 1, 1, '2025-12-01 06:30:00', '2025-12-01 10:00:00', 'scheduled', '2025-11-24 19:30:04'),
 (278, 8, 2, 2, '2025-12-01 09:30:00', '2025-12-01 13:00:00', 'scheduled', '2025-11-24 19:30:04'),
 (279, 8, 1, 3, '2025-12-01 12:30:00', '2025-12-01 16:00:00', 'scheduled', '2025-11-24 19:30:04'),
@@ -1300,8 +1253,8 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (295, 9, 2, 2, '2025-11-29 09:00:00', '2025-11-29 13:00:00', 'completed', '2025-11-24 19:30:04'),
 (296, 9, 3, 3, '2025-11-29 12:30:00', '2025-11-29 16:30:00', 'completed', '2025-11-24 19:30:04'),
 (297, 9, 1, 1, '2025-11-30 06:30:00', '2025-11-30 10:30:00', 'completed', '2025-11-24 19:30:04'),
-(298, 9, 2, 2, '2025-11-30 09:30:00', '2025-11-30 13:30:00', 'ongoing', '2025-11-24 19:30:04'),
-(299, 9, 3, 3, '2025-11-30 12:30:00', '2025-11-30 16:30:00', 'scheduled', '2025-11-24 19:30:04'),
+(298, 9, 2, 2, '2025-11-30 09:30:00', '2025-11-30 13:30:00', 'completed', '2025-11-24 19:30:04'),
+(299, 9, 3, 3, '2025-11-30 12:30:00', '2025-11-30 16:30:00', 'completed', '2025-11-24 19:30:04'),
 (300, 9, 1, 1, '2025-12-01 06:00:00', '2025-12-01 10:00:00', 'scheduled', '2025-11-24 19:30:04'),
 (301, 9, 2, 2, '2025-12-01 09:00:00', '2025-12-01 13:00:00', 'scheduled', '2025-11-24 19:30:04'),
 (302, 9, 3, 3, '2025-12-01 12:30:00', '2025-12-01 16:30:00', 'scheduled', '2025-11-24 19:30:04'),
@@ -1321,9 +1274,9 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (316, 10, 1, 1, '2025-11-29 07:00:00', '2025-11-29 11:00:00', 'completed', '2025-11-24 19:30:04'),
 (317, 10, 2, 2, '2025-11-29 10:30:00', '2025-11-29 14:30:00', 'completed', '2025-11-24 19:30:04'),
 (318, 10, 3, 3, '2025-11-29 14:00:00', '2025-11-29 18:00:00', 'completed', '2025-11-24 19:30:04'),
-(319, 10, 1, 1, '2025-11-30 07:30:00', '2025-11-30 11:30:00', 'ongoing', '2025-11-24 19:30:04'),
-(320, 10, 2, 2, '2025-11-30 11:00:00', '2025-11-30 15:00:00', 'scheduled', '2025-11-24 19:30:04'),
-(321, 10, 3, 3, '2025-11-30 14:30:00', '2025-11-30 18:30:00', 'scheduled', '2025-11-24 19:30:04'),
+(319, 10, 1, 1, '2025-11-30 07:30:00', '2025-11-30 11:30:00', 'completed', '2025-11-24 19:30:04'),
+(320, 10, 2, 2, '2025-11-30 11:00:00', '2025-11-30 15:00:00', 'completed', '2025-11-24 19:30:04'),
+(321, 10, 3, 3, '2025-11-30 14:30:00', '2025-11-30 18:30:00', 'completed', '2025-11-24 19:30:04'),
 (322, 10, 1, 1, '2025-12-01 07:00:00', '2025-12-01 11:00:00', 'scheduled', '2025-11-24 19:30:04'),
 (323, 10, 2, 2, '2025-12-01 10:30:00', '2025-12-01 14:30:00', 'scheduled', '2025-11-24 19:30:04'),
 (324, 10, 3, 3, '2025-12-01 14:00:00', '2025-12-01 18:00:00', 'scheduled', '2025-11-24 19:30:04'),
@@ -1393,20 +1346,20 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 --
 
 CREATE TABLE `trip_seats` (
-  `id` int(11) NOT NULL,
-  `trip_id` int(11) NOT NULL,
-  `seat_id` int(11) DEFAULT NULL,
-  `seat_number` varchar(10) NOT NULL,
-  `seat_type` enum('standard','vip','bed') NOT NULL DEFAULT 'standard',
-  `floor` tinyint(1) DEFAULT 1 COMMENT '1=Tầng 1, 2=Tầng 2',
-  `row_position` enum('front','middle','back') DEFAULT 'middle' COMMENT 'Vị trí hàng ghế',
-  `status` enum('available','locked','booked') NOT NULL DEFAULT 'available',
-  `ticket_id` int(11) DEFAULT NULL COMMENT 'ID vé đã đặt ghế này',
+  `id` int NOT NULL,
+  `trip_id` int NOT NULL,
+  `seat_id` int DEFAULT NULL,
+  `seat_number` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `seat_type` enum('standard','vip','bed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'standard',
+  `floor` tinyint(1) DEFAULT '1' COMMENT '1=Tầng 1, 2=Tầng 2',
+  `row_position` enum('front','middle','back') COLLATE utf8mb4_unicode_ci DEFAULT 'middle' COMMENT 'Vị trí hàng ghế',
+  `status` enum('available','locked','booked') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'available',
+  `ticket_id` int DEFAULT NULL COMMENT 'ID vé đã đặt ghế này',
   `locked_until` datetime DEFAULT NULL COMMENT 'Thời gian hết hạn khóa ghế (NULL = không khóa tạm)',
-  `locked_by_user` int(11) DEFAULT NULL COMMENT 'ID user đang giữ ghế',
+  `locked_by_user` int DEFAULT NULL COMMENT 'ID user đang giữ ghế',
   `locked_at` datetime DEFAULT NULL,
-  `locked_by` int(11) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `locked_by` int DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -13694,18 +13647,18 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 --
 
 CREATE TABLE `users` (
-  `id` int(11) NOT NULL,
-  `username` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `email` varchar(255) DEFAULT NULL,
-  `role` enum('customer','staff','admin') NOT NULL DEFAULT 'customer',
-  `full_name` varchar(255) DEFAULT NULL,
-  `phone` varchar(20) DEFAULT NULL,
-  `is_active` tinyint(1) DEFAULT 0 COMMENT 'Account active status (requires email verification)',
-  `email_verified` tinyint(1) DEFAULT 0 COMMENT 'Email verification status',
-  `otp_code` varchar(6) DEFAULT NULL COMMENT '6-digit OTP code',
+  `id` int NOT NULL,
+  `username` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `role` enum('customer','staff','admin') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'customer',
+  `full_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `phone` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT '0' COMMENT 'Account active status (requires email verification)',
+  `email_verified` tinyint(1) DEFAULT '0' COMMENT 'Email verification status',
+  `otp_code` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `otp_expires_at` datetime DEFAULT NULL COMMENT 'OTP expiration time',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -13718,7 +13671,7 @@ INSERT INTO `users` (`id`, `username`, `password`, `email`, `role`, `full_name`,
 (3, 'admin123', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'customer1@example.com', 'admin', 'Customer One', '0901234567', 1, 1, NULL, NULL, '2025-11-25 06:17:54'),
 (4, 'LNNT2', '$2a$10$1oh2Wd32GgocOttFxUnjiOGi88zRzTN28.bOI5NDuJzqvS646d9xS', 'lnntam04@gmail.com', 'customer', 'Lê Nguyễn Nhất Tâm', '0868253505', 1, 1, NULL, NULL, '2025-11-25 06:25:43'),
 (5, 'user1', '$2a$10$oF60rJe3koKyLdSPxQ/3COe5ltSrCNr/MbU.mS.JJcII5Egr3DWN.', 'user1@gmail.com', 'customer', 'user1', '0969242323', 1, 1, NULL, NULL, '2025-11-26 12:37:17'),
-(6, 'tester', '$2a$10$sti594N2gRMp4rI6Z/kGpOSOmC5kVmf9810wlgEuC9FAnF.0SphEq', 'hieple5@gmail.com', 'customer', 'tset', '0868253303', 1, 1, NULL, NULL, '2025-11-27 19:37:38');
+(6, 'tester', '$2a$10$sti594N2gRMp4rI6Z/kGpOSOmC5kVmf9810wlgEuC9FAnF.0SphEq', 'hieple6@gmail.com', 'customer', 'tset', '0868253303', 1, 1, NULL, NULL, '2025-11-27 19:37:38');
 
 -- --------------------------------------------------------
 
@@ -13727,48 +13680,48 @@ INSERT INTO `users` (`id`, `username`, `password`, `email`, `role`, `full_name`,
 --
 
 CREATE TABLE `vehicles` (
-  `id` int(11) NOT NULL,
-  `license_plate` varchar(20) NOT NULL,
-  `model` varchar(100) DEFAULT NULL,
-  `seat_capacity` int(11) NOT NULL,
-  `total_seats` int(11) NOT NULL,
-  `seats_layout` text DEFAULT NULL,
-  `vehicle_type` enum('standard','vip','sleeper') NOT NULL DEFAULT 'standard',
-  `status` varchar(50) DEFAULT 'active',
-  `is_active` tinyint(1) DEFAULT 1,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `vehicle_type_display` varchar(100) DEFAULT NULL COMMENT 'Tên hiển thị loại xe (Giường nằm, Ghế ngồi, Limousine)',
-  `amenities` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'Tiện nghi xe (JSON array): wifi, tv, nước, khăn lạnh...' CHECK (json_valid(`amenities`))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `id` int NOT NULL,
+  `license_plate` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `model` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `seat_capacity` int NOT NULL,
+  `total_seats` int NOT NULL,
+  `vehicle_type` enum('standard','vip','sleeper') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'standard',
+  `status` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT 'active',
+  `is_active` tinyint(1) DEFAULT '1',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `vehicle_type_display` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `amenities` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'Tiện nghi xe (JSON array): wifi, tv, nước, khăn lạnh...',
+  `seats_layout` text COLLATE utf8mb4_unicode_ci
+) ;
 
 --
 -- Dumping data for table `vehicles`
 --
 
-INSERT INTO `vehicles` (`id`, `license_plate`, `model`, `seat_capacity`, `total_seats`, `seats_layout`, `vehicle_type`, `status`, `is_active`, `created_at`, `vehicle_type_display`, `amenities`) VALUES
-(1, '51B-12345', 'Hyundai Universe', 40, 40, NULL, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]'),
-(2, '51B-12346', 'Thaco Universe', 40, 24, NULL, 'vip', 'active', 1, '2025-11-23 14:12:35', 'Limousine VIP', '[\"wifi\", \"nước suối\", \"khăn lạnh\", \"tv\", \"điều hòa\", \"ghế massage\"]'),
-(3, '51B-12347', 'Hyundai Universe', 40, 40, NULL, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]'),
-(4, '51B-12348', 'Thaco Universe', 40, 24, NULL, 'vip', 'active', 1, '2025-11-23 14:12:35', 'Limousine VIP', '[\"wifi\", \"nước suối\", \"khăn lạnh\", \"tv\", \"điều hòa\", \"ghế massage\"]'),
-(5, '51B-12349', 'Hyundai Universe', 40, 32, NULL, 'sleeper', 'active', 1, '2025-11-23 14:12:35', 'Giường nằm', '[\"wifi\", \"nước suối\", \"chăn gối\", \"điều hòa\", \"rèm che\"]'),
-(6, '51B-12350', 'Thaco Universe', 40, 40, NULL, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]'),
-(7, '51B-12351', 'Hyundai Universe', 40, 24, NULL, 'vip', 'active', 1, '2025-11-23 14:12:35', 'Limousine VIP', '[\"wifi\", \"nước suối\", \"khăn lạnh\", \"tv\", \"điều hòa\", \"ghế massage\"]'),
-(8, '51B-12352', 'Thaco Universe', 40, 40, NULL, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]'),
-(9, '51B-12353', 'Hyundai Universe', 40, 32, NULL, 'sleeper', 'active', 1, '2025-11-23 14:12:35', 'Giường nằm', '[\"wifi\", \"nước suối\", \"chăn gối\", \"điều hòa\", \"rèm che\"]'),
-(10, '51B-12354', 'Thaco Universe', 40, 40, NULL, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]');
+INSERT INTO `vehicles` (`id`, `license_plate`, `model`, `seat_capacity`, `total_seats`, `vehicle_type`, `status`, `is_active`, `created_at`, `vehicle_type_display`, `amenities`, `seats_layout`) VALUES
+(1, '51B-12345', 'Hyundai Universe', 40, 40, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]', NULL),
+(2, '51B-12346', 'Thaco Universe', 40, 24, 'vip', 'active', 1, '2025-11-23 14:12:35', 'Limousine VIP', '[\"wifi\", \"nước suối\", \"khăn lạnh\", \"tv\", \"điều hòa\", \"ghế massage\"]', NULL),
+(3, '51B-12347', 'Hyundai Universe', 40, 40, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]', NULL),
+(4, '51B-12348', 'Thaco Universe', 40, 24, 'vip', 'active', 1, '2025-11-23 14:12:35', 'Limousine VIP', '[\"wifi\", \"nước suối\", \"khăn lạnh\", \"tv\", \"điều hòa\", \"ghế massage\"]', NULL),
+(5, '51B-12349', 'Hyundai Universe', 40, 32, 'sleeper', 'active', 1, '2025-11-23 14:12:35', 'Giường nằm', '[\"wifi\", \"nước suối\", \"chăn gối\", \"điều hòa\", \"rèm che\"]', NULL),
+(6, '51B-12350', 'Thaco Universe', 40, 40, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]', NULL),
+(7, '51B-12351', 'Hyundai Universe', 40, 24, 'vip', 'active', 1, '2025-11-23 14:12:35', 'Limousine VIP', '[\"wifi\", \"nước suối\", \"khăn lạnh\", \"tv\", \"điều hòa\", \"ghế massage\"]', NULL),
+(8, '51B-12352', 'Thaco Universe', 40, 40, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]', NULL),
+(9, '51B-12353', 'Hyundai Universe', 40, 32, 'sleeper', 'active', 1, '2025-11-23 14:12:35', 'Giường nằm', '[\"wifi\", \"nước suối\", \"chăn gối\", \"điều hòa\", \"rèm che\"]', NULL),
+(10, '51B-12354', 'Thaco Universe', 40, 40, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]', NULL);
 
 --
 -- Indexes for dumped tables
 --
 
 --
--- Indexes for table `booking_history`
+-- Indexes for table `contact_messages`
 --
-ALTER TABLE `booking_history`
+ALTER TABLE `contact_messages`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `action_by` (`action_by`),
-  ADD KEY `idx_ticket` (`ticket_id`),
-  ADD KEY `idx_action` (`action`);
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_created` (`created_at`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Indexes for table `drivers`
@@ -13818,14 +13771,6 @@ ALTER TABLE `payments`
   ADD KEY `idx_booking_group` (`booking_group_id`);
 
 --
--- Indexes for table `pending_cities`
---
-ALTER TABLE `pending_cities`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `city_name` (`city_name`),
-  ADD KEY `idx_status` (`status`);
-
---
 -- Indexes for table `promotions`
 --
 ALTER TABLE `promotions`
@@ -13843,14 +13788,6 @@ ALTER TABLE `routes`
   ADD KEY `idx_locations` (`from_location`,`to_location`),
   ADD KEY `idx_from` (`from_location`),
   ADD KEY `idx_to` (`to_location`);
-
---
--- Indexes for table `route_stations`
---
-ALTER TABLE `route_stations`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unique_route_station` (`route_id`,`station_id`,`station_type`),
-  ADD KEY `station_id` (`station_id`);
 
 --
 -- Indexes for table `seats`
@@ -13939,117 +13876,104 @@ ALTER TABLE `vehicles`
 --
 
 --
--- AUTO_INCREMENT for table `booking_history`
+-- AUTO_INCREMENT for table `contact_messages`
 --
-ALTER TABLE `booking_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `contact_messages`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `drivers`
 --
 ALTER TABLE `drivers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `feedback`
 --
 ALTER TABLE `feedback`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `invoices`
 --
 ALTER TABLE `invoices`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Invoice ID', AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT COMMENT 'Invoice ID';
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
-
---
--- AUTO_INCREMENT for table `pending_cities`
---
-ALTER TABLE `pending_cities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
 
 --
 -- AUTO_INCREMENT for table `promotions`
 --
 ALTER TABLE `promotions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `routes`
 --
 ALTER TABLE `routes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
-
---
--- AUTO_INCREMENT for table `route_stations`
---
-ALTER TABLE `route_stations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `seats`
 --
 ALTER TABLE `seats`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=337;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=337;
 
 --
 -- AUTO_INCREMENT for table `stations`
 --
 ALTER TABLE `stations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `tickets`
 --
 ALTER TABLE `tickets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=149;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=149;
 
 --
 -- AUTO_INCREMENT for table `trips`
 --
 ALTER TABLE `trips`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=383;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=383;
 
 --
 -- AUTO_INCREMENT for table `trip_seats`
 --
 ALTER TABLE `trip_seats`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39615;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39615;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `vehicles`
 --
 ALTER TABLE `vehicles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
 --
 
 --
--- Constraints for table `booking_history`
+-- Constraints for table `contact_messages`
 --
-ALTER TABLE `booking_history`
-  ADD CONSTRAINT `booking_history_ibfk_1` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `booking_history_ibfk_2` FOREIGN KEY (`action_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+ALTER TABLE `contact_messages`
+  ADD CONSTRAINT `contact_messages_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `feedback`
@@ -14070,13 +13994,6 @@ ALTER TABLE `invoices`
 --
 ALTER TABLE `notifications`
   ADD CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `route_stations`
---
-ALTER TABLE `route_stations`
-  ADD CONSTRAINT `route_stations_ibfk_1` FOREIGN KEY (`route_id`) REFERENCES `routes` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `route_stations_ibfk_2` FOREIGN KEY (`station_id`) REFERENCES `stations` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `seats`

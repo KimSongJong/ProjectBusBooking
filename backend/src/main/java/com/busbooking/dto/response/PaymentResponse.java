@@ -22,5 +22,6 @@ public class PaymentResponse {
     private String transactionId;
     private LocalDateTime paymentDate;
     private LocalDateTime createdAt;
+    private PromotionResponse promotion; // ✅ Add promotion info for invoice display
 }
 

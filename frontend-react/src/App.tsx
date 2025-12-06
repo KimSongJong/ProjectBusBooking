@@ -31,7 +31,7 @@ import AdminSeats from "./pages/Adminpage/AdminSeats";
 import AdminPromotions from "./pages/Adminpage/AdminPromotions";
 import AdminPayments from "./pages/Adminpage/AdminPayments";
 import AdminStations from "./pages/AdminStations";
-import AdminPendingCities from "./pages/Adminpage/AdminPendingCities";
+import AdminCities from "./pages/Adminpage/AdminCities";
 import AdminFeedback from "./pages/Adminpage/AdminFeedback";
 import "./App.css";
 
@@ -150,10 +150,10 @@ function App() {
             }
           />
           <Route
-            path="/admin/pending-cities"
+            path="/admin/cities"
             element={
               <AdminProtectedRoute>
-                <AdminPendingCities />
+                <AdminCities />
               </AdminProtectedRoute>
             }
           />

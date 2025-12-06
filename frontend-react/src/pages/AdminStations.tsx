@@ -78,6 +78,7 @@ const MAJOR_CITIES = VIETNAM_PROVINCES;
 export default function AdminStations() {
   const [stations, setStations] = useState<Station[]>([]);
   const [filteredStations, setFilteredStations] = useState<Station[]>([]);
+  const [cities, setCities] = useState<string[]>(VIETNAM_PROVINCES); // 🆕 Load from API
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [filterCity, setFilterCity] = useState('all');
@@ -99,10 +100,8 @@ export default function AdminStations() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isGeocoding, setIsGeocoding] = useState(false);
 
-  // 🆕 City input with confirmation
+  // City input value (for tracking selected city)
   const [cityInputValue, setCityInputValue] = useState('');
-  const [showCityConfirmDialog, setShowCityConfirmDialog] = useState(false);
-  const [pendingCityValue, setPendingCityValue] = useState('');
 
   // Map state
   const [mapCenter, setMapCenter] = useState({ lat: 16.0, lng: 108.0 }); // Vietnam center
@@ -153,7 +152,24 @@ export default function AdminStations() {
 
   useEffect(() => {
     fetchStations();
+    fetchCities(); // 🆕 Load cities from API
   }, []);
+
+  // 🆕 Fetch cities from backend
+  const fetchCities = async () => {
+    try {
+      const response = await adminApi.get('/cities');
+      if (response.success && response.data) {
+        const cityNames = response.data.map((city: any) => city.name);
+        setCities(cityNames);
+        console.log('📍 Loaded', cityNames.length, 'cities from API');
+      }
+    } catch (error) {
+      console.error('❌ Error loading cities:', error);
+      // Fallback to VIETNAM_PROVINCES if API fails
+      setCities(VIETNAM_PROVINCES);
+    }
+  };
 
   useEffect(() => {
     filterStationList();
@@ -255,8 +271,6 @@ export default function AdminStations() {
     setEditingStation(null);
     setSearchQuery('');
     setCityInputValue('');
-    setShowCityConfirmDialog(false);
-    setPendingCityValue('');
     setMapCenter({ lat: 16.0, lng: 108.0 });
     setMarkerPosition(null);
   };
@@ -404,7 +418,6 @@ export default function AdminStations() {
     return found?.label || type;
   };
 
-  const cities = Array.from(new Set(stations.map((s) => s.city))).sort();
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -603,39 +616,23 @@ export default function AdminStations() {
                       <Select
                         value={formData.city}
                         onValueChange={(value) => {
-                          if (value === '__custom__') {
-                            // User wants to enter custom city
-                            setShowCityConfirmDialog(true);
-                            setPendingCityValue('');
-                          } else {
-                            // User selected from list
-                            setFormData({ ...formData, city: value });
-                            setCityInputValue(value);
-                          }
+                          setFormData({ ...formData, city: value });
+                          setCityInputValue(value);
                         }}
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Chọn hoặc nhập thành phố" />
                         </SelectTrigger>
                         <SelectContent>
-                          {MAJOR_CITIES.map((city) => (
+                          {cities.map((city) => (
                             <SelectItem key={city} value={city}>
                               {city}
                             </SelectItem>
                           ))}
-                          <SelectItem value="__custom__" className="text-orange-600 font-medium border-t mt-2 pt-2">
-                            ✏️ Nhập thành phố khác...
-                          </SelectItem>
                         </SelectContent>
                       </Select>
 
-                      {cityInputValue && !MAJOR_CITIES.includes(cityInputValue.trim()) && (
-                        <p className="text-xs text-orange-600 flex items-center gap-1">
-                          ⚠️ Thành phố này không có trong danh sách. Bấm ra ngoài để xác nhận.
-                        </p>
-                      )}
-
-                      {formData.city && MAJOR_CITIES.includes(formData.city) && (
+                      {formData.city && (
                         <p className="text-xs text-green-600 flex items-center gap-1">
                           ✅ Đã chọn: {formData.city}
                         </p>
@@ -791,98 +788,7 @@ export default function AdminStations() {
           </Dialog>
 
           {/* 🆕 City Confirmation Dialog */}
-          <Dialog open={showCityConfirmDialog} onOpenChange={setShowCityConfirmDialog}>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle className="text-xl flex items-center gap-2">
-                  ✏️ Nhập thành phố mới
-                </DialogTitle>
-                <DialogDescription>
-                  Thành phố này chưa có trong danh sách. Vui lòng nhập chính xác.
-                </DialogDescription>
-              </DialogHeader>
 
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="custom-city">Tên thành phố *</Label>
-                  <Input
-                    id="custom-city"
-                    value={pendingCityValue}
-                    onChange={(e) => setPendingCityValue(e.target.value)}
-                    placeholder="VD: Bình Phước, Tây Ninh..."
-                    autoFocus
-                    className="text-lg"
-                  />
-                  <p className="text-xs text-slate-500">
-                    💡 Gõ chính xác tên tỉnh/thành phố
-                  </p>
-                </div>
-
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                  <p className="text-sm text-slate-700 mb-2">
-                    💡 <strong>Danh sách thành phố phổ biến:</strong>
-                  </p>
-                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-                    {MAJOR_CITIES.map((city) => (
-                      <button
-                        key={city}
-                        type="button"
-                        onClick={() => {
-                          setFormData({ ...formData, city });
-                          setCityInputValue(city);
-                          setShowCityConfirmDialog(false);
-                          toast.success(`✅ Đã chọn: ${city}`);
-                        }}
-                        className="px-3 py-1 text-xs bg-white border border-slate-300 rounded-full hover:bg-blue-50 hover:border-blue-400 transition-colors"
-                      >
-                        {city}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setPendingCityValue('');
-                      setShowCityConfirmDialog(false);
-                      toast.info('Đã hủy. Vui lòng chọn lại.');
-                    }}
-                    className="flex-1"
-                  >
-                    Hủy
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      const city = pendingCityValue.trim();
-                      if (!city) {
-                        toast.error('Vui lòng nhập tên thành phố');
-                        return;
-                      }
-                      setFormData({ ...formData, city });
-                      setCityInputValue(city);
-                      setShowCityConfirmDialog(false);
-                      toast.success(`✅ Đã xác nhận: ${city}`);
-                    }}
-                    disabled={!pendingCityValue.trim()}
-                    className="flex-1 bg-orange-600 hover:bg-orange-700"
-                  >
-                    ✅ Xác nhận
-                  </Button>
-                </div>
-
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                  <p className="text-xs text-yellow-800">
-                    ⚠️ <strong>Lưu ý:</strong> Nếu bạn chắc chắn thành phố này đúng, hãy bấm <strong>"Xác nhận"</strong>.
-                    Nếu không, hãy chọn lại từ danh sách gợi ý.
-                  </p>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
         </div>
       </main>
     </div>

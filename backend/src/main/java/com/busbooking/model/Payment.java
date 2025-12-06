@@ -44,6 +44,11 @@ public class Payment {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    // ⭐ ADD: Promotion relationship
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "promotion_id")
+    private Promotion promotion;
+
     public enum PaymentMethod {
         credit_card,
         debit_card,
@@ -65,4 +70,3 @@ public class Payment {
         createdAt = LocalDateTime.now();
     }
 }
-

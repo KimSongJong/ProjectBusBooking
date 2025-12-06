@@ -26,6 +26,7 @@ public class RouteService {
     private final RouteMapper routeMapper;
     private final OpenStreetMapService openStreetMapService;
     private final com.busbooking.repository.StationRepository stationRepository;
+    private final CityService cityService;
 
     public List<RouteResponse> getAllRoutes() {
         return routeRepository.findAll().stream()
@@ -209,18 +210,20 @@ public class RouteService {
     ) {
         log.info("🏙️ Calculating route from city {} to {}", fromCity, toCity);
 
-        // Get city center coordinates (hardcoded for major cities)
-        Map<String, double[]> cityCenters = getCityCenters();
+        // Get cities from database
+        com.busbooking.model.City fromCityObj = cityService.getCityByName(fromCity);
+        com.busbooking.model.City toCityObj = cityService.getCityByName(toCity);
 
-        if (!cityCenters.containsKey(fromCity)) {
-            throw new IllegalArgumentException("City not supported: " + fromCity);
+        // Validate coordinates exist
+        if (fromCityObj.getLatitude() == null || fromCityObj.getLongitude() == null) {
+            throw new IllegalArgumentException("City '" + fromCity + "' does not have coordinates");
         }
-        if (!cityCenters.containsKey(toCity)) {
-            throw new IllegalArgumentException("City not supported: " + toCity);
+        if (toCityObj.getLatitude() == null || toCityObj.getLongitude() == null) {
+            throw new IllegalArgumentException("City '" + toCity + "' does not have coordinates");
         }
 
-        double[] fromCoords = cityCenters.get(fromCity);
-        double[] toCoords = cityCenters.get(toCity);
+        double[] fromCoords = new double[]{fromCityObj.getLatitude(), fromCityObj.getLongitude()};
+        double[] toCoords = new double[]{toCityObj.getLatitude(), toCityObj.getLongitude()};
 
         log.info("✅ City centers: {} ({}, {}) → {} ({}, {})",
                 fromCity, fromCoords[0], fromCoords[1],
@@ -253,27 +256,4 @@ public class RouteService {
         return response;
     }
 
-    /**
-     * Get city center coordinates for major Vietnamese cities
-     * @return Map of city name to [latitude, longitude]
-     */
-    private Map<String, double[]> getCityCenters() {
-        Map<String, double[]> centers = new HashMap<>();
-        centers.put("TP Hồ Chí Minh", new double[]{10.8231, 106.6297}); // TPHCM center
-        centers.put("Hà Nội", new double[]{21.0285, 105.8542}); // Hanoi center
-        centers.put("Đà Nẵng", new double[]{16.0544, 108.2022}); // Da Nang center
-        centers.put("Nha Trang", new double[]{12.2388, 109.1967}); // Nha Trang center
-        centers.put("Đà Lạt", new double[]{11.9404, 108.4583}); // Da Lat center
-        centers.put("Vũng Tàu", new double[]{10.4113, 107.1362}); // Vung Tau center
-        centers.put("Phan Thiết", new double[]{10.9289, 108.1022}); // Phan Thiet center
-        centers.put("Cần Thơ", new double[]{10.0452, 105.7469}); // Can Tho center
-        centers.put("Huế", new double[]{16.4637, 107.5909}); // Hue center
-        centers.put("Quy Nhơn", new double[]{13.7830, 109.2196}); // Quy Nhon center
-        centers.put("Hải Phòng", new double[]{20.8449, 106.6881}); // Hai Phong center
-        centers.put("Buôn Ma Thuột", new double[]{12.6667, 108.0500}); // Buon Ma Thuot center
-        centers.put("Pleiku", new double[]{13.9833, 108.0000}); // Pleiku center
-        centers.put("Vinh", new double[]{18.6792, 105.6922}); // Vinh center
-        centers.put("Biên Hòa", new double[]{10.9510, 106.8442}); // Bien Hoa center
-        return centers;
-    }
 }

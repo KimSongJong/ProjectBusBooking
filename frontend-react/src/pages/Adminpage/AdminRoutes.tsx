@@ -34,7 +34,6 @@ import { FaPlus, FaEdit, FaSearch, FaSave, FaTimes, FaMapMarkerAlt } from "react
 import routeService from "@/services/route.service"
 import adminApi from "@/config/adminAxios" // 🔑 Use admin axios
 import type { Route, CreateRouteRequest, UpdateRouteRequest } from "@/types/route.types"
-import { VIETNAM_PROVINCES } from "@/constants/provinces"
 import {
   validateDistance,
   validatePrice,
@@ -66,6 +65,7 @@ interface RouteCalculation {
 function AdminRoutes() {
   const [routes, setRoutes] = useState<Route[]>([])
   const [stations, setStations] = useState<Station[]>([])
+  const [cities, setCities] = useState<string[]>([]) // 🆕 Load from API
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -83,8 +83,8 @@ function AdminRoutes() {
     estimatedDuration: 0,
   })
 
-  // 🏙️ Sorted cities list (priority cities first)
-  const sortedCities = sortCitiesByPriority(STANDARD_CITIES)
+  // 🏙️ Sorted cities list (priority cities first) - load from API or fallback to STANDARD_CITIES
+  const sortedCities = sortCitiesByPriority(cities.length > 0 ? cities : STANDARD_CITIES)
 
   // 🗺️ City center coordinates for map visualization
   const getCityCoordinates = (cityName: string): [number, number] => {
@@ -111,6 +111,7 @@ function AdminRoutes() {
   useEffect(() => {
     fetchRoutes()
     fetchStations()
+    fetchCities() // 🆕 Load cities from API
   }, [])
 
   const fetchRoutes = async () => {
@@ -138,6 +139,19 @@ function AdminRoutes() {
     } catch (error) {
       console.error('Error fetching stations:', error)
       toast.error('Không thể tải danh sách trạm xe')
+    }
+  }
+
+  const fetchCities = async () => {
+    try {
+      // 🔑 Use adminApi to fetch cities
+      const result = await adminApi.get('/cities')
+      if (result.success && result.data) {
+        setCities(result.data.map((city: any) => city.name)) // Assuming city object has a 'name' field
+      }
+    } catch (error) {
+      console.error('Error fetching cities:', error)
+      toast.error('Không thể tải danh sách thành phố')
     }
   }
 
@@ -668,5 +682,3 @@ function AdminRoutes() {
 }
 
 export default AdminRoutes
-
-

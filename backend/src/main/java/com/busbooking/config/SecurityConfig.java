@@ -56,7 +56,7 @@ public class SecurityConfig {
 
                 // ⚠️ IMPORTANT: Admin endpoints MUST be before permitAll() rules!
                 // Admin endpoints - require ADMIN role (note: context-path is /api, so /admin/** maps to /api/admin/**)
-                .requestMatchers("/admin/**").hasRole("ADMIN")  // All admin endpoints (maps to /api/admin/**)
+                .requestMatchers("/admin/**").hasRole("ADMIN")  // All admin endpoints including /admin/cities (maps to /api/admin/**)
 
                 // Public endpoints - no authentication required
                 .requestMatchers("/auth/**").permitAll()  // Authentication endpoints
@@ -73,6 +73,7 @@ public class SecurityConfig {
                 .requestMatchers("/trip-seats/**").permitAll()  // Browse trip seats (maps to /api/trip-seats)
                 .requestMatchers("/promotions/**").permitAll()  // View promotions (maps to /api/promotions)
                 .requestMatchers("/stations/**").permitAll()  // Station endpoints (maps to /api/stations)
+                .requestMatchers("/cities/**").permitAll()  // City endpoints (maps to /api/cities) - GET public, POST/PUT/DELETE require ADMIN (@PreAuthorize)
                 .requestMatchers("/seats/**").permitAll()     // Seat management (maps to /api/seats)
                 .requestMatchers("/vehicles/**").permitAll()  // Vehicle info (maps to /api/vehicles)
 
@@ -82,8 +83,9 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.PUT, "/tickets/**").permitAll()  // Allow PUT
                 .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/tickets/**").permitAll()  // Allow PATCH
 
-                // Report endpoints - require authentication (role check in @PreAuthorize)
-                .requestMatchers("/reports/**").authenticated()  // Report generation (maps to /api/reports)
+                // Report endpoints
+                .requestMatchers("/reports/invoice/pdf/**").permitAll()  // Allow public invoice PDF generation (with valid booking ID)
+                .requestMatchers("/reports/**").authenticated()  // Other reports require authentication (role check in @PreAuthorize)
 
                 // Contact/Feedback endpoints - allow public POST
                 .requestMatchers("/contact/**").permitAll()  // Allow public to send feedback (maps to /api/contact)

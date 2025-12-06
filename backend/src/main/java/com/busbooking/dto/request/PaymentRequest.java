@@ -16,7 +16,7 @@ public class PaymentRequest {
     @NotNull(message = "Booking group ID is required")
     private String bookingGroupId;
 
-    private Integer ticketCount = 1;
+    private Integer ticketCount;
 
     @NotNull(message = "Amount is required")
     @Positive(message = "Amount must be positive")
@@ -26,5 +26,17 @@ public class PaymentRequest {
     private String paymentMethod; // credit_card, debit_card, cash, vnpay, momo, zalopay
 
     private String transactionId;
+
+    // ⭐ ADD: Promotion code to track which promotion was applied
+    private String promotionCode;
+
+    // Explicit getter/setter for promotionCode (Lombok compatibility fix)
+    public String getPromotionCode() {
+        return promotionCode;
+    }
+
+    public void setPromotionCode(String promotionCode) {
+        this.promotionCode = promotionCode;
+    }
 }
 

@@ -17,6 +17,9 @@ public class PaymentMapper {
     @Autowired
     private TicketRepository ticketRepository;
 
+    @Autowired
+    private PromotionMapper promotionMapper;
+
     public Payment toEntity(PaymentRequest request) {
         Payment payment = new Payment();
 
@@ -68,7 +71,8 @@ public class PaymentMapper {
                 payment.getPaymentStatus().name(),
                 payment.getTransactionId(),
                 payment.getPaymentDate(),
-                payment.getCreatedAt()
+                payment.getCreatedAt(),
+                payment.getPromotion() != null ? promotionMapper.toResponse(payment.getPromotion()) : null // ✅ Map promotion
         );
     }
 

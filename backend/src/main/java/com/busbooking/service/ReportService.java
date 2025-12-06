@@ -26,6 +26,9 @@ public class ReportService {
     @Autowired
     private PaymentRepository paymentRepository;
 
+    @Autowired
+    private com.busbooking.repository.TicketRepository ticketRepository;
+
     /**
      * Generate Payment Report PDF
      */
@@ -287,6 +290,125 @@ public class ReportService {
             case "refunded": return "Đã hoàn tiền";
             default: return status;
         }
+    }
+
+    /**
+     * Generate Invoice PDF for single booking
+     * This uses the same format as the web invoice display
+     */
+    public byte[] generateInvoicePdf(String bookingGroupId) throws Exception {
+        // Get payment with booking data
+        Payment payment = paymentRepository.findByBookingGroupId(bookingGroupId)
+                .orElseThrow(() -> new RuntimeException("Payment not found for booking: " + bookingGroupId));
+
+        // Get all tickets for this booking using TicketRepository
+        List<com.busbooking.model.Ticket> tickets = ticketRepository.findByBookingGroupId(bookingGroupId);
+        if (tickets == null || tickets.isEmpty()) {
+            throw new RuntimeException("No tickets found for booking: " + bookingGroupId);
+        }
+
+        // Prepare ticket data for report
+        List<Map<String, Object>> ticketData = new ArrayList<>();
+        double originalPrice = 0.0;
+
+        for (com.busbooking.model.Ticket ticket : tickets) {
+            Map<String, Object> row = new HashMap<>();
+            row.put("ticketId", ticket.getId());
+            row.put("customerName", ticket.getCustomerName());
+            row.put("customerPhone", ticket.getCustomerPhone());
+
+            // Trip type
+            String tripType = ticket.getIsReturnTrip() != null && ticket.getIsReturnTrip() ? "Chiều về" : "Chiều đi";
+            row.put("tripType", tripType);
+
+            // Route name (use fromLocation and toLocation)
+            if (ticket.getTrip() != null && ticket.getTrip().getRoute() != null) {
+                String routeName = ticket.getTrip().getRoute().getFromLocation() + " → " +
+                                 ticket.getTrip().getRoute().getToLocation();
+                row.put("routeName", routeName);
+
+                // Departure time
+                if (ticket.getTrip().getDepartureTime() != null) {
+                    row.put("departureTime", ticket.getTrip().getDepartureTime()
+                            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+                } else {
+                    row.put("departureTime", "N/A");
+                }
+            } else {
+                row.put("routeName", "N/A");
+                row.put("departureTime", "N/A");
+            }
+
+            // Seat number
+            if (ticket.getSeat() != null) {
+                row.put("seatNumber", ticket.getSeat().getSeatNumber());
+            } else {
+                row.put("seatNumber", "N/A");
+            }
+
+            // Pickup and dropoff points
+            row.put("pickupPoint", ticket.getPickupPoint() != null ? ticket.getPickupPoint() : "N/A");
+            row.put("dropoffPoint", ticket.getDropoffPoint() != null ? ticket.getDropoffPoint() : "N/A");
+
+            // Price
+            if (ticket.getPrice() != null) {
+                row.put("price", formatCurrency(ticket.getPrice().doubleValue()));
+                originalPrice += ticket.getPrice().doubleValue();
+            } else {
+                row.put("price", "N/A");
+            }
+
+            ticketData.add(row);
+        }
+
+        // Create data source
+        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(ticketData);
+
+        // Load invoice template
+        ClassPathResource resource = new ClassPathResource("reports/invoice_report.jrxml");
+        JasperReport jasperReport = JasperCompileManager.compileReport(resource.getInputStream());
+
+        // Prepare parameters
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("companyName", "CÔNG TY TPT BUS");
+        parameters.put("bookingGroupId", payment.getBookingGroupId());
+        parameters.put("reportDate", LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        parameters.put("paymentMethod", getPaymentMethodLabel(payment.getPaymentMethod().name()));
+        parameters.put("paymentDate", payment.getPaymentDate() != null ?
+                payment.getPaymentDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "Chưa thanh toán");
+        parameters.put("status", getStatusLabel(payment.getPaymentStatus().name()));
+        parameters.put("ticketCount", tickets.size());
+
+        // Calculate prices
+        parameters.put("originalPrice", formatCurrency(originalPrice));
+
+        // Add promotion info if exists
+        double discountAmount = 0.0;
+        if (payment.getPromotion() != null) {
+            parameters.put("promotionCode", payment.getPromotion().getCode());
+
+            // Calculate discount amount
+            if (payment.getPromotion().getDiscountType() == com.busbooking.model.Promotion.DiscountType.percentage) {
+                discountAmount = originalPrice * payment.getPromotion().getDiscountValue().doubleValue() / 100.0;
+                parameters.put("promotionDiscount", payment.getPromotion().getDiscountValue().intValue() + "%");
+            } else {
+                discountAmount = payment.getPromotion().getDiscountValue().doubleValue();
+                parameters.put("promotionDiscount", formatCurrency(discountAmount));
+            }
+
+            parameters.put("discountAmount", formatCurrency(discountAmount));
+        } else {
+            parameters.put("promotionCode", null);
+            parameters.put("promotionDiscount", null);
+            parameters.put("discountAmount", null);
+        }
+
+        // Final amount (use payment.amount as it's the actual paid amount)
+        parameters.put("totalAmount", formatCurrency(payment.getAmount().doubleValue()));
+
+        // Fill report
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
+        return JasperExportManager.exportReportToPdf(jasperPrint);
     }
 }
 

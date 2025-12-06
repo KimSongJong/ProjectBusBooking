@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -236,168 +236,77 @@
             </div>
         </div>
 
-        <h2 style="color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 30px;">📋 HÓA ĐƠN VÉ <span th:if="${tripType == 'round_trip'}" style="color: #4CAF50;">KHỨ HỒI</span></h2>
+        <h2 style="color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 30px;">📋 CHI TIẾT VÉ</h2>
 
-        <!-- ONE-WAY TICKET -->
-        <div th:if="${tripType == 'one_way'}" style="background-color: #f0f9ff; border-left: 5px solid #2196F3; padding: 25px; margin: 25px 0; border-radius: 8px;">
-            <div style="margin-bottom: 20px;">
-                <h3 style="color: #2196F3; margin: 0 0 15px 0; font-size: 18px;">🚌 CHUYẾN ĐI</h3>
-            </div>
-
-            <div style="margin-bottom: 15px;">
-                <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                    <span style="color: #666; font-size: 14px;">📍 Tuyến đường</span>
-                </div>
-                <div style="font-weight: bold; color: #333; font-size: 16px;">
-                    <span th:text="${fromCity}">Đà Nẵng</span>
-                    <span style="color: #2196F3;">→</span>
-                    <span th:text="${toCity}">Nha Trang</span>
-                </div>
-            </div>
-
-            <div style="margin-bottom: 15px;">
-                <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                    <span style="color: #666; font-size: 14px;">🕐 Khởi hành</span>
-                </div>
-                <div style="font-weight: bold; color: #333;">
-                    <span th:text="${#temporals.format(departureTime, 'HH:mm:ss dd/MM/yyyy')}">08:00:30 29/11/2025</span>
-                </div>
-                <div style="margin-top: 5px; color: #666; font-size: 14px;">
-                    Số ghế: <span style="font-weight: bold; color: #2196F3;" th:text="${seats != null ? #strings.listJoin(seats, ', ') : 'N/A'}">A02</span>
-                </div>
-            </div>
-
-            <div style="margin-bottom: 15px; color: #666; font-size: 14px;">
-                <div>🚗 Xe: <span style="font-weight: 600; color: #333;" th:text="${vehiclePlate}">51B-12345</span></div>
-                <div style="margin-top: 5px;">
-                    🎯 Điểm đón: <span style="font-weight: 600; color: #333;" th:text="${pickupPoint != null ? pickupPoint : 'N/A'}">Bến xe Đà Nẵng</span>
-                </div>
-                <div style="margin-top: 5px;">
-                    🎯 Điểm trả: <span style="font-weight: 600; color: #333;" th:text="${dropoffPoint != null ? dropoffPoint : 'N/A'}">Bến xe Nha Trang</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- ROUND TRIP TICKETS -->
-        <div th:if="${tripType == 'round_trip'}">
-            <!-- Outbound Ticket - GREEN -->
-            <div style="background-color: #f0fdf4; border-left: 5px solid #22c55e; padding: 25px; margin: 25px 0; border-radius: 8px; border: 1px solid #dcfce7;">
-                <div style="margin-bottom: 20px;">
-                    <h3 style="color: #16a34a; margin: 0 0 15px 0; font-size: 18px;">🚌 CHUYẾN ĐI</h3>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                        <span style="color: #666; font-size: 14px;">📍 Tuyến đường</span>
-                    </div>
-                    <div style="font-weight: bold; color: #333; font-size: 16px;">
-                        <span th:text="${outboundFromCity}">Đà Nẵng</span>
-                        <span style="color: #22c55e;">→</span>
-                        <span th:text="${outboundToCity}">Nha Trang</span>
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                        <span style="color: #666; font-size: 14px;">🕐 Khởi hành</span>
-                    </div>
-                    <div style="font-weight: bold; color: #333;">
-                        <span th:text="${#temporals.format(outboundDepartureTime, 'HH:mm:ss dd/MM/yyyy')}">08:00:30 29/11/2025</span>
-                    </div>
-                    <div style="margin-top: 5px; color: #666; font-size: 14px;">
-                        Số ghế: <span style="font-weight: bold; color: #22c55e;" th:text="${outboundSeats != null ? #strings.listJoin(outboundSeats, ', ') : 'N/A'}">A02</span>
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 15px; color: #666; font-size: 14px;">
-                    <div>🚗 Xe: <span style="font-weight: 600; color: #333;" th:text="${outboundVehiclePlate}">51B-12345</span></div>
-                    <div style="margin-top: 5px;">
-                        🎯 Điểm đón: <span style="font-weight: 600; color: #333;" th:text="${outboundPickupPoint != null ? outboundPickupPoint : 'Bến xe Đà Nẵng'}">Bến xe Đà Nẵng</span>
-                    </div>
-                    <div style="margin-top: 5px;">
-                        🎯 Điểm trả: <span style="font-weight: 600; color: #333;" th:text="${outboundDropoffPoint != null ? outboundDropoffPoint : 'Bến xe Nha Trang'}">Bến xe Nha Trang</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Return Ticket - BLUE -->
-            <div style="background-color: #eff6ff; border-left: 5px solid #3b82f6; padding: 25px; margin: 25px 0; border-radius: 8px; border: 1px solid #dbeafe;">
-                <div style="margin-bottom: 20px;">
-                    <h3 style="color: #2563eb; margin: 0 0 15px 0; font-size: 18px;">🔄 CHUYẾN VỀ</h3>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                        <span style="color: #666; font-size: 14px;">📍 Tuyến đường</span>
-                    </div>
-                    <div style="font-weight: bold; color: #333; font-size: 16px;">
-                        <span th:text="${returnFromCity}">Nha Trang</span>
-                        <span style="color: #3b82f6;">→</span>
-                        <span th:text="${returnToCity}">Đà Nẵng</span>
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                        <span style="color: #666; font-size: 14px;">🕐 Khởi hành</span>
-                    </div>
-                    <div style="font-weight: bold; color: #333;">
-                        <span th:text="${#temporals.format(returnDepartureTime, 'HH:mm:ss dd/MM/yyyy')}">10:01:02 30/11/2025</span>
-                    </div>
-                    <div style="margin-top: 5px; color: #666; font-size: 14px;">
-                        Số ghế: <span style="font-weight: bold; color: #3b82f6;" th:text="${returnSeats != null ? #strings.listJoin(returnSeats, ', ') : 'N/A'}">A03</span>
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 15px; color: #666; font-size: 14px;">
-                    <div>🚗 Xe: <span style="font-weight: 600; color: #333;" th:text="${returnVehiclePlate}">51B-12345</span></div>
-                    <div style="margin-top: 5px;">
-                        🎯 Điểm đón: <span style="font-weight: 600; color: #333;" th:text="${returnPickupPoint != null ? returnPickupPoint : 'Bến xe Nha Trang'}">Bến xe Nha Trang</span>
-                    </div>
-                    <div style="margin-top: 5px;">
-                        🎯 Điểm trả: <span style="font-weight: 600; color: #333;" th:text="${returnDropoffPoint != null ? returnDropoffPoint : 'Bến xe Đà Nẵng'}">Bến xe Đà Nẵng</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- TICKETS TABLE (works for both ONE-WAY and ROUND-TRIP) -->
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px; background: white;">
+            <thead>
+                <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); text-shadow: 0 1px 2px rgba(0,0,0,0.3);">
+                    <th style="padding: 12px 8px; text-align: left; color: white; font-weight: 600; border: 1px solid rgba(255,255,255,0.2);">Mã vé</th>
+                    <th style="padding: 12px 8px; text-align: left; color: white; font-weight: 600; border: 1px solid rgba(255,255,255,0.2);">Tuyến đường</th>
+                    <th style="padding: 12px 8px; text-align: left; color: white; font-weight: 600; border: 1px solid rgba(255,255,255,0.2);">Thời gian</th>
+                    <th style="padding: 12px 8px; text-align: left; color: white; font-weight: 600; border: 1px solid rgba(255,255,255,0.2);">Ghế</th>
+                    <th style="padding: 12px 8px; text-align: left; color: white; font-weight: 600; border: 1px solid rgba(255,255,255,0.2);">Điểm đón/trả</th>
+                    <th style="padding: 12px 8px; text-align: left; color: white; font-weight: 600; border: 1px solid rgba(255,255,255,0.2);">Loại vé</th>
+                    <th style="padding: 12px 8px; text-align: left; color: white; font-weight: 600; border: 1px solid rgba(255,255,255,0.2);">Giá vé</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop through all tickets - each ticket has its own route/time/pickup data -->
+                <tr th:each="ticket, iterStat : ${tickets}" th:style="${iterStat.odd ? 'background-color: #f9fafb;' : ''}">
+                    <td style="padding: 10px 8px; border: 1px solid #e5e7eb;">
+                        <span th:text="${ticket['ticketId']}">208</span>
+                    </td>
+                    <td style="padding: 10px 8px; border: 1px solid #e5e7eb; color: #2563eb; font-weight: 500;">
+                        <span th:text="${ticket['from']} + ' → ' + ${ticket['to']}">HCM → Cần Thơ</span>
+                    </td>
+                    <td style="padding: 10px 8px; border: 1px solid #e5e7eb;">
+                        <span th:if="${ticket['departureTime']} != null"
+                              th:text="${#temporals.format(ticket['departureTime'], 'dd/MM/yyyy HH:mm')}">07/12/2025 03:45</span>
+                        <span th:unless="${ticket['departureTime']} != null">N/A</span>
+                    </td>
+                    <td style="padding: 10px 8px; border: 1px solid #e5e7eb; font-weight: 600; color: #2196F3;">
+                        <span th:text="${ticket['seatNumber']}">A15</span>
+                    </td>
+                    <td style="padding: 10px 8px; border: 1px solid #e5e7eb; font-size: 12px;">
+                        <span th:text="${ticket['pickupPoint']} + ' / ' + ${ticket['dropoffPoint']}">Bến xe Miền Đông / Bến xe Cần Thơ</span>
+                    </td>
+                    <td style="padding: 10px 8px; border: 1px solid #e5e7eb; font-weight: 600;">
+khoan                         <span th:if="${ticket['isReturnTrip']}" style="color: #3b82f6;">Chiều về</span>
+                        <span th:unless="${ticket['isReturnTrip']}" style="color: #22c55e;">Chiều đi</span>
+                    </td>
+                    <td style="padding: 10px 8px; border: 1px solid #e5e7eb; font-weight: 600; text-align: right;">
+                        <span th:text="${#numbers.formatDecimal(ticket['price'], 0, 'COMMA', 0, 'POINT')} + ' đ'">150.000 đ</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
         <div class="price-breakdown">
             <h3 style="margin-top: 0; color: #333;">💰 Chi tiết thanh toán</h3>
 
-            <!-- ONE-WAY: Show single price -->
-            <div th:if="${tripType == 'one_way'}">
-                <div class="price-row">
-                    <span>Giá vé:</span>
-                    <span th:text="${price != null ? #numbers.formatDecimal(price, 0, 'COMMA', 0, 'POINT') + 'đ' : (finalAmount != null ? #numbers.formatDecimal(finalAmount, 0, 'COMMA', 0, 'POINT') + 'đ' : 'N/A')}">170,000đ</span>
-                </div>
-
-                <div class="price-row total">
-                    <span>TỔNG CỘNG:</span>
-                    <span th:text="${finalAmount != null ? #numbers.formatDecimal(finalAmount, 0, 'COMMA', 0, 'POINT') + 'đ' : (price != null ? #numbers.formatDecimal(price, 0, 'COMMA', 0, 'POINT') + 'đ' : 'N/A')}">170,000đ</span>
-                </div>
+            <!-- Subtotal (show only if exists) -->
+            <div class="price-row" th:if="${subtotalBeforePromotion != null}">
+                <span>Tạm tính:</span>
+                <span th:text="${#numbers.formatDecimal(subtotalBeforePromotion, 0, 'COMMA', 0, 'POINT')} + ' đ'">450.000 đ</span>
             </div>
 
-            <!-- ROUND-TRIP: Show outbound + return + discount -->
-            <div th:if="${tripType == 'round_trip'}">
-                <div class="price-row">
-                    <span>Vé chiều đi:</span>
-                    <span th:text="${outboundPrice != null ? #numbers.formatDecimal(outboundPrice, 0, 'COMMA', 0, 'POINT') + 'đ' : '100,000đ'}">100,000đ</span>
-                </div>
+            <!-- Promotion discount (show only if exists) -->
+            <div th:if="${promotionCode != null and discountAmount != null and discountAmount > 0}"
+                 class="price-row"
+                 style="color: #16a34a; font-weight: 600; background-color: #dcfce7; padding: 12px; border-radius: 5px; margin: 10px 0;">
+                <span>
+                    Giảm (<span th:text="${promotionCode}" style="text-transform: uppercase; font-weight: 700;">ROUNDTRIP50</span>):
+                </span>
+                <span th:text="'- ' + ${#numbers.formatDecimal(discountAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">- 225.000 đ</span>
+            </div>
 
-                <div class="price-row">
-                    <span>Vé chiều về:</span>
-                    <span th:text="${returnPrice != null ? #numbers.formatDecimal(returnPrice, 0, 'COMMA', 0, 'POINT') + 'đ' : '100,000đ'}">100,000đ</span>
-                </div>
-
-                <div th:if="${discountAmount != null && discountAmount > 0}" class="price-row discount">
-                    <span>🎁 Giảm giá (vé khứ hồi 10%):</span>
-                    <span th:text="'-' + ${#numbers.formatDecimal(discountAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'">-20,000đ</span>
-                </div>
-
-                <div class="price-row total">
-                    <span>TỔNG CỘNG:</span>
-                    <span th:text="${finalAmount != null ? #numbers.formatDecimal(finalAmount, 0, 'COMMA', 0, 'POINT') + 'đ' : '180,000đ'}">180,000đ</span>
-                </div>
+            <!-- Total (always show) -->
+            <div class="price-row total">
+                <span>Tổng cộng:</span>
+                <span th:if="${finalAmount != null}" th:text="${#numbers.formatDecimal(finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">194.400 đ</span>
+                <span th:if="${finalAmount == null and totalAmount != null}" th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">194.400 đ</span>
+                <span th:if="${finalAmount == null and totalAmount == null}">0 đ</span>
             </div>
         </div>
 
@@ -421,4 +330,3 @@
     </div>
 </body>
 </html>
-

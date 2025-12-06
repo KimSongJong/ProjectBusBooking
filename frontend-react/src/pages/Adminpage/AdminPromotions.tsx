@@ -52,14 +52,32 @@ function AdminPromotions() {
 
   const fetchPromotions = async () => {
     try {
+      console.log("🎫 Fetching promotions...")
       setLoading(true)
       const response = await promotionService.getAllPromotions()
-      if (response.success && response.data) {
-        setPromotions(response.data)
+      console.log("📥 Promotions response:", response)
+      console.log("📥 Response type:", typeof response, Array.isArray(response))
+
+      // Handle both wrapped {success, data} and unwrapped array responses
+      let promotionsData: Promotion[] = []
+
+      if (Array.isArray(response)) {
+        // Direct array response
+        console.log("✅ Direct array response")
+        promotionsData = response
+      } else if (response && typeof response === 'object' && 'data' in response) {
+        // Wrapped response {success, data}
+        console.log("✅ Wrapped response")
+        promotionsData = response.data || []
       }
+
+      console.log("✅ Promotions loaded:", promotionsData.length, "items")
+      setPromotions(promotionsData)
     } catch (error: any) {
+      console.error("❌ Error fetching promotions:", error)
+      console.error("Error status:", error.status)
+      console.error("Error payload:", error.payload)
       toast.error("Không thể tải danh sách khuyến mãi")
-      console.error(error)
     } finally {
       setLoading(false)
     }
@@ -113,8 +131,17 @@ function AdminPromotions() {
     }
 
     try {
+      // ⭐ Convert date to LocalDateTime format (YYYY-MM-DDTHH:mm:ss)
+      const requestData = {
+        ...formData,
+        startDate: formData.startDate ? `${formData.startDate}T00:00:00` : "",
+        endDate: formData.endDate ? `${formData.endDate}T23:59:59` : "",
+      }
+
+      console.log("📤 Sending promotion data:", requestData)
+
       if (isEditing && currentPromotion) {
-        const response = await promotionService.updatePromotion(currentPromotion.id, formData as UpdatePromotionRequest)
+        const response = await promotionService.updatePromotion(currentPromotion.id, requestData as UpdatePromotionRequest)
         if (response.success) {
           toast.success("Cập nhật khuyến mãi thành công")
           setIsDialogOpen(false)
@@ -123,7 +150,7 @@ function AdminPromotions() {
           toast.error(response.message || "Cập nhật thất bại")
         }
       } else {
-        const response = await promotionService.createPromotion(formData as CreatePromotionRequest)
+        const response = await promotionService.createPromotion(requestData as CreatePromotionRequest)
         if (response.success) {
           toast.success("Tạo khuyến mãi thành công")
           setIsDialogOpen(false)
@@ -133,9 +160,12 @@ function AdminPromotions() {
         }
       }
     } catch (error: any) {
+      console.error("❌ Error submitting promotion:", error)
       const errorMsg = error.payload?.message || error.message || ""
       if (errorMsg.toLowerCase().includes("duplicate") && errorMsg.toLowerCase().includes("code")) {
         toast.error("Mã khuyến mãi đã tồn tại trong hệ thống")
+      } else if (errorMsg.toLowerCase().includes("datetime")) {
+        toast.error("Định dạng ngày tháng không hợp lệ")
       } else {
         toast.error(errorMsg || "Lỗi khi lưu khuyến mãi")
       }
@@ -172,7 +202,7 @@ function AdminPromotions() {
     const now = new Date()
     const start = new Date(promotion.startDate)
     const end = new Date(promotion.endDate)
-    return now >= start && now <= end && promotion.usedCount < promotion.maxUses
+    return now >= start && now <= end && (promotion.usageLimit === null || promotion.usageLimit === undefined || promotion.usedCount < promotion.usageLimit)
   }
 
   const formatDiscount = (promotion: Promotion) => {
@@ -271,7 +301,7 @@ function AdminPromotions() {
                           </TableCell>
                           <TableCell>
                             <span className="text-sm">
-                              {promotion.usedCount} / {promotion.maxUses}
+                              {promotion.usedCount} / {promotion.usageLimit || '∞'}
                             </span>
                           </TableCell>
                           <TableCell>

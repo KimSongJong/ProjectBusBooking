@@ -132,6 +132,7 @@ public class TicketMapper {
             ticket.getUser().getFullName(),
             ticket.getUser().getPhone(),
             ticket.getUser().getIsActive(),
+            ticket.getUser().getEmailVerified(),
             ticket.getUser().getCreatedAt()
         );
         

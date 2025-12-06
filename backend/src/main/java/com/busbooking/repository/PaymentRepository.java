@@ -14,8 +14,9 @@ import java.util.Optional;
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Integer> {
 
-    // Find by booking group ID
-    Optional<Payment> findByBookingGroupId(String bookingGroupId);
+    // Find by booking group ID (get first if multiple exist)
+    @Query("SELECT p FROM Payment p WHERE p.bookingGroupId = :bookingGroupId ORDER BY p.paymentDate DESC LIMIT 1")
+    Optional<Payment> findByBookingGroupId(@Param("bookingGroupId") String bookingGroupId);
 
     // Find by transaction ID
     Optional<Payment> findByTransactionId(String transactionId);

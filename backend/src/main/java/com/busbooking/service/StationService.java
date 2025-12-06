@@ -21,6 +21,7 @@ public class StationService {
 
     private final StationRepository stationRepository;
     private final StationMapper stationMapper;
+    private final CityService cityService;
 
     public List<StationResponse> getAllStations() {
         log.info("📍 Getting all stations");
@@ -100,6 +101,11 @@ public class StationService {
     public StationResponse createStation(StationRequest request) {
         log.info("✅ Creating new station: {}", request.getName());
 
+        // Validate city exists in cities table
+        if (!cityService.cityExists(request.getCity())) {
+            throw new IllegalArgumentException("Thành phố không tồn tại trong hệ thống: " + request.getCity());
+        }
+
         Station station = stationMapper.toEntity(request);
         Station savedStation = stationRepository.save(station);
 
@@ -113,6 +119,11 @@ public class StationService {
 
         Station station = stationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy trạm xe với ID: " + id));
+
+        // Validate city exists in cities table
+        if (!cityService.cityExists(request.getCity())) {
+            throw new IllegalArgumentException("Thành phố không tồn tại trong hệ thống: " + request.getCity());
+        }
 
         stationMapper.updateEntity(station, request);
         Station updatedStation = stationRepository.save(station);

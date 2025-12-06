@@ -1,6 +1,7 @@
 package com.busbooking.payment.controller;
 
 import com.busbooking.model.Payment;
+import com.busbooking.model.Promotion;
 import com.busbooking.model.Ticket;
 import com.busbooking.payment.dto.PaymentRequest;
 import com.busbooking.payment.dto.PaymentResponse;
@@ -36,6 +37,7 @@ public class VNPayController {
     private final TicketRepository ticketRepository;
     private final EmailService emailService;
     private final InvoiceService invoiceService;
+    private final com.busbooking.repository.PromotionRepository promotionRepository;
 
     @PostMapping("/create")
     public ResponseEntity<PaymentResponse> createPayment(@Valid @RequestBody PaymentRequest request) {
@@ -53,6 +55,15 @@ public class VNPayController {
             payment.setPaymentMethod(Payment.PaymentMethod.vnpay);
             payment.setPaymentStatus(Payment.PaymentStatus.pending);
             payment.setTransactionId(orderId); // Store orderId for later lookup
+
+            // ⭐ NEW: Link promotion if code provided
+            if (request.getPromotionCode() != null && !request.getPromotionCode().isEmpty()) {
+                promotionRepository.findByCode(request.getPromotionCode().toUpperCase())
+                    .ifPresent(promotion -> {
+                        payment.setPromotion(promotion);
+                        log.info("🏷️ Linked promotion: {} to payment", promotion.getCode());
+                    });
+            }
 
             Payment savedPayment = paymentRepository.save(payment);
             log.info("💾 Saved payment record with ID: {}, Status: pending", savedPayment.getId());
@@ -225,22 +236,156 @@ public class VNPayController {
                 return detail;
             }).collect(java.util.stream.Collectors.toList());
 
-            // ⭐ Prepare invoice data
-            Map<String, Object> invoiceData = new HashMap<>();
-            invoiceData.put("customerName", customerName != null ? customerName : "Quý khách");
-            invoiceData.put("bookingGroupId", payment.getBookingGroupId());
-            invoiceData.put("paymentId", payment.getId());
-            invoiceData.put("totalAmount", payment.getAmount());
-            invoiceData.put("paymentMethod", "VNPay");
-            invoiceData.put("paymentDate", payment.getPaymentDate());
-            invoiceData.put("paymentStatus", "Đã thanh toán");
-            invoiceData.put("ticketCount", tickets.size());
-            invoiceData.put("tickets", ticketDetails);
-
             // ⭐ Check if this is round trip
             boolean isRoundTrip = tickets.stream()
                 .anyMatch(t -> "round_trip".equals(t.getTripType().name()));
-            invoiceData.put("isRoundTrip", isRoundTrip);
+
+            // ⭐ Prepare invoice data
+            Map<String, Object> invoiceData = new HashMap<>();
+            invoiceData.put("customerName", customerName != null ? customerName : "Quý khách");
+            invoiceData.put("customerEmail", customerEmail);
+            invoiceData.put("customerPhone", firstTicket.getCustomerPhone());
+            invoiceData.put("bookingGroupId", payment.getBookingGroupId());
+            invoiceData.put("paymentId", payment.getId());
+            invoiceData.put("transactionId", payment.getTransactionId());
+            invoiceData.put("finalAmount", payment.getAmount());
+            invoiceData.put("paymentMethod", "VNPay");
+            invoiceData.put("paymentDate", payment.getPaymentDate());
+            invoiceData.put("issuedAt", java.time.LocalDateTime.now());
+            invoiceData.put("paymentStatus", "Đã thanh toán");
+            invoiceData.put("ticketCount", tickets.size());
+            invoiceData.put("tripType", isRoundTrip ? "round_trip" : "one_way");
+
+            // ⭐ ADD: Prepare tickets list for email template (matching new design)
+            List<Map<String, Object>> ticketsForEmail = tickets.stream().map(ticket -> {
+                Map<String, Object> ticketMap = new HashMap<>();
+                ticketMap.put("id", ticket.getId());
+                ticketMap.put("fromCity", ticket.getTrip() != null && ticket.getTrip().getRoute() != null
+                    ? ticket.getTrip().getRoute().getFromLocation() : "N/A");
+                ticketMap.put("toCity", ticket.getTrip() != null && ticket.getTrip().getRoute() != null
+                    ? ticket.getTrip().getRoute().getToLocation() : "N/A");
+                ticketMap.put("departureTime", ticket.getTrip() != null
+                    ? ticket.getTrip().getDepartureTime() : null);
+                ticketMap.put("seatNumber", ticket.getTripSeat() != null
+                    ? ticket.getTripSeat().getSeatNumber() : "N/A");
+                ticketMap.put("pickupPoint", ticket.getPickupPoint() != null ? ticket.getPickupPoint() : "N/A");
+                ticketMap.put("dropoffPoint", ticket.getDropoffPoint() != null ? ticket.getDropoffPoint() : "N/A");
+                ticketMap.put("isReturnTrip", ticket.getIsReturnTrip() != null && ticket.getIsReturnTrip());
+                ticketMap.put("price", ticket.getPrice());
+                return ticketMap;
+            }).collect(java.util.stream.Collectors.toList());
+            invoiceData.put("tickets", ticketsForEmail);
+
+            // ⭐ Calculate subtotal before promotion (sum of all ticket prices)
+            BigDecimal subtotalBeforePromotion = tickets.stream()
+                .map(Ticket::getPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            invoiceData.put("subtotalBeforePromotion", subtotalBeforePromotion);
+
+            // ⭐ Handle ROUND TRIP bookings
+            if (isRoundTrip) {
+                // Separate outbound and return tickets
+                List<Ticket> outboundTickets = tickets.stream()
+                    .filter(t -> t.getIsReturnTrip() == null || !t.getIsReturnTrip())
+                    .collect(java.util.stream.Collectors.toList());
+                List<Ticket> returnTickets = tickets.stream()
+                    .filter(t -> t.getIsReturnTrip() != null && t.getIsReturnTrip())
+                    .collect(java.util.stream.Collectors.toList());
+
+                if (!outboundTickets.isEmpty()) {
+                    Ticket outbound = outboundTickets.get(0);
+                    List<String> outboundSeatsList = outboundTickets.stream()
+                        .map(t -> t.getTripSeat() != null ? t.getTripSeat().getSeatNumber() : "N/A")
+                        .collect(java.util.stream.Collectors.toList());
+
+                    log.info("📧 [EMAIL-DEBUG] Outbound tickets: {} seats: {}", outboundTickets.size(), outboundSeatsList);
+
+                    invoiceData.put("outboundFromCity", outbound.getTrip().getRoute().getFromLocation());
+                    invoiceData.put("outboundToCity", outbound.getTrip().getRoute().getToLocation());
+                    invoiceData.put("outboundDepartureTime", outbound.getTrip().getDepartureTime());
+                    invoiceData.put("outboundVehiclePlate", outbound.getTrip().getVehicle().getLicensePlate());
+                    invoiceData.put("outboundPickupPoint", outbound.getPickupPoint());
+                    invoiceData.put("outboundDropoffPoint", outbound.getDropoffPoint());
+                    invoiceData.put("outboundSeats", outboundSeatsList);
+                }
+
+                if (!returnTickets.isEmpty()) {
+                    Ticket returnTicket = returnTickets.get(0);
+                    List<String> returnSeatsList = returnTickets.stream()
+                        .map(t -> t.getTripSeat() != null ? t.getTripSeat().getSeatNumber() : "N/A")
+                        .collect(java.util.stream.Collectors.toList());
+
+                    log.info("📧 [EMAIL-DEBUG] Return tickets: {} seats: {}", returnTickets.size(), returnSeatsList);
+
+                    invoiceData.put("returnFromCity", returnTicket.getTrip().getRoute().getFromLocation());
+                    invoiceData.put("returnToCity", returnTicket.getTrip().getRoute().getToLocation());
+                    invoiceData.put("returnDepartureTime", returnTicket.getTrip().getDepartureTime());
+                    invoiceData.put("returnVehiclePlate", returnTicket.getTrip().getVehicle().getLicensePlate());
+                    invoiceData.put("returnPickupPoint", returnTicket.getPickupPoint());
+                    invoiceData.put("returnDropoffPoint", returnTicket.getDropoffPoint());
+                    invoiceData.put("returnSeats", returnSeatsList);
+                }
+
+                // Calculate prices with promotion
+                Promotion promotion = payment.getPromotion();
+                if (promotion != null) {
+                    invoiceData.put("promotionCode", promotion.getCode());
+                    invoiceData.put("promotionDescription", promotion.getDescription());
+
+                    // Calculate discount amount based on promotion type
+                    BigDecimal discountAmount;
+                    if ("percentage".equals(promotion.getDiscountType().name())) {
+                        // Discount = subtotal * percentage / 100
+                        discountAmount = subtotalBeforePromotion.multiply(promotion.getDiscountValue())
+                            .divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+                    } else {
+                        // Fixed discount
+                        discountAmount = promotion.getDiscountValue();
+                    }
+
+                    invoiceData.put("discountAmount", discountAmount);
+                    log.info("💰 Promotion discount: {} for code: {}", discountAmount, promotion.getCode());
+                } else {
+                    invoiceData.put("discountAmount", BigDecimal.ZERO);
+                }
+            } else {
+                // ⭐ ONE-WAY booking
+                Ticket ticket = firstTicket;
+                invoiceData.put("fromCity", ticket.getTrip().getRoute().getFromLocation());
+                invoiceData.put("toCity", ticket.getTrip().getRoute().getToLocation());
+                invoiceData.put("departureTime", ticket.getTrip().getDepartureTime());
+                invoiceData.put("vehiclePlate", ticket.getTrip().getVehicle().getLicensePlate());
+                invoiceData.put("pickupPoint", ticket.getPickupPoint());
+                invoiceData.put("dropoffPoint", ticket.getDropoffPoint());
+                invoiceData.put("seats", tickets.stream()
+                    .map(t -> t.getTripSeat() != null ? t.getTripSeat().getSeatNumber() : "N/A")
+                    .collect(java.util.stream.Collectors.toList()));
+                invoiceData.put("price", payment.getAmount());
+
+                // ⭐ ADD: Handle promotion for ONE-WAY bookings too
+                Promotion promotion = payment.getPromotion();
+                if (promotion != null) {
+                    invoiceData.put("promotionCode", promotion.getCode());
+                    invoiceData.put("promotionDescription", promotion.getDescription());
+
+                    // Calculate discount amount based on promotion type
+                    BigDecimal discountAmount;
+                    if ("percentage".equals(promotion.getDiscountType().name())) {
+                        // Discount = subtotal * percentage / 100
+                        discountAmount = subtotalBeforePromotion.multiply(promotion.getDiscountValue())
+                            .divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+                    } else {
+                        // Fixed discount
+                        discountAmount = promotion.getDiscountValue();
+                    }
+
+                    invoiceData.put("discountAmount", discountAmount);
+                    log.info("💰 ONE-WAY Promotion discount: {} for code: {}", discountAmount, promotion.getCode());
+                } else {
+                    invoiceData.put("promotionCode", null);
+                    invoiceData.put("discountAmount", BigDecimal.ZERO);
+                }
+            }
 
             // ⭐ Send ONLY payment invoice email (NO ticket confirmation)
             emailService.sendPaymentInvoiceEmail(customerEmail, invoiceData);

@@ -143,6 +143,34 @@ public class ReportController {
     }
 
     /**
+     * Export Invoice PDF for single booking
+     * GET /api/reports/invoice/pdf/{bookingGroupId}
+     */
+    @GetMapping("/invoice/pdf/{bookingGroupId}")
+    public ResponseEntity<byte[]> exportInvoicePdf(@PathVariable String bookingGroupId) {
+        try {
+            logger.info("🧾 Generating invoice PDF for booking: {}", bookingGroupId);
+
+            byte[] pdfBytes = reportService.generateInvoicePdf(bookingGroupId);
+
+            String filename = "Invoice_" + bookingGroupId + ".pdf";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", filename);
+            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+            logger.info("✅ Invoice PDF generated successfully: {} bytes", pdfBytes.length);
+
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+
+        } catch (Exception e) {
+            logger.error("❌ Error generating invoice PDF for {}", bookingGroupId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
      * Health check endpoint
      */
     @GetMapping("/health")

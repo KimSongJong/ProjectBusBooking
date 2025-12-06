@@ -765,6 +765,7 @@ public class TicketService {
                 detail.put("dropoffPoint", ticket.getDropoffPoint());
                 detail.put("price", ticket.getPrice());
                 detail.put("tripType", ticket.getTripType());
+                detail.put("isReturnTrip", ticket.getIsReturnTrip()); // ✅ ADD: Determine if this is return trip ticket
                 return detail;
             }).collect(java.util.stream.Collectors.toList());
 
@@ -897,6 +898,31 @@ public class TicketService {
                 BigDecimal totalBeforeDiscount = outbound.getPrice().add(returnTicket.getPrice());
                 BigDecimal discountAmount = totalBeforeDiscount.multiply(BigDecimal.valueOf(0.1));
                 invoiceData.put("discountAmount", discountAmount);
+
+                // ⭐ ADD: Original prices (before 10% round-trip discount)
+                // Current prices are already after 10% discount, so calculate original
+                BigDecimal outboundOriginalPrice = outbound.getPrice().divide(BigDecimal.valueOf(0.9), 0, java.math.RoundingMode.HALF_UP);
+                BigDecimal returnOriginalPrice = returnTicket.getPrice().divide(BigDecimal.valueOf(0.9), 0, java.math.RoundingMode.HALF_UP);
+                invoiceData.put("outboundOriginalPrice", outboundOriginalPrice);
+                invoiceData.put("returnOriginalPrice", returnOriginalPrice);
+            }
+
+            // ⭐ ADD: Promotion info if applied
+            if (payment.getPromotion() != null) {
+                invoiceData.put("promotionCode", payment.getPromotion().getCode());
+
+                // Calculate subtotal before promotion (after any round-trip/online discounts)
+                BigDecimal subtotalBeforePromotion = allTickets.stream()
+                        .map(Ticket::getPrice)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                invoiceData.put("subtotalBeforePromotion", subtotalBeforePromotion);
+
+                // Promotion discount = subtotalBeforePromotion - finalAmount
+                BigDecimal promotionDiscount = subtotalBeforePromotion.subtract(payment.getAmount());
+                if (promotionDiscount.compareTo(BigDecimal.ZERO) > 0) {
+                    invoiceData.put("discountAmount", promotionDiscount);  // Template uses "discountAmount"
+                    invoiceData.put("promotionDiscount", promotionDiscount);  // Keep for backward compatibility
+                }
             }
 
             // Send invoice email

@@ -1,8 +1,10 @@
 package com.busbooking.controller;
 
 import com.busbooking.dto.request.PromotionRequest;
+import com.busbooking.dto.request.ValidatePromotionRequest;
 import com.busbooking.dto.response.ApiResponse;
 import com.busbooking.dto.response.PromotionResponse;
+import com.busbooking.dto.response.PromotionValidationResponse;
 import com.busbooking.service.PromotionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,5 +40,32 @@ public class PromotionController {
     public ResponseEntity<ApiResponse<PromotionResponse>> update(@PathVariable Integer id, @Valid @RequestBody PromotionRequest request) {
         PromotionResponse resp = promotionService.updatePromotion(id, request);
         return ResponseEntity.ok(new ApiResponse<>(true, "Promotion updated", resp));
+    }
+
+    /**
+     * Get all active promotions that are currently valid
+     */
+    @GetMapping("/active")
+    public ResponseEntity<ApiResponse<List<PromotionResponse>>> getActivePromotions() {
+        List<PromotionResponse> activePromotions = promotionService.getActivePromotions();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Active promotions retrieved", activePromotions));
+    }
+
+    /**
+     * Validate promotion code and calculate discount
+     */
+    @PostMapping("/validate")
+    public ResponseEntity<ApiResponse<PromotionValidationResponse>> validatePromotion(@Valid @RequestBody ValidatePromotionRequest request) {
+        PromotionValidationResponse validation = promotionService.validatePromotion(request);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Promotion validated", validation));
+    }
+
+    /**
+     * Delete promotion
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer id) {
+        promotionService.deletePromotion(id);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Promotion deleted successfully", null));
     }
 }

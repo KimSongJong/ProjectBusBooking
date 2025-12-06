@@ -208,6 +208,7 @@ public class AuthController {
                                 user.getFullName(),
                                 user.getPhone(),
                                 user.getIsActive(),
+                                user.getEmailVerified(),
                                 user.getCreatedAt());
 
                 return ResponseEntity.ok(new ApiResponse<>(true, "User details retrieved", userResponse));

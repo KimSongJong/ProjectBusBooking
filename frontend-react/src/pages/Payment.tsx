@@ -4,13 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { Tag, Check, X } from "lucide-react";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import bookingService from "@/services/booking.service";
 import tripSeatService from "@/services/tripSeat.service";
-import paymentService from "@/services/payment.service"; // ✅ ADD: Import payment service
+import paymentService from "@/services/payment.service";
+import promotionService from "@/services/promotion.service";
 import type { TripSeat } from "@/types/tripSeat.types";
+import type { Promotion, PromotionValidationResponse } from "@/types/promotion.types";
 
 interface BookingData {
   // Common fields
@@ -67,12 +72,34 @@ function Payment() {
   const [qrCode, setQrCode] = useState<string>("");
   const [showQR, setShowQR] = useState(false);
   const [countdown, setCountdown] = useState(1200); // 20 phút = 1200 giây
-  const [seats, setSeats] = useState<TripSeat[]>([]); // THÊM STATE NÀY
+  const [seats, setSeats] = useState<TripSeat[]>([]);
   const [loading, setLoading] = useState(false);
 
   // ⭐ NEW: Pickup/Dropoff points
   const [pickupOptions, setPickupOptions] = useState<Array<{name: string, address: string}>>([]);
   const [dropoffOptions, setDropoffOptions] = useState<Array<{name: string, address: string}>>([]);
+
+  // ⭐ NEW: Promotion states
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [promotionCode, setPromotionCode] = useState("");
+  const [appliedPromotion, setAppliedPromotion] = useState<PromotionValidationResponse | null>(null);
+  const [validatingPromotion, setValidatingPromotion] = useState(false);
+
+  // Fetch active promotions
+  useEffect(() => {
+    const fetchPromotions = async () => {
+      try {
+        const response = await promotionService.getActivePromotions();
+        if (response.success && response.data) {
+          setPromotions(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching promotions:", error);
+      }
+    };
+
+    fetchPromotions();
+  }, []);
 
   useEffect(() => {
     // Lấy dữ liệu booking từ sessionStorage
@@ -228,6 +255,71 @@ function Payment() {
     });
   };
 
+  // Handle apply promotion
+  const handleApplyPromotion = async () => {
+    console.log("🎟️ handleApplyPromotion called");
+    console.log("📝 Promotion code:", promotionCode);
+
+    if (!promotionCode.trim()) {
+      toast.error("Vui lòng nhập mã giảm giá");
+      return;
+    }
+
+    if (!bookingData) {
+      toast.error("Dữ liệu không hợp lệ");
+      return;
+    }
+
+    try {
+      setValidatingPromotion(true);
+
+      const baseTotal = bookingData.tripType === 'roundTrip'
+        ? (bookingData.finalPrice || bookingData.totalPrice)
+        : bookingData.totalPrice;
+
+      console.log("💰 Base total:", baseTotal);
+      console.log("🔄 Is round trip:", bookingData.tripType === 'roundTrip');
+
+      const requestData = {
+        code: promotionCode.trim().toUpperCase(),
+        totalAmount: baseTotal,
+        isRoundTrip: bookingData.tripType === 'roundTrip',
+      };
+
+      console.log("📤 Sending validation request:", requestData);
+
+      const response = await promotionService.validatePromotion(requestData);
+
+      console.log("📥 Validation response:", response);
+
+      // Handle both wrapped {success, data} and direct response
+      const validationData = response.data || response;
+
+      if (validationData.valid) {
+        setAppliedPromotion(validationData);
+        toast.success(validationData.message);
+        console.log("✅ Promotion applied successfully");
+      } else {
+        setAppliedPromotion(null);
+        toast.error(validationData.message);
+        console.log("❌ Promotion invalid:", validationData.message);
+      }
+    } catch (error: any) {
+      console.error("❌ Error validating promotion:", error);
+      console.error("Error details:", error.status, error.payload);
+      toast.error("Không thể áp dụng mã giảm giá");
+      setAppliedPromotion(null);
+    } finally {
+      setValidatingPromotion(false);
+    }
+  };
+
+  const handleRemovePromotion = () => {
+    setAppliedPromotion(null);
+    setPromotionCode("");
+    toast.info("Đã xóa mã giảm giá");
+  };
+
   const calculateDiscount = () => {
     // Giảm 2% khi thanh toán online
     if (!bookingData) return 0;
@@ -242,17 +334,26 @@ function Payment() {
     return Math.round(bookingData.totalPrice * 0.02);
   };
 
+  const getPromotionDiscount = () => {
+    if (!appliedPromotion || !appliedPromotion.valid) return 0;
+    return Math.round(appliedPromotion.discountAmount);
+  };
+
   const calculateFinalTotal = () => {
     if (!bookingData) return 0;
 
+    let baseTotal = 0;
     if (bookingData.tripType === 'roundTrip') {
-      // Round trip: finalPrice (after 10%) - 2% online
+      // Round trip: finalPrice (after 10%) - 2% online - promotion
       const priceAfterRoundTripDiscount = bookingData.finalPrice || bookingData.totalPrice;
-      return priceAfterRoundTripDiscount - calculateDiscount();
+      baseTotal = priceAfterRoundTripDiscount - calculateDiscount();
+    } else {
+      // One-way: totalPrice - 2% - promotion
+      baseTotal = bookingData.totalPrice - calculateDiscount();
     }
 
-    // One-way: totalPrice - 2%
-    return bookingData.totalPrice - calculateDiscount();
+    // Apply promotion discount
+    return baseTotal - getPromotionDiscount();
   };
 
   const handlePaymentSelect = (method: PaymentMethod) => {
@@ -302,16 +403,24 @@ function Payment() {
           ticketCount,
           amount: finalAmount,
           orderInfo: orderInfo,
+          promotionCode: appliedPromotion?.valid ? appliedPromotion.promotion?.code : undefined,
         });
 
         console.log("VNPay response:", response);
 
         if (response && response.status === "success" && response.paymentUrl) {
-          // Save booking data for later (after payment callback)
-          console.log("💾 Saving booking data to pendingBookingData:", bookingData);
+          // ⭐ Save booking data with promotion info for later (after payment callback)
+          const bookingDataWithPromotion = {
+            ...bookingData,
+            promotionCode: appliedPromotion?.valid ? appliedPromotion.promotion?.code : undefined,
+            promotionDiscount: getPromotionDiscount(),
+          };
+
+          console.log("💾 Saving booking data to pendingBookingData:", bookingDataWithPromotion);
           console.log("💾 userId:", bookingData?.userId, "tripId:", bookingData?.tripId);
           console.log("💾 ticketIds:", bookingData?.ticketIds);
-          sessionStorage.setItem("pendingBookingData", JSON.stringify(bookingData));
+          console.log("💾 promotionCode:", appliedPromotion?.promotion?.code);
+          sessionStorage.setItem("pendingBookingData", JSON.stringify(bookingDataWithPromotion));
 
           toast.info("Đang chuyển đến VNPay...");
           // Redirect to VNPay
@@ -346,15 +455,23 @@ function Payment() {
           ticketCount,
           amount: finalAmount,
           orderInfo: orderInfo,
+          promotionCode: appliedPromotion?.valid ? appliedPromotion.promotion?.code : undefined,
         });
 
         console.log("MoMo response:", response);
 
         if (response && response.status === "success" && response.paymentUrl) {
-          // Save booking data for later
-          console.log("💾 Saving booking data to pendingBookingData (MoMo):", bookingData);
+          // ⭐ Save booking data with promotion info for later
+          const bookingDataWithPromotion = {
+            ...bookingData,
+            promotionCode: appliedPromotion?.valid ? appliedPromotion.promotion?.code : undefined,
+            promotionDiscount: getPromotionDiscount(),
+          };
+
+          console.log("💾 Saving booking data to pendingBookingData (MoMo):", bookingDataWithPromotion);
           console.log("💾 ticketIds:", bookingData?.ticketIds);
-          sessionStorage.setItem("pendingBookingData", JSON.stringify(bookingData));
+          console.log("💾 promotionCode:", appliedPromotion?.promotion?.code);
+          sessionStorage.setItem("pendingBookingData", JSON.stringify(bookingDataWithPromotion));
 
           toast.info("Đang chuyển đến MoMo...");
           // Redirect to MoMo
@@ -821,7 +938,9 @@ function Payment() {
 
                   <div className="flex justify-between">
                     <span className="text-gray-600">
-                      {bookingData.tripType === 'roundTrip' ? 'Tạm tính (2 vé)' : 'Giá vé lượt đi'}
+                      {bookingData.tripType === 'roundTrip'
+                        ? `Tạm tính (${(bookingData.selectedSeats?.length || 0) + (bookingData.returnSelectedSeats?.length || 0)} vé)`
+                        : 'Giá vé lượt đi'}
                     </span>
                     <span className="font-semibold text-orange-600">
                       {formatPrice(bookingData.totalPrice)}đ
@@ -848,6 +967,91 @@ function Payment() {
                     <span className="font-semibold text-green-600">
                       (2%) -{formatPrice(calculateDiscount())}đ
                     </span>
+                  </div>
+
+                  <Separator />
+
+                  {/* ⭐ Promotion Code Section */}
+                  <div className="space-y-3">
+                    <h3 className="font-bold flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-orange-600" />
+                      <span>Mã giảm giá</span>
+                    </h3>
+
+                    {/* Applied Promotion Display */}
+                    {appliedPromotion && appliedPromotion.valid ? (
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Check className="h-5 w-5 text-green-600" />
+                            <span className="font-semibold text-green-800">
+                              {appliedPromotion.promotion?.code}
+                            </span>
+                          </div>
+                          <button
+                            onClick={handleRemovePromotion}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <X className="h-5 w-5" />
+                          </button>
+                        </div>
+                        <p className="text-xs text-green-700 mb-2">
+                          {appliedPromotion.promotion?.description}
+                        </p>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Giảm giá</span>
+                          <span className="font-bold text-green-600">
+                            -{formatPrice(getPromotionDiscount())}đ
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Promotion Input */
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Nhập mã giảm giá"
+                            value={promotionCode}
+                            onChange={(e) => setPromotionCode(e.target.value.toUpperCase())}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                handleApplyPromotion();
+                              }
+                            }}
+                            className="flex-1"
+                            disabled={validatingPromotion}
+                          />
+                          <Button
+                            onClick={handleApplyPromotion}
+                            disabled={!promotionCode.trim() || validatingPromotion}
+                            className="bg-orange-600 hover:bg-orange-700 text-white px-4"
+                          >
+                            {validatingPromotion ? "..." : "Áp dụng"}
+                          </Button>
+                        </div>
+
+                        {/* Available Promotions */}
+                        {promotions.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-500">Mã khả dụng:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {promotions.slice(0, 3).map((promo) => (
+                                <Badge
+                                  key={promo.id}
+                                  variant="outline"
+                                  className="cursor-pointer hover:bg-orange-50 hover:border-orange-300 text-xs"
+                                  onClick={() => {
+                                    setPromotionCode(promo.code);
+                                  }}
+                                >
+                                  {promo.code}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <Separator />

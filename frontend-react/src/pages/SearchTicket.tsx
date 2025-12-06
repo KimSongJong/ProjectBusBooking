@@ -23,8 +23,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import ticketService from "@/services/ticket.service";
+import paymentService from "@/services/payment.service";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Ticket } from "@/types/ticket.types";
+import type { Payment } from "@/types/payment.types";
 import {
   Search,
   Calendar,
@@ -90,75 +92,131 @@ function SearchTicket() {
       );
     }
 
-    // Sort filtered tickets
-    filtered.sort((a, b) => {
-      const dateA = new Date(a.bookedAt).getTime();
-      const dateB = new Date(b.bookedAt).getTime();
+    // ⭐ CRITICAL CHANGE: tickets state now contains BOOKINGS (not individual tickets)
+    // Each booking already has: { bookingGroupId, tickets[], mainTicket, paymentAmount }
+    // So we filter BOOKINGS directly instead of recreating them
 
-      if (dateB !== dateA) {
-        return dateB - dateA;
+    // Check if tickets is already grouped bookings (has mainTicket property)
+    const isAlreadyGrouped = tickets.length > 0 && tickets[0].hasOwnProperty('mainTicket');
+
+    if (isAlreadyGrouped) {
+      // ✅ NEW WAY: Filter bookings directly (preserves paymentAmount)
+      let filteredBookings = tickets;
+
+      // Apply status filter
+      if (statusFilter !== "all") {
+        filteredBookings = filteredBookings.filter((booking: any) =>
+          booking.mainTicket?.status === statusFilter
+        );
       }
 
-      return b.id - a.id;
-    });
+      // Apply search filter
+      if (searchTerm) {
+        const lowerSearch = searchTerm.toLowerCase();
+        filteredBookings = filteredBookings.filter((booking: any) => {
+          const mainTicket = booking.mainTicket;
 
-    // ⭐ Group filtered tickets by booking_group_id (same logic as initial load)
-    const groupedFiltered = filtered.reduce((groups: any[], ticket) => {
-      const seatNumber = ticket.tripSeat?.seatNumber || ticket.seat?.seatNumber || 'N/A';
+          // Search in customer info
+          if (
+            mainTicket?.customerName?.toLowerCase().includes(lowerSearch) ||
+            mainTicket?.customerEmail?.toLowerCase().includes(lowerSearch) ||
+            mainTicket?.customerPhone?.toLowerCase().includes(lowerSearch) ||
+            mainTicket?.id.toString().includes(lowerSearch) ||
+            booking.bookingGroupId?.toLowerCase().includes(lowerSearch)
+          ) {
+            return true;
+          }
 
-      // Priority 1: Use booking_group_id if exists
-      if (ticket.bookingGroupId) {
-        const existingGroup = groups.find(group =>
-          group.bookingGroupId === ticket.bookingGroupId
-        );
+          // Search in route
+          if (
+            mainTicket?.trip?.route?.fromLocation?.toLowerCase().includes(lowerSearch) ||
+            mainTicket?.trip?.route?.toLocation?.toLowerCase().includes(lowerSearch)
+          ) {
+            return true;
+          }
 
-        if (existingGroup) {
-          existingGroup.tickets.push(ticket);
-          existingGroup.seats.push(seatNumber);
-          if (ticket.isReturnTrip || ticket.tripType === 'round_trip') {
-            existingGroup.isRoundTrip = true;
+          // Search in seats
+          return booking.tickets?.some((ticket: any) =>
+            ticket.tripSeat?.seatNumber?.toLowerCase().includes(lowerSearch) ||
+            ticket.seat?.seatNumber?.toLowerCase().includes(lowerSearch)
+          );
+        });
+      }
+
+      // Sort bookings
+      filteredBookings.sort((a: any, b: any) => {
+        const dateA = new Date(a.mainTicket.bookedAt).getTime();
+        const dateB = new Date(b.mainTicket.bookedAt).getTime();
+        if (dateB !== dateA) return dateB - dateA;
+        return b.mainTicket.id - a.mainTicket.id;
+      });
+
+      // @ts-ignore
+      setFilteredTickets(filteredBookings);
+    } else {
+      // ❌ OLD WAY: For backward compatibility (if tickets are still individual)
+      // This branch should not run anymore after fetchUserTickets stores bookings
+      filtered.sort((a, b) => {
+        const dateA = new Date(a.bookedAt).getTime();
+        const dateB = new Date(b.bookedAt).getTime();
+        if (dateB !== dateA) return dateB - dateA;
+        return b.id - a.id;
+      });
+
+      const groupedFiltered = filtered.reduce((groups: any[], ticket) => {
+        const seatNumber = ticket.tripSeat?.seatNumber || ticket.seat?.seatNumber || 'N/A';
+
+        if (ticket.bookingGroupId) {
+          const existingGroup = groups.find(group =>
+            group.bookingGroupId === ticket.bookingGroupId
+          );
+
+          if (existingGroup) {
+            existingGroup.tickets.push(ticket);
+            existingGroup.seats.push(seatNumber);
+            if (ticket.isReturnTrip || ticket.tripType === 'round_trip') {
+              existingGroup.isRoundTrip = true;
+            }
+          } else {
+            groups.push({
+              bookingId: ticket.bookingGroupId,
+              bookingGroupId: ticket.bookingGroupId,
+              tickets: [ticket],
+              seats: [seatNumber],
+              mainTicket: ticket,
+              isRoundTrip: ticket.isReturnTrip || ticket.tripType === 'round_trip' || false
+            });
           }
         } else {
-          groups.push({
-            bookingId: ticket.bookingGroupId,
-            bookingGroupId: ticket.bookingGroupId,
-            tickets: [ticket],
-            seats: [seatNumber],
-            mainTicket: ticket,
-            isRoundTrip: ticket.isReturnTrip || ticket.tripType === 'round_trip' || false
+          const existingGroup = groups.find(group => {
+            if (group.bookingGroupId) return false;
+            if (group.tickets[0].trip.id !== ticket.trip.id) return false;
+            const time1 = new Date(group.tickets[0].bookedAt).getTime();
+            const time2 = new Date(ticket.bookedAt).getTime();
+            return Math.abs(time1 - time2) < 60000;
           });
+
+          if (existingGroup) {
+            existingGroup.tickets.push(ticket);
+            existingGroup.seats.push(seatNumber);
+          } else {
+            groups.push({
+              bookingId: `BOOKING_${ticket.trip.id}_${new Date(ticket.bookedAt).getTime()}`,
+              bookingGroupId: null,
+              tickets: [ticket],
+              seats: [seatNumber],
+              mainTicket: ticket,
+              isRoundTrip: false
+            });
+          }
         }
-      } else {
-        // Priority 2: Fallback to tripId+time for legacy tickets
-        const existingGroup = groups.find(group => {
-          if (group.bookingGroupId) return false;
-          if (group.tickets[0].trip.id !== ticket.trip.id) return false;
 
-          const time1 = new Date(group.tickets[0].bookedAt).getTime();
-          const time2 = new Date(ticket.bookedAt).getTime();
-          return Math.abs(time1 - time2) < 60000;
-        });
+        return groups;
+      }, []);
 
-        if (existingGroup) {
-          existingGroup.tickets.push(ticket);
-          existingGroup.seats.push(seatNumber);
-        } else {
-          groups.push({
-            bookingId: `BOOKING_${ticket.trip.id}_${new Date(ticket.bookedAt).getTime()}`,
-            bookingGroupId: null,
-            tickets: [ticket],
-            seats: [seatNumber],
-            mainTicket: ticket,
-            isRoundTrip: false
-          });
-        }
-      }
-
-      return groups;
-    }, []);
-
-    // @ts-ignore
-    setFilteredTickets(groupedFiltered);
+      // @ts-ignore
+      setFilteredTickets(groupedFiltered);
+    }
   }, [searchTerm, statusFilter, tickets]);
 
   // ⭐ Helper function to detect round trip
@@ -284,10 +342,51 @@ function SearchTicket() {
 
         console.log("👥 Grouped tickets into bookings:", groupedTickets);
 
-        // Store both individual and grouped tickets
-        setTickets(sortedTickets);
+        // ⭐ Fetch payment amounts for bookings with booking_group_id
+        const bookingsWithPayment = await Promise.all(
+          groupedTickets.map(async (booking) => {
+            if (booking.bookingGroupId) {
+              try {
+                console.log(`💳 Fetching payment for: ${booking.bookingGroupId}`);
+                const paymentResponse = await paymentService.getPaymentByBookingGroupId(booking.bookingGroupId);
+                console.log(`💰 Payment response:`, paymentResponse);
+
+                if (paymentResponse.success && paymentResponse.data) {
+                  const paymentAmount = Number(paymentResponse.data.amount);
+                  console.log(`✅ Payment amount for ${booking.bookingGroupId}: ${paymentAmount}`);
+
+                  return {
+                    ...booking,
+                    paymentAmount: paymentAmount,
+                    payment: paymentResponse.data
+                  };
+                }
+              } catch (error) {
+                console.error(`❌ Failed to fetch payment for ${booking.bookingGroupId}:`, error);
+              }
+            }
+            return booking;
+          })
+        );
+
+        console.log("💰 Final bookings with payment amounts:", bookingsWithPayment);
+
+        // 🔍 DEBUG: Check first booking
+        if (bookingsWithPayment.length > 0) {
+          console.log("🎯 FIRST BOOKING CHECK:", {
+            bookingGroupId: bookingsWithPayment[0].bookingGroupId,
+            hasPaymentAmount: !!bookingsWithPayment[0].paymentAmount,
+            paymentAmount: bookingsWithPayment[0].paymentAmount,
+            ticketsSum: bookingsWithPayment[0].tickets.reduce((sum: number, t: any) => sum + t.price, 0)
+          });
+        }
+
+        // ⭐ CRITICAL: Store bookings with payment data in tickets state
+        // so filter logic (useEffect) can preserve payment amounts
         // @ts-ignore
-        setFilteredTickets(groupedTickets); // Use grouped tickets for display
+        setTickets(bookingsWithPayment);
+        // @ts-ignore
+        setFilteredTickets(bookingsWithPayment); // Use grouped tickets for display
       } else {
         toast.error("Không thể tải danh sách vé");
       }
@@ -484,20 +583,13 @@ function SearchTicket() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gray-50 py-12">
+
+
+      <div className="min-h-screen bg-gray-50 py-6">
         <div className="max-w-7xl mx-auto px-4">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">
-              Tra Cứu Vé
-            </h1>
-            <p className="text-gray-600">
-              Quản lý và tra cứu tất cả các vé xe của bạn
-            </p>
-          </div>
 
           {/* Filters */}
-          <Card className="mb-6">
+          <Card className="shadow-md mb-6">
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Search */}
@@ -533,7 +625,7 @@ function SearchTicket() {
 
           {/* Tickets List */}
           {filteredTickets.length === 0 ? (
-            <Card>
+            <Card className="shadow-md">
               <CardContent className="py-12">
                 <div className="text-center">
                   <TicketIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
@@ -556,18 +648,29 @@ function SearchTicket() {
               {filteredTickets.map((booking) => {
                 const mainTicket = booking.mainTicket;
                 const ticketCount = booking.tickets.length;
-                const totalPrice = booking.tickets.reduce((sum: number, t: any) => sum + t.price, 0);
+
+                // ⭐ Use payment amount if available (after all discounts), otherwise sum tickets
+                const sumTickets = booking.tickets.reduce((sum: number, t: any) => sum + t.price, 0);
+                const totalPrice = booking.paymentAmount || sumTickets;
+
+                // 🔍 DEBUG: Log payment amount status
+                console.log(`💳 Card render for ${booking.bookingGroupId}:`, {
+                  paymentAmount: booking.paymentAmount,
+                  sumTickets: sumTickets,
+                  finalDisplay: totalPrice,
+                  hasPayment: !!booking.paymentAmount
+                });
 
                 return (
                 <Card
                   key={booking.bookingId}
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  className="shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer border-0 rounded-xl overflow-hidden"
                   onClick={() => handleViewDetails(booking)}
                 >
-                  <CardHeader className="pb-3">
+                  <CardHeader className="py-3 px-4 bg-gradient-to-r from-blue-50 to-white border-b border-blue-100">
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-lg flex items-center gap-2 flex-wrap">
+                        <CardTitle className="text-base flex items-center gap-2 flex-wrap">
                           <TicketIcon className="h-5 w-5 text-blue-600" />
                           {mainTicket.bookingGroupId ? (
                             <>
@@ -608,26 +711,26 @@ function SearchTicket() {
                       {getStatusBadge(mainTicket.status)}
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4">
                     {/* ⭐ ROUND TRIP: Show both trips separately */}
                     {isRoundTripBooking(booking) ? (
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         {/* Outbound Trip */}
-                        <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                          <div className="flex items-center gap-2 mb-3">
-                            <span className="text-green-700 font-semibold">🚌 CHUYẾN ĐI</span>
+                        <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-green-700 font-semibold text-sm">🚌 CHUYẾN ĐI</span>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             {/* Route */}
-                            <div className="flex items-start gap-3">
-                              <MapPin className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
+                            <div className="flex items-start gap-2">
+                              <MapPin className="h-4 w-4 text-green-600 mt-1 flex-shrink-0" />
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm text-gray-600">Tuyến đường</p>
-                                <p className="font-semibold text-gray-800 flex items-center gap-1 flex-wrap">
+                                <p className="text-xs text-gray-600">Tuyến đường</p>
+                                <p className="font-semibold text-gray-800 text-sm flex items-center gap-1 flex-wrap">
                                   <span className="truncate">
                                     {booking.tickets.find((t: any) => !t.isReturnTrip)?.trip.route.fromLocation}
                                   </span>
-                                  <ArrowRight className="h-4 w-4 flex-shrink-0" />
+                                  <ArrowRight className="h-3 w-3 flex-shrink-0" />
                                   <span className="truncate">
                                     {booking.tickets.find((t: any) => !t.isReturnTrip)?.trip.route.toLocation}
                                   </span>
@@ -636,14 +739,14 @@ function SearchTicket() {
                             </div>
 
                             {/* Date & Seats */}
-                            <div className="flex items-start gap-3">
-                              <Calendar className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
+                            <div className="flex items-start gap-2">
+                              <Calendar className="h-4 w-4 text-green-600 mt-1 flex-shrink-0" />
                               <div className="flex-1">
-                                <p className="text-sm text-gray-600">Khởi hành</p>
-                                <p className="font-semibold text-gray-800">
+                                <p className="text-xs text-gray-600">Khởi hành</p>
+                                <p className="font-semibold text-gray-800 text-sm">
                                   {formatDateTime(booking.tickets.find((t: any) => !t.isReturnTrip)?.trip.departureTime)}
                                 </p>
-                                <p className="text-sm text-gray-600 mt-1">
+                                <p className="text-xs text-gray-600 mt-1">
                                   Ghế: <span className="font-semibold text-green-600">
                                     {booking.tickets
                                       .filter((t: any) => !t.isReturnTrip)
@@ -662,21 +765,21 @@ function SearchTicket() {
                         </div>
 
                         {/* Return Trip */}
-                        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                          <div className="flex items-center gap-2 mb-3">
-                            <span className="text-blue-700 font-semibold">🔄 CHUYẾN VỀ</span>
+                        <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-blue-700 font-semibold text-sm">🔄 CHUYẾN VỀ</span>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             {/* Route */}
-                            <div className="flex items-start gap-3">
-                              <MapPin className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                            <div className="flex items-start gap-2">
+                              <MapPin className="h-4 w-4 text-blue-600 mt-1 flex-shrink-0" />
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm text-gray-600">Tuyến đường</p>
-                                <p className="font-semibold text-gray-800 flex items-center gap-1 flex-wrap">
+                                <p className="text-xs text-gray-600">Tuyến đường</p>
+                                <p className="font-semibold text-gray-800 text-sm flex items-center gap-1 flex-wrap">
                                   <span className="truncate">
                                     {booking.tickets.find((t: any) => t.isReturnTrip)?.trip.route.fromLocation}
                                   </span>
-                                  <ArrowRight className="h-4 w-4 flex-shrink-0" />
+                                  <ArrowRight className="h-3 w-3 flex-shrink-0" />
                                   <span className="truncate">
                                     {booking.tickets.find((t: any) => t.isReturnTrip)?.trip.route.toLocation}
                                   </span>
@@ -685,14 +788,14 @@ function SearchTicket() {
                             </div>
 
                             {/* Date & Seats */}
-                            <div className="flex items-start gap-3">
-                              <Calendar className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                            <div className="flex items-start gap-2">
+                              <Calendar className="h-4 w-4 text-blue-600 mt-1 flex-shrink-0" />
                               <div className="flex-1">
-                                <p className="text-sm text-gray-600">Khởi hành</p>
-                                <p className="font-semibold text-gray-800">
+                                <p className="text-xs text-gray-600">Khởi hành</p>
+                                <p className="font-semibold text-gray-800 text-sm">
                                   {formatDateTime(booking.tickets.find((t: any) => t.isReturnTrip)?.trip.departureTime)}
                                 </p>
-                                <p className="text-sm text-gray-600 mt-1">
+                                <p className="text-xs text-gray-600 mt-1">
                                   Ghế: <span className="font-semibold text-blue-600">
                                     {booking.tickets
                                       .filter((t: any) => t.isReturnTrip)
@@ -704,45 +807,54 @@ function SearchTicket() {
                             </div>
 
                             {/* Vehicle */}
-                            <div className="text-sm text-gray-600">
+                            <div className="text-xs text-gray-600">
                               <p>Xe: {booking.tickets.find((t: any) => t.isReturnTrip)?.trip.vehicle.licensePlate}</p>
                             </div>
                           </div>
                         </div>
 
                         {/* Price & Action for Round Trip */}
-                        <div className="flex items-center justify-between pt-2">
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-200">
                           <div>
-                            <p className="text-sm text-gray-600">Tổng giá vé (2 chiều)</p>
-                            <p className="text-2xl font-bold text-orange-600">
-                              {formatPrice(totalPrice)}
+                            <p className="text-xs text-gray-600">Tổng giá vé (2 chiều)</p>
+                            <p className="text-lg font-bold text-orange-600">
+                              {formatPrice(
+                                mainTicket.promotion
+                                  ? mainTicket.promotion.discountType === "percentage"
+                                    ? totalPrice * (1 - mainTicket.promotion.discountValue / 100)
+                                    : totalPrice - mainTicket.promotion.discountValue
+                                  : totalPrice
+                              )}
                             </p>
-                            <p className="text-xs text-green-600 font-semibold">
-                              🎉 Đã giảm 10%
-                            </p>
+                            {mainTicket.promotion && (
+                              <p className="text-xs text-green-600 font-semibold">
+                                🏷️ Đã áp dụng mã {mainTicket.promotion.code}
+                              </p>
+                            )}
                           </div>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={(e) => handleViewDetails(booking, e)}
+                            className="text-xs px-3 py-1"
                           >
-                            Xem chi tiết
+                            Chi tiết
                           </Button>
                         </div>
                       </div>
                     ) : (
                       /* ⭐ ONE-WAY: Original display */
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {/* Route Info */}
-                        <div className="flex items-start gap-3">
-                          <MapPin className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                        <div className="flex items-start gap-2">
+                          <MapPin className="h-4 w-4 text-blue-600 mt-1 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-gray-600">Tuyến đường</p>
-                            <p className="font-semibold text-gray-800 flex items-center gap-1 flex-wrap">
+                            <p className="text-xs text-gray-600">Tuyến đường</p>
+                            <p className="font-semibold text-gray-800 text-sm flex items-center gap-1 flex-wrap">
                               <span className="truncate">
                                 {mainTicket.trip.route.fromLocation}
                               </span>
-                              <ArrowRight className="h-4 w-4 flex-shrink-0" />
+                              <ArrowRight className="h-3 w-3 flex-shrink-0" />
                               <span className="truncate">
                                 {mainTicket.trip.route.toLocation}
                               </span>
@@ -751,14 +863,14 @@ function SearchTicket() {
                         </div>
 
                         {/* Date & Seat Info */}
-                        <div className="flex items-start gap-3">
-                          <Calendar className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                        <div className="flex items-start gap-2">
+                          <Calendar className="h-4 w-4 text-blue-600 mt-1 flex-shrink-0" />
                           <div className="flex-1">
-                            <p className="text-sm text-gray-600">Khởi hành</p>
-                            <p className="font-semibold text-gray-800">
+                            <p className="text-xs text-gray-600">Khởi hành</p>
+                            <p className="font-semibold text-gray-800 text-sm">
                               {formatDateTime(mainTicket.trip.departureTime)}
                             </p>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-xs text-gray-600 mt-1">
                               Ghế: <span className="font-semibold text-blue-600">
                                 {booking.seats.join(", ")}
                               </span>
@@ -767,10 +879,10 @@ function SearchTicket() {
                         </div>
 
                         {/* Price & Action */}
-                        <div className="flex items-center justify-between md:justify-end gap-4">
+                        <div className="flex items-center justify-between md:justify-end gap-3">
                           <div className="text-right">
-                            <p className="text-sm text-gray-600">Tổng giá vé</p>
-                            <p className="text-xl font-bold text-orange-600">
+                            <p className="text-xs text-gray-600">Tổng giá vé</p>
+                            <p className="text-lg font-bold text-orange-600">
                               {formatPrice(totalPrice)}
                             </p>
                           </div>
@@ -778,8 +890,9 @@ function SearchTicket() {
                             variant="outline"
                             size="sm"
                             onClick={(e) => handleViewDetails(booking, e)}
+                            className="text-xs px-3 py-1"
                           >
-                            Xem chi tiết
+                            Chi tiết
                           </Button>
                         </div>
                       </div>
@@ -846,22 +959,73 @@ function SearchTicket() {
           {selectedBooking && (
             <>
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  {selectedBooking.mainTicket.status === "confirmed" ? (
-                    <>
-                      <Receipt className="h-5 w-5 text-green-600" />
-                      Hóa đơn điện tử
-                    </>
-                  ) : (
-                    <>
-                      <Info className="h-5 w-5 text-blue-600" />
-                      Thông tin chi tiết vé
-                    </>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <DialogTitle className="flex items-center gap-2">
+                      {selectedBooking.mainTicket.status === "confirmed" ? (
+                        <>
+                          <Receipt className="h-5 w-5 text-green-600" />
+                          Hóa đơn điện tử
+                        </>
+                      ) : (
+                        <>
+                          <Info className="h-5 w-5 text-blue-600" />
+                          Thông tin chi tiết vé
+                        </>
+                      )}
+                    </DialogTitle>
+                    <DialogDescription>
+                      Mã vé #{selectedBooking.mainTicket.id} - {selectedBooking.tickets.length} ghế
+                    </DialogDescription>
+                  </div>
+
+                  {/* Print Invoice Button - Only for confirmed tickets */}
+                  {selectedBooking.mainTicket.status === "confirmed" && selectedBooking.mainTicket.bookingGroupId && (
+                    <Button
+                      onClick={async () => {
+                        try {
+                          // Get token - support both regular users and admins
+                          const token = localStorage.getItem('token') || localStorage.getItem('admin_token');
+
+                          const response = await fetch(
+                            `http://localhost:8080/api/reports/invoice/pdf/${selectedBooking.mainTicket.bookingGroupId}`,
+                            {
+                              headers: token ? {
+                                'Authorization': `Bearer ${token}`,
+                              } : {},
+                            }
+                          );
+
+                          if (response.ok) {
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `Invoice_${selectedBooking.mainTicket.bookingGroupId}.pdf`;
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                            document.body.removeChild(a);
+                            toast.success("Đã tải hóa đơn PDF thành công!");
+                          } else {
+                            const errorText = await response.text();
+                            console.error("Error response:", errorText);
+                            toast.error(`Không thể tải hóa đơn (${response.status})`);
+                          }
+                        } catch (error) {
+                          console.error("Error downloading invoice:", error);
+                          toast.error("Lỗi khi tải hóa đơn");
+                        }
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                    >
+                      <Receipt className="h-4 w-4" />
+                      In hóa đơn
+                    </Button>
                   )}
-                </DialogTitle>
-                <DialogDescription>
-                  Mã vé #{selectedBooking.mainTicket.id} - {selectedBooking.tickets.length} ghế
-                </DialogDescription>
+                </div>
               </DialogHeader>
 
               {/* Content based on status */}
@@ -884,6 +1048,9 @@ function SearchTicket() {
 
 // ✅ Invoice Content Component (for confirmed tickets)
 function InvoiceContent({ booking }: { booking: any }) {
+  const [payment, setPayment] = useState<Payment | null>(null);
+  const [loadingPayment, setLoadingPayment] = useState(false);
+
   const mainTicket = booking.mainTicket;
   const totalPrice = booking.tickets.reduce((sum: number, t: any) => sum + Number(t.price), 0);
 
@@ -893,6 +1060,29 @@ function InvoiceContent({ booking }: { booking: any }) {
   const outboundTickets = isRoundTrip ? booking.tickets.filter((t: any) => !t.isReturnTrip) : booking.tickets;
   const returnTickets = isRoundTrip ? booking.tickets.filter((t: any) => t.isReturnTrip) : [];
 
+  // Fetch payment data
+  useEffect(() => {
+    const fetchPayment = async () => {
+      if (!mainTicket.bookingGroupId) return;
+
+      setLoadingPayment(true);
+      try {
+        const response = await paymentService.getPaymentByBookingGroupId(mainTicket.bookingGroupId);
+        console.log("💳 Payment data:", response.data);
+        console.log("🏷️ Promotion:", response.data?.promotion);
+        if (response.success && response.data) {
+          setPayment(response.data);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching payment:", error);
+      } finally {
+        setLoadingPayment(false);
+      }
+    };
+
+    fetchPayment();
+  }, [mainTicket.bookingGroupId]);
+
   return (
     <div className="space-y-6">
       {/* Invoice Header */}
@@ -900,12 +1090,12 @@ function InvoiceContent({ booking }: { booking: any }) {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-2xl font-bold text-gray-800">
-              {isRoundTrip ? 'HÓA ĐƠN VÉ KHỨ HỒI' : 'HÓA ĐƠN THANH TOÁN'}
+              HÓA ĐƠN VÉ
             </h3>
             <p className="text-sm text-gray-600 mt-1">
               Ngày xuất: {new Date().toLocaleDateString("vi-VN")}
             </p>
-            {isRoundTrip && mainTicket.bookingGroupId && (
+            {mainTicket.bookingGroupId && (
               <div className="flex items-center gap-2 mt-1">
                 <p className="text-sm text-gray-600">
                   Mã đặt: {mainTicket.bookingGroupId}
@@ -929,11 +1119,6 @@ function InvoiceContent({ booking }: { booking: any }) {
             <Badge className="bg-green-600 text-white text-lg px-4 py-2">
               ĐÃ THANH TOÁN
             </Badge>
-            {isRoundTrip && (
-              <Badge className="mt-2 bg-gradient-to-r from-green-500 to-blue-500 text-white">
-                🔄 Khứ hồi
-              </Badge>
-            )}
           </div>
         </div>
       </div>
@@ -1112,30 +1297,88 @@ function InvoiceContent({ booking }: { booking: any }) {
       <div>
         <h4 className="font-semibold text-gray-800 mb-3">Chi tiết thanh toán</h4>
         <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-          {booking.tickets.map((ticket: any, index: number) => (
-            <div key={ticket.id} className="flex justify-between text-sm">
-              <span>
-                Vé {index + 1} - Ghế {ticket.tripSeat?.seatNumber || ticket.seat?.seatNumber}
-              </span>
-              <span className="font-semibold">
-                {new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                }).format(ticket.price)}
-              </span>
+          {/* Show individual tickets with trip type */}
+          {booking.tickets.map((ticket: any, index: number) => {
+            const tripLabel = ticket.isReturnTrip ? "(Chiều về)" : "(Chiều đi)";
+            const isRoundTrip = booking.tickets.some((t: any) => t.isReturnTrip);
+
+            return (
+              <div key={ticket.id} className="flex justify-between text-sm">
+                <span>
+                  Vé {index + 1} - Ghế {ticket.tripSeat?.seatNumber || ticket.seat?.seatNumber}
+                  {isRoundTrip && <span className="ml-1 text-gray-500">{tripLabel}</span>}
+                </span>
+                <span className="font-semibold">
+                  {new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  }).format(ticket.price)}
+                </span>
+              </div>
+            );
+          })}
+
+          {/* Show payment breakdown if available */}
+          {payment && (
+            <>
+              {/* Subtotal */}
+              <div className="border-t pt-2 flex justify-between text-sm">
+                <span className="text-gray-600">Tạm tính ({booking.tickets.length} vé)</span>
+                <span className="font-semibold">{totalPrice.toLocaleString('vi-VN')}đ</span>
+              </div>
+
+              {/* Round trip discount (if exists) */}
+              {isRoundTrip && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>🎉 Giảm giá khứ hồi (10%)</span>
+                  <span className="font-semibold">-{Math.round(totalPrice * 0.1).toLocaleString('vi-VN')}đ</span>
+                </div>
+              )}
+
+              {/* Online payment discount (2%) */}
+              <div className="flex justify-between text-sm text-green-600">
+                <span>Ưu đãi thanh toán Online (2%)</span>
+                <span className="font-semibold">-{Math.round((isRoundTrip ? totalPrice * 0.9 : totalPrice) * 0.02).toLocaleString('vi-VN')}đ</span>
+              </div>
+
+              {/* Promotion discount (if exists) */}
+              {payment.promotion && (
+                <div className="flex justify-between text-sm bg-green-50 p-2 rounded border border-green-200">
+                  <span className="text-green-700 font-semibold">
+                    🏷️ Mã giảm giá ({payment.promotion.code})
+                  </span>
+                  <span className="text-green-700 font-bold">
+                    {payment.promotion.discountType === 'percentage'
+                      ? `-${Math.round(totalPrice * payment.promotion.discountValue / 100).toLocaleString('vi-VN')}đ`
+                      : `-${payment.promotion.discountValue.toLocaleString('vi-VN')}đ`
+                    }
+                  </span>
+                </div>
+              )}
+
+              {/* Final Total from Payment */}
+              <div className="border-t pt-2 mt-2">
+                <div className="flex justify-between font-bold text-lg">
+                  <span>Tổng cộng</span>
+                  <span className="text-orange-600">
+                    {payment.amount.toLocaleString('vi-VN')}đ
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Fallback if no payment data */}
+          {!payment && !loadingPayment && (
+            <div className="border-t pt-2 mt-2">
+              <div className="flex justify-between font-bold text-lg">
+                <span>Tổng cộng</span>
+                <span className="text-green-600">
+                  {totalPrice.toLocaleString('vi-VN')}đ
+                </span>
+              </div>
             </div>
-          ))}
-          <div className="border-t pt-2 mt-2">
-            <div className="flex justify-between font-bold text-lg">
-              <span>Tổng cộng</span>
-              <span className="text-green-600">
-                {new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                }).format(totalPrice)}
-              </span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
