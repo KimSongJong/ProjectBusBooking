@@ -71,8 +71,8 @@ services:
     environment:
       # Database connection (MUST use container name 'bus-booking-db' - same as application.properties)
       SPRING_DATASOURCE_URL: jdbc:mysql://bus-booking-db:3306/bus_booking?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root_password
+      SPRING_DATASOURCE_USERNAME: busbooking_user
+      SPRING_DATASOURCE_PASSWORD: busbooking_pass
 
       # JPA settings
       SPRING_JPA_HIBERNATE_DDL_AUTO: none
