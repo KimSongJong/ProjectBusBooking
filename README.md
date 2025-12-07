@@ -178,12 +178,12 @@ Tìm các dòng sau để biết service đã sẵn sàng:
 
 ### 🌐 Bước 4: Truy Cập Hệ Thống
 
-| **Dịch vụ**       | **URL**                      | **Thông tin đăng nhập**              |
-|-------------------|------------------------------|--------------------------------------|
-| **Frontend**      | http://localhost:5173        | -                                    |
-| **Backend API**   | http://localhost:8080/api    | -                                    |
-| **phpMyAdmin**    | http://localhost:8081        | User: `root`, Pass: `root_password`  |
-| **Admin Panel**   | http://localhost:5173/admin  | User: `admin`, Pass: `admin123`      |
+| **Dịch vụ**       | **URL**                           | **Thông tin đăng nhập**              |
+|-------------------|-----------------------------------|--------------------------------------|
+| **Frontend**      | http://localhost:5173             | -                                    |
+| **Backend API**   | http://localhost:8080/api         | -                                    |
+| **phpMyAdmin**    | http://localhost:8081             | User: `root`, Pass: `root_password`  |
+| **Admin Panel**   | http://localhost:5173/admin/login | User: `admin`, Pass: `admin123`      |
 
 ---
 
