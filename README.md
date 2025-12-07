@@ -1,377 +1,365 @@
-# 🚌 TPT Bus Booking System
+# 🚌 Hệ Thống Đặt Vé Xe Khách Trực Tuyến
 
-Hệ thống đặt vé xe khách trực tuyến với giao diện hiện đại, hỗ trợ thanh toán online (VNPay, MoMo) và quản trị viên.
+**Bus Booking System** - Nền tảng đặt vé xe khách trực tuyến hiện đại với thanh toán đa kênh (VNPay, MoMo)
 
-## 📋 Mục Lục
+---
 
-- [Tính Năng](#-tính-năng)
-- [Công Nghệ](#-công-nghệ-sử-dụng)
-- [Yêu Cầu Hệ Thống](#-yêu-cầu-hệ-thống)
-- [Cài Đặt & Chạy](#-cài-đặt--chạy-project)
-- [Cấu Hình](#-cấu-hình)
-- [API Documentation](#-api-documentation)
-- [Đóng Góp](#-đóng-góp)
+## 📋 Giới Thiệu
 
-## ✨ Tính Năng
+Đây là project môn học J2EE - Hệ thống đặt vé xe khách trực tuyến được xây dựng với kiến trúc **Multi-tier Architecture**, tích hợp:
+- ✅ Thanh toán trực tuyến (VNPay Sandbox + MoMo Test Gateway)
+- ✅ Email tự động (OTP, hóa đơn PDF)
+- ✅ Bản đồ tương tác (OpenStreetMap + Leaflet)
+- ✅ Báo cáo động (JasperReports, Excel)
+- ✅ Quản lý ghế realtime với khóa tạm thời
 
-### Khách Hàng
-- 🔍 Tìm kiếm và đặt vé xe khách
-- 🪑 Chọn ghế ngồi trực quan
-- 💳 Thanh toán online (VNPay, MoMo)
-- 📧 Nhận email xác nhận và hóa đơn
-- 👤 Quản lý tài khoản và lịch sử đặt vé
-- 🔐 Quên mật khẩu và đổi mật khẩu
-- 📱 Giao diện responsive (mobile-friendly)
+---
 
-### Quản Trị Viên
-- 📊 Dashboard thống kê
-- 🚍 Quản lý xe, tài xế, tuyến đường
-- 🗓️ Quản lý chuyến xe và lịch trình
-- 🎫 Quản lý vé và đặt chỗ
-- 💰 Quản lý thanh toán và báo cáo
-- 👥 Quản lý tài khoản người dùng
-- 📨 Quản lý phản hồi khách hàng
+## 🛠️ Công Nghệ
 
-## 🛠️ Công Nghệ Sử Dụng
+| **Lớp**              | **Công nghệ**                          | **Mục đích**                                      |
+|----------------------|----------------------------------------|--------------------------------------------------|
+| **Backend**          | Spring Boot 3.4.1                      | REST API Framework                               |
+| **Security**         | Spring Security + JWT                  | Xác thực, phân quyền                             |
+| **Database**         | MySQL 8.0                              | Lưu trữ dữ liệu                                  |
+| **ORM**              | Spring Data JPA + Hibernate            | Ánh xạ Object-Relational                         |
+| **Email**            | Spring Mail + Thymeleaf                | Gửi email HTML template                          |
+| **Payment**          | VNPay Sandbox + MoMo Test API          | Thanh toán trực tuyến (môi trường test)          |
+| **Maps (Display)**   | OpenStreetMap + Leaflet.js             | Hiển thị bản đồ tương tác                        |
+| **Maps (Distance)**  | Google Maps Distance Matrix API        | Tính khoảng cách và thời gian                    |
+| **Reporting**        | JasperReports + Apache POI             | Xuất PDF và Excel                                |
+| **File Storage**     | Cloudinary                             | Lưu trữ ảnh tài xế                               |
+| **Frontend**         | React 18 + TypeScript                  | Giao diện người dùng SPA                         |
+| **UI Library**       | Tailwind CSS + Shadcn UI               | Thiết kế responsive                              |
+| **Build Tool**       | Vite + Maven                           | Build frontend/backend                           |
+| **Containerization** | Docker + Docker Compose                | Deploy môi trường dev                            |
 
-### Backend
-- **Java 21** - Programming language
-- **Spring Boot 3.4.1** - Application framework
-- **Spring Security** - Authentication & Authorization
-- **Spring Data JPA** - Database ORM
-- **MySQL 8.0** - Relational database
-- **JWT** - Token-based authentication
-- **JavaMail** - Email service
-- **JasperReports** - PDF & Excel reports
+---
 
-### Frontend
-- **React 18** - UI framework
-- **TypeScript** - Type-safe JavaScript
-- **Vite** - Build tool
-- **Tailwind CSS** - Styling
-- **Shadcn/UI** - Component library
-- **React Router** - Navigation
-- **Axios** - HTTP client
+## 🚀 Hướng Dẫn Cài Đặt (Docker Desktop)
 
-### DevOps
-- **Docker** - Containerization
-- **Docker Compose** - Multi-container orchestration
-- **Nginx** - Reverse proxy (production)
-- **Maven** - Backend build tool
-- **PNPM** - Frontend package manager
+### ✅ Yêu Cầu
+- **Docker Desktop** đã cài đặt và chạy ([Download tại đây](https://www.docker.com/products/docker-desktop/))
+- **RAM:** Tối thiểu 4GB
+- **Disk:** 5GB trống
+- **Port:** 3306 (MySQL), 5173 (Frontend), 8080 (Backend), 8081 (phpMyAdmin)
 
-## 📦 Yêu Cầu Hệ Thống
+---
 
-### Development
-- **Docker Desktop** (Windows/Mac) hoặc **Docker Engine** (Linux)
-- **Git**
-- **8GB RAM minimum** (16GB recommended)
+### 📦 Bước 1: Chuẩn Bị File
 
-### Production (Optional - không dùng Docker)
-- **Java 21 JDK**
-- **Node.js 18+** và **PNPM**
-- **MySQL 8.0**
-- **Maven 3.8+**
+Đảm bảo bạn có các file sau trong thư mục gốc:
 
-## 🚀 Cài Đặt & Chạy Project
-
-### Option 1: Docker (Recommended) ⭐
-
-#### 1. Clone Repository
-
-```bash
-git clone <repository-url>
-cd ProjectBusBooking
+```
+ProjectBusBooking/
+├── docker-compose.yml       # File cấu hình Docker
+├── .env.example             # File mẫu cấu hình môi trường
+├── bus_booking.sql          # File database khởi tạo
+├── backend/                 # Source code backend
+├── frontend-react/          # Source code frontend
+└── README.md                # File này
 ```
 
-#### 2. Tạo File Environment
+---
 
-Tạo file `.env` trong thư mục root:
+### 🔧 Bước 2: Cấu Hình Environment
 
-```env
-# Database Configuration
-MYSQL_ROOT_PASSWORD=root123456
+**Tạo file `.env`** từ `.env.example`:
+
+```bash
+# Windows (PowerShell)
+Copy-Item .env.example .env
+
+# Linux/Mac
+cp .env.example .env
+```
+
+**Chỉnh sửa file `.env`** với thông tin thực tế của bạn:
+
+```properties
+# ============================================
+# DATABASE CONFIGURATION
+# ============================================
+MYSQL_ROOT_PASSWORD=root_password
 MYSQL_DATABASE=bus_booking
 MYSQL_USER=busbooking_user
 MYSQL_PASSWORD=busbooking_pass
 
-# Backend Configuration
-SPRING_PROFILES_ACTIVE=docker
-JWT_SECRET=your-secret-key-here-minimum-256-bits
+# ============================================
+# SPRING DATASOURCE
+# ============================================
+SPRING_DATASOURCE_URL=jdbc:mysql://bus-booking-db:3306/bus_booking
+SPRING_DATASOURCE_USERNAME=busbooking_user
+SPRING_DATASOURCE_PASSWORD=busbooking_pass
 
-# Email Configuration (Gmail)
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-app-password
+# ============================================
+# EMAIL CONFIGURATION (Gmail SMTP)
+# ============================================
+SPRING_MAIL_USERNAME=your-email@gmail.com
+SPRING_MAIL_PASSWORD=your-app-password
 
-# VNPay Configuration
-VNPAY_TMN_CODE=your-vnpay-code
-VNPAY_HASH_SECRET=your-vnpay-secret
+# ============================================
+# VNPAY SANDBOX (Test Environment)
+# ============================================
+VNPAY_TMN_CODE=your_tmn_code
+VNPAY_SECRET_KEY=your_secret_key
+VNPAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+VNPAY_RETURN_URL=http://localhost:5173/payment/result
 
-# MoMo Configuration
-MOMO_PARTNER_CODE=your-momo-code
-MOMO_ACCESS_KEY=your-momo-access-key
-MOMO_SECRET_KEY=your-momo-secret-key
+# ============================================
+# MOMO TEST GATEWAY (Test Environment)
+# ============================================
+MOMO_PARTNER_CODE=your_partner_code
+MOMO_ACCESS_KEY=your_access_key
+MOMO_SECRET_KEY=your_secret_key
+MOMO_ENDPOINT=https://test-payment.momo.vn/v2/gateway/api/create
+MOMO_RETURN_URL=http://localhost:5173/payment/result
+MOMO_NOTIFY_URL=http://localhost:8080/api/payment/momo/callback
+
+# ============================================
+# CLOUDINARY (Image Storage for Driver Photos)
+# ============================================
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# ============================================
+# GOOGLE MAPS API (Distance Calculation)
+# ============================================
+GOOGLE_MAPS_API_KEY=your_google_maps_key
 ```
 
-#### 3. Build và Khởi Động
+> **⚠️ Lưu ý:** File `.env` chứa thông tin nhạy cảm. **KHÔNG** commit file này lên Git.
+
+---
+
+### ▶️ Bước 3: Chạy Docker Compose
+
+**1. Mở Docker Desktop** → Đảm bảo Docker đang chạy
+
+**2. Mở Terminal/PowerShell** tại thư mục gốc project
+
+**3. Khởi động hệ thống:**
 
 ```bash
-# Build images và start containers
-docker-compose up --build -d
+docker-compose up -d
+```
 
-# Xem logs
+**4. Kiểm tra trạng thái:**
+
+```bash
+docker-compose ps
+```
+
+Kết quả mong đợi:
+
+```
+NAME                        STATUS          PORTS
+bus-booking-db              Up              0.0.0.0:3306->3306/tcp
+bus-booking-backend         Up              0.0.0.0:8080->8080/tcp
+bus-booking-frontend        Up              0.0.0.0:5173->5173/tcp
+bus-booking-phpmyadmin      Up              0.0.0.0:8081->80/tcp
+```
+
+**5. Đợi các service khởi động hoàn tất** (khoảng 2-3 phút):
+
+```bash
+# Xem logs để kiểm tra
 docker-compose logs -f
+```
 
-# Dừng containers
+Tìm các dòng sau để biết service đã sẵn sàng:
+
+- **Database:** `mysqld: ready for connections`
+- **Backend:** `Started BusBookingApplication in X seconds`
+- **Frontend:** `Local: http://localhost:5173/`
+
+---
+
+### 🌐 Bước 4: Truy Cập Hệ Thống
+
+| **Dịch vụ**       | **URL**                      | **Thông tin đăng nhập**              |
+|-------------------|------------------------------|--------------------------------------|
+| **Frontend**      | http://localhost:5173        | -                                    |
+| **Backend API**   | http://localhost:8080/api    | -                                    |
+| **phpMyAdmin**    | http://localhost:8081        | User: `root`, Pass: `root_password`  |
+| **Admin Panel**   | http://localhost:5173/admin  | User: `admin`, Pass: `admin123`      |
+
+---
+
+### 🧪 Tài Khoản Test
+
+#### Admin
+- **Username:** `admin`
+- **Password:** `admin123`
+
+#### User (Khách hàng)
+- **Username:** `user1`
+- **Password:** `password123`
+
+#### VNPay Sandbox (Thẻ test)
+- **Số thẻ:** `9704198526191432198`
+- **Tên:** `NGUYEN VAN A`
+- **Ngày hết hạn:** `07/15`
+- **Mã OTP:** `123456`
+
+#### MoMo Test
+- **Số điện thoại:** `0963181714`
+- **OTP:** `111111`
+
+---
+
+## 🛑 Quản Lý Docker Containers
+
+### Dừng hệ thống (giữ data)
+```bash
+docker-compose stop
+```
+
+### Khởi động lại
+```bash
+docker-compose start
+```
+
+### Dừng và xóa containers (giữ data trong volumes)
+```bash
 docker-compose down
+```
 
-# Xóa volumes (reset database)
+### Xóa hoàn toàn (bao gồm cả data)
+```bash
 docker-compose down -v
 ```
 
-#### 4. Import Database
-
+### Xem logs
 ```bash
-# Import initial data
-docker exec -i bus-booking-mysql mysql -uroot -proot123456 bus_booking < bus_booking.sql
+# Tất cả services
+docker-compose logs -f
+
+# Service cụ thể
+docker-compose logs -f backend
+docker-compose logs -f frontend
+docker-compose logs -f database
 ```
 
-#### 5. Truy Cập Ứng Dụng
-
-- **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:8080/api
-- **MySQL:** localhost:3307 (user: `busbooking_user`, pass: `busbooking_pass`)
-
-#### 6. Tài Khoản Mặc Định
-
-**Admin:**
-- Username: `admin`
-- Password: `admin123`
-- URL: http://localhost:3000/admin/login
-
-**Customer (test):**
-- Username: `LNNT`
-- Password: `password123`
-- URL: http://localhost:3000/login
+### Rebuild containers (sau khi sửa code)
+```bash
+docker-compose up -d --build
+```
 
 ---
 
-### Option 2: Local Development (Không Docker)
+## 🐛 Xử Lý Sự Cố
 
-#### Backend
+### ❌ Lỗi: Port đã được sử dụng
 
-```bash
-cd backend
-
-# Cấu hình database trong application.properties
-# spring.datasource.url=jdbc:mysql://localhost:3306/bus_booking
-
-# Build và chạy
-mvn clean install
-mvn spring-boot:run
+**Triệu chứng:**
+```
+Error starting userland proxy: listen tcp 0.0.0.0:3306: bind: address already in use
 ```
 
-#### Frontend
+**Giải pháp:**
 
-```bash
-cd frontend-react
+**Option 1:** Tắt MySQL/XAMPP đang chạy
 
-# Install dependencies
-pnpm install
-
-# Chạy development server
-pnpm dev
+**Option 2:** Đổi port trong `docker-compose.yml`:
+```yaml
+database:
+  ports:
+    - "3307:3306"  # Đổi 3306 → 3307
 ```
 
-## ⚙️ Cấu Hình
+Sau đó cập nhật `.env`:
+```properties
+SPRING_DATASOURCE_URL=jdbc:mysql://bus-booking-db:3307/bus_booking
+```
 
-### Email Service (Gmail)
+---
 
-1. Bật **2-Factor Authentication** trong tài khoản Gmail
-2. Tạo **App Password**: https://myaccount.google.com/apppasswords
-3. Cập nhật vào `.env`:
-   ```env
-   MAIL_USERNAME=your-email@gmail.com
-   MAIL_PASSWORD=your-16-character-app-password
+### ❌ Lỗi: Database không kết nối được
+
+**Triệu chứng:** Backend báo lỗi `CommunicationsException`
+
+**Giải pháp:**
+
+```bash
+# 1. Kiểm tra database logs
+docker-compose logs database | tail -50
+
+# 2. Restart database
+docker-compose restart database
+
+# 3. Đợi 30s rồi restart backend
+docker-compose restart backend
+```
+
+---
+
+### ❌ Lỗi: Frontend không build được
+
+**Triệu chứng:** `npm install failed` hoặc `ENOENT`
+
+**Giải pháp:**
+
+```bash
+# Xóa node_modules và rebuild
+docker-compose exec frontend rm -rf node_modules package-lock.json
+docker-compose restart frontend
+```
+
+---
+
+### ❌ Lỗi: Backend không start
+
+**Triệu chứng:** `Application run failed`
+
+**Kiểm tra:**
+
+1. **Database đã sẵn sàng chưa?**
+   ```bash
+   docker-compose logs database | grep "ready for connections"
    ```
 
-### Payment Gateways
+2. **File `.env` đã đúng chưa?**
+    - Kiểm tra `SPRING_DATASOURCE_URL` có đúng hostname `bus-booking-db`
+    - Kiểm tra username/password khớp với `MYSQL_USER`/`MYSQL_PASSWORD`
 
-#### VNPay
-1. Đăng ký tài khoản VNPay Sandbox: https://sandbox.vnpayment.vn/
-2. Lấy **TMN Code** và **Hash Secret**
-3. Cập nhật vào `.env`
-
-#### MoMo
-1. Đăng ký MoMo Test: https://developers.momo.vn/
-2. Lấy credentials
-3. Cập nhật vào `.env`
-
-## 📚 API Documentation
-
-### Base URL
-```
-http://localhost:8080/api
-```
-
-### Authentication Endpoints
-
-```http
-POST /auth/login
-POST /auth/register
-POST /auth/forgot-password
-PUT  /auth/change-password
-POST /auth/logout
-GET  /auth/me
-```
-
-### Customer Endpoints
-
-```http
-GET  /routes              # Browse routes
-GET  /trips               # Browse trips
-POST /bookings            # Create booking
-GET  /bookings/{id}       # Get booking details
-POST /payments            # Process payment
-```
-
-### Admin Endpoints (Requires ADMIN role)
-
-```http
-GET  /admin/dashboard     # Statistics
-GET  /admin/users         # User management
-GET  /admin/vehicles      # Vehicle management
-GET  /admin/drivers       # Driver management
-GET  /admin/routes        # Route management
-GET  /admin/trips         # Trip management
-GET  /admin/bookings      # Booking management
-GET  /admin/payments      # Payment management
-GET  /admin/feedback      # Customer feedback
-```
-
-**Full API documentation:** http://localhost:8080/api/swagger-ui.html *(if Swagger is enabled)*
-
-## 📁 Cấu Trúc Project
-
-```
-ProjectBusBooking/
-├── backend/                    # Spring Boot Backend
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/
-│   │   │   │   └── com/busbooking/
-│   │   │   │       ├── controller/   # REST Controllers
-│   │   │   │       ├── service/      # Business Logic
-│   │   │   │       ├── repository/   # Data Access
-│   │   │   │       ├── model/        # Entities
-│   │   │   │       ├── dto/          # Data Transfer Objects
-│   │   │   │       ├── security/     # JWT & Security
-│   │   │   │       └── config/       # Configuration
-│   │   │   └── resources/
-│   │   │       ├── application.properties
-│   │   │       ├── application-docker.properties
-│   │   │       └── reports/          # JasperReports templates
-│   │   └── test/                     # Unit tests
-│   ├── Dockerfile
-│   └── pom.xml
-│
-├── frontend-react/             # React Frontend
-│   ├── src/
-│   │   ├── components/         # Reusable components
-│   │   ├── pages/              # Page components
-│   │   ├── services/           # API services
-│   │   ├── contexts/           # React contexts
-│   │   ├── config/             # Configuration
-│   │   └── types/              # TypeScript types
-│   ├── public/
-│   ├── Dockerfile
-│   └── package.json
-│
-├── docker-compose.yml          # Docker orchestration
-├── bus_booking.sql             # Database schema
-├── .env.example                # Environment template
-└── README.md                   # This file
-```
-
-## 🐛 Troubleshooting
-
-### Database Connection Failed
-
-```bash
-# Check if MySQL container is running
-docker ps
-
-# Restart MySQL
-docker-compose restart mysql
-
-# Check logs
-docker-compose logs mysql
-```
-
-### Port Already in Use
-
-```bash
-# Change ports in docker-compose.yml
-# Frontend: 3000 -> 3001
-# Backend: 8080 -> 8081
-# MySQL: 3307 -> 3308
-```
-
-### Build Failed
-
-```bash
-# Clean build
-docker-compose down
-docker system prune -a
-docker-compose up --build
-```
-
-## 🔄 Git Workflow
-
-```bash
-# Clone và setup
-git clone <repository-url>
-cd ProjectBusBooking
-cp .env.example .env  # Sửa .env với config của bạn
-docker-compose up --build -d
-
-# Development
-git checkout -b feature/your-feature
-# Make changes
-git add .
-git commit -m "feat: your feature description"
-git push origin feature/your-feature
-
-# Pull latest changes
-git pull origin main
-docker-compose down
-docker-compose up --build -d
-```
-
-## 📝 Đóng Góp
-
-1. Fork repository
-2. Tạo branch mới (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'feat: Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Mở Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 👥 Team
-
-- **Backend Developer:** [Your Name]
-- **Frontend Developer:** [Your Name]
-- **DevOps:** [Your Name]
-
-## 📞 Contact
-
-- **Email:** your-email@example.com
-- **GitHub:** [Your GitHub Profile]
+3. **Xem logs chi tiết:**
+   ```bash
+   docker-compose logs backend | tail -100
+   ```
 
 ---
 
-**Made with ❤️ by TPT Bus Team**
+## 📖 Tài Liệu Tham Khảo
+
+1. [Spring Boot Documentation](https://spring.io/projects/spring-boot)
+2. [React Documentation](https://react.dev/)
+3. [VNPay Sandbox Guide](https://sandbox.vnpayment.vn/apis/)
+4. [MoMo Developers](https://developers.momo.vn/v3/vi/docs/payment/onboarding/overall/)
+5. [Cloudinary Documentation](https://cloudinary.com/)
+6. [Google Maps Distance Matrix API](https://developers.google.com/maps/documentation/distance-matrix)
+7. [Docker Compose Documentation](https://docs.docker.com/compose/)
+
+---
+
+## 👥 Nhóm Phát Triển
+
+| **STT** | **Họ tên**              | **Đánh giá (%)** |
+|---------|-------------------------|------------------|
+| 1       | Lê Nguyễn Nhật Tâm      | 33%              |
+| 2       | Đoàn Tuấn Tài           | 33%              |
+| 3       | Lưu Hồng Phúc           | 33%              |
+
+---
+
+
+
+## 📧 Liên Hệ
+
+Nếu có bất kỳ câu hỏi nào, vui lòng liên hệ qua email: **lnntam04@gmail.com**
+
+---
+
+**🎉 Chúc bạn triển khai thành công!**
 

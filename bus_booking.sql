@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: database:3306
--- Generation Time: Dec 07, 2025 at 03:12 AM
+-- Generation Time: Dec 07, 2025 at 06:54 PM
 -- Server version: 8.0.43
 -- PHP Version: 8.3.28
 
@@ -30,7 +30,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `create_trip_seats_for_new_trips` ()
   DECLARE v_trip_id INT;
   DECLARE v_vehicle_id INT;
   
-  
+  -- Cursor để lấy các trips chưa có trip_seats
   DECLARE cur CURSOR FOR 
     SELECT t.id, t.vehicle_id 
     FROM trips t 
@@ -49,7 +49,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `create_trip_seats_for_new_trips` ()
       LEAVE read_loop;
     END IF;
     
-    
+    -- Tạo trip_seats từ seats của vehicle
     INSERT INTO trip_seats (trip_id, seat_id, seat_number, seat_type, status, floor, row_position)
     SELECT 
       v_trip_id,
@@ -72,21 +72,125 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `cities`
+--
+
+CREATE TABLE `cities` (
+  `id` int NOT NULL,
+  `name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'City name (e.g., "TP Hồ Chí Minh")',
+  `normalized_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Normalized for search',
+  `region` enum('central','north','south') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `is_popular` tinyint(1) DEFAULT '0' COMMENT 'Priority cities',
+  `is_active` tinyint(1) DEFAULT '1' COMMENT 'Enable/disable city',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `latitude` double DEFAULT NULL,
+  `longitude` double DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `cities`
+--
+
+INSERT INTO `cities` (`id`, `name`, `normalized_name`, `region`, `is_popular`, `is_active`, `created_at`, `updated_at`, `latitude`, `longitude`) VALUES
+(1, 'Hà Nội', 'ha noi', 'north', 1, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:45', 21.0285, 105.8542),
+(2, 'Hải Phòng', 'hai phong', 'north', 1, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:45', 20.8449, 106.6881),
+(3, 'Quảng Ninh', 'quang ninh', 'north', 1, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:45', 21.0064, 107.2925),
+(4, 'Hà Giang', 'ha giang', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:45', 22.8026, 104.9784),
+(5, 'Cao Bằng', 'cao bang', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:45', 22.6663, 106.2581),
+(6, 'Lào Cai', 'lao cai', 'north', 1, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:45', 22.4809, 103.975),
+(7, 'Điện Biên', 'dien bien', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:45', 21.3936, 103.0199),
+(8, 'Lai Châu', 'lai chau', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:45', 22.3864, 103.4702),
+(9, 'Sơn La', 'son la', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:45', 21.3273, 103.9146),
+(10, 'Yên Bái', 'yen bai', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:45', 21.7168, 104.8986),
+(11, 'Hòa Bình', 'hoa binh', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:45', 20.8142, 105.3386),
+(12, 'Thái Nguyên', 'thai nguyen', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:45', 21.5671, 105.8252),
+(13, 'Lạng Sơn', 'lang son', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:45', 21.8537, 106.761),
+(14, 'Bắc Giang', 'bac giang', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:45', 21.2819, 106.1974),
+(15, 'Phú Thọ', 'phu tho', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:45', 21.2685, 105.2045),
+(16, 'Vĩnh Phúc', 'vinh phuc', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 21.3609, 105.5474),
+(17, 'Bắc Ninh', 'bac ninh', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 21.1861, 106.0763),
+(18, 'Hải Dương', 'hai duong', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 20.9373, 106.3146),
+(19, 'Hưng Yên', 'hung yen', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 20.6461, 106.0522),
+(20, 'Thái Bình', 'thai binh', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 20.5385, 106.3414),
+(21, 'Hà Nam', 'ha nam', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 20.5835, 105.923),
+(22, 'Nam Định', 'nam dinh', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 20.4388, 106.1621),
+(23, 'Ninh Bình', 'ninh binh', 'north', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 20.2506, 105.9745),
+(24, 'Thanh Hóa', 'thanh hoa', 'central', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 19.8067, 105.7851),
+(25, 'Nghệ An', 'nghe an', 'central', 1, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 18.6792, 105.6922),
+(26, 'Hà Tĩnh', 'ha tinh', 'central', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 18.3559, 105.905),
+(27, 'Quảng Bình', 'quang binh', 'central', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 17.467, 106.6229),
+(28, 'Quảng Trị', 'quang tri', 'central', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 16.7943, 107.1854),
+(29, 'Huế', 'hue', 'central', 1, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 16.4637, 107.5909),
+(30, 'Đà Nẵng', 'da nang', 'central', 1, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 16.0544, 108.2022),
+(31, 'Quảng Nam', 'quang nam', 'central', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 15.5393, 108.0191),
+(32, 'Quảng Ngãi', 'quang ngai', 'central', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 15.1214, 108.8044),
+(33, 'Bình Định', 'binh dinh', 'central', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 13.783, 109.2196),
+(34, 'Phú Yên', 'phu yen', 'central', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 13.0881, 109.0929),
+(35, 'Nha Trang', 'nha trang', 'central', 1, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 12.2388, 109.1967),
+(36, 'Ninh Thuận', 'ninh thuan', 'central', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 11.6739, 108.8629),
+(37, 'Phan Thiết', 'phan thiet', 'central', 1, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 10.9289, 108.1022),
+(38, 'Kon Tum', 'kon tum', 'central', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 14.3497, 108.0005),
+(39, 'Gia Lai', 'gia lai', 'central', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 13.9833, 108),
+(40, 'Đắk Lắk', 'dak lak', 'central', 1, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 12.6667, 108.05),
+(41, 'Đắk Nông', 'dak nong', 'central', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 12.2646, 107.6098),
+(42, 'Đà Lạt', 'da lat', 'central', 1, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 11.9404, 108.4583),
+(43, 'TP Hồ Chí Minh', 'tp ho chi minh', 'south', 1, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 10.8231, 106.6297),
+(44, 'Vũng Tàu', 'vung tau', 'south', 1, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 10.4113, 107.1362),
+(45, 'Bình Dương', 'binh duong', 'south', 1, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 10.9804, 106.6519),
+(46, 'Đồng Nai', 'dong nai', 'south', 1, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 10.951, 106.8442),
+(47, 'Bình Phước', 'binh phuoc', 'south', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 11.6738, 106.6232),
+(48, 'Tây Ninh', 'tay ninh', 'south', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 11.3351, 106.0973),
+(49, 'Long An', 'long an', 'south', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 10.5333, 106.4078),
+(50, 'Tiền Giang', 'tien giang', 'south', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 10.3597, 106.355),
+(51, 'Bến Tre', 'ben tre', 'south', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 10.2429, 106.3759),
+(52, 'Trà Vinh', 'tra vinh', 'south', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 9.8349, 106.3479),
+(53, 'Vĩnh Long', 'vinh long', 'south', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 10.2397, 105.9571),
+(54, 'Đồng Tháp', 'dong thap', 'south', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 10.4938, 105.6881),
+(55, 'An Giang', 'an giang', 'south', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 10.5216, 105.1258),
+(56, 'Kiến Giang', 'kien giang', 'south', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 10.0125, 105.0811),
+(57, 'Cần Thơ', 'can tho', 'south', 1, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 10.0452, 105.7469),
+(58, 'Hậu Giang', 'hau giang', 'south', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 9.7578, 105.6412),
+(59, 'Sóc Trăng', 'soc trang', 'south', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 9.6003, 105.9739),
+(60, 'Bạc Liêu', 'bac lieu', 'south', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 9.294, 105.7215),
+(61, 'Cà Mau', 'ca mau', 'south', 0, 1, '2025-12-06 23:34:27', '2025-12-07 02:45:46', 9.1767, 105.1507),
+(246, 'Tuy Hòa', 'tuy hoa', 'central', 0, 1, '2025-12-07 01:54:38', '2025-12-07 04:15:51', 13.093000887761542, 109.30432273982987),
+(248, 'Hương Trà', 'huong tra', 'south', 0, 1, '2025-12-07 04:27:43', '2025-12-07 04:27:43', 15.552443340099845, 108.50025745652988);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `contact_messages`
 --
 
 CREATE TABLE `contact_messages` (
   `id` int NOT NULL,
-  `user_id` int DEFAULT NULL COMMENT 'ID user (náº¿u Ä‘Äƒng nháº­p)',
-  `subject` varchar(200) NOT NULL,
-  `name` varchar(100) NOT NULL COMMENT 'TÃªn ngÆ°á»i gá»­i',
-  `email` varchar(100) NOT NULL COMMENT 'Email liÃªn há»‡',
-  `phone` varchar(20) NOT NULL COMMENT 'Sá»‘ Ä‘iá»‡n thoáº¡i',
-  `title` varchar(200) DEFAULT NULL,
-  `message` text NOT NULL COMMENT 'Ná»™i dung tin nháº¯n',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `email` varchar(100) NOT NULL,
+  `message` text,
+  `name` varchar(100) NOT NULL,
+  `phone` varchar(20) NOT NULL,
   `status` varchar(50) DEFAULT 'pending',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Tin nháº¯n tá»« trang Contact';
+  `subject` varchar(200) NOT NULL,
+  `title` varchar(200) DEFAULT NULL,
+  `user_id` int DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `contact_messages`
+--
+
+INSERT INTO `contact_messages` (`id`, `created_at`, `email`, `message`, `name`, `phone`, `status`, `subject`, `title`, `user_id`) VALUES
+(1, '2025-12-01 00:10:49', 'nguyenvanan@gmail.com', 'Xin chào, tôi muốn hỏi về giá vé và thời gian khởi hành của chuyến xe từ Hà Nội đi TP.HCM vào ngày 5/12/2025. Xe có ghế nằm không và giá vé bao nhiêu? Cảm ơn!', 'Nguyễn Văn An', '0901234567', 'read', 'Thắc mắc về chuyến xe Hà Nội - TP.HCM', NULL, NULL),
+(2, '2025-11-30 22:10:49', 'tranthibich@yahoo.com', 'Em đã đặt vé mã BOOKING-2d72f22e-14de-4b42-b8cd-3b1cd1360850 nhưng có việc đột xuất không đi được. Em muốn hủy vé và xin hoàn tiền. Vui lòng hỗ trợ em với ạ. Cảm ơn nhiều!', 'Trần Thị Bích', '0912345678', 'new', 'Hủy vé và hoàn tiền', NULL, NULL),
+(3, '2025-11-30 00:10:49', 'leminhtuan@outlook.com', 'Tôi vừa đi chuyến xe Đà Nẵng - Huế hôm qua. Nhìn chung dịch vụ tốt, tài xế lịch sự. Tuy nhiên xe hơi cũ, điều hòa không mát lắm. Mong công ty nâng cấp xe để phục vụ khách tốt hơn.', 'Lê Minh Tuấn', '0923456789', 'replied', 'Góp ý về dịch vụ', NULL, NULL),
+(4, '2025-11-29 00:10:49', 'phamthihuong@gmail.com', 'Công ty tôi có kế hoạch đi công tác 10 người từ Hà Nội đến Đà Nẵng vào ngày 10/12. Có chương trình giảm giá cho nhóm đông không ạ? Và có thể đặt chỗ trước được không?', 'Phạm Thị Hương', '0934567890', 'replied', 'Đặt vé cho nhóm 10 người', NULL, NULL),
+(5, '2025-11-28 00:10:49', 'hoangminhquan@hotmail.com', 'Em đi chuyến xe Vũng Tàu - TP.HCM hôm 28/11 và để quên cái túi xách màu đen trên xe. Trong túi có giấy tờ quan trọng. Nhờ anh chị kiểm tra hộ em với ạ. Em cảm ơn!', 'Hoàng Minh Quân', '0945678901', 'resolved', 'Quên đồ trên xe', NULL, NULL),
+(6, '2025-12-01 03:30:08', 'nguyenvanan@gmail.com', 'Xin chào, tôi muốn hỏi về giá vé và thời gian khởi hành của chuyến xe từ Hà Nội đi TP.HCM vào ngày 5/12/2025. Xe có ghế nằm không và giá vé bao nhiêu? Cảm ơn!', 'Nguyễn Văn An', '0901234567', 'new', 'Thắc mắc về chuyến xe Hà Nội - TP.HCM', NULL, NULL),
+(7, '2025-12-01 01:30:08', 'tranthibich@yahoo.com', 'Em đã đặt vé mã BOOKING-2d72f22e-14de-4b42-b8cd-3b1cd1360850 nhưng có việc đột xuất không đi được. Em muốn hủy vé và xin hoàn tiền. Vui lòng hỗ trợ em với ạ. Cảm ơn nhiều!', 'Trần Thị Bích', '0912345678', 'new', 'Hủy vé và hoàn tiền', NULL, NULL),
+(8, '2025-11-30 03:30:08', 'leminhtuan@outlook.com', 'Tôi vừa đi chuyến xe Đà Nẵng - Huế hôm qua. Nhìn chung dịch vụ tốt, tài xế lịch sự. Tuy nhiên xe hơi cũ, điều hòa không mát lắm. Mong công ty nâng cấp xe để phục vụ khách tốt hơn.', 'Lê Minh Tuấn', '0923456789', 'read', 'Góp ý về dịch vụ', NULL, NULL),
+(9, '2025-11-29 03:30:08', 'phamthihuong@gmail.com', 'Công ty tôi có kế hoạch đi công tác 10 người từ Hà Nội đến Đà Nẵng vào ngày 10/12. Có chương trình giảm giá cho nhóm đông không ạ? Và có thể đặt chỗ trước được không?', 'Phạm Thị Hương', '0934567890', 'replied', 'Đặt vé cho nhóm 10 người', NULL, NULL),
+(10, '2025-11-28 03:30:08', 'hoangminhquan@hotmail.com', 'Em đi chuyến xe Vũng Tàu - TP.HCM hôm 28/11 và để quên cái túi xách màu đen trên xe. Trong túi có giấy tờ quan trọng. Nhờ anh chị kiểm tra hộ em với ạ. Em cảm ơn!', 'Hoàng Minh Quân', '0945678901', 'resolved', 'Quên đồ trên xe', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -96,6 +200,7 @@ CREATE TABLE `contact_messages` (
 
 CREATE TABLE `drivers` (
   `id` int NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `full_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `license_number` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `phone` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -109,33 +214,17 @@ CREATE TABLE `drivers` (
 -- Dumping data for table `drivers`
 --
 
-INSERT INTO `drivers` (`id`, `full_name`, `license_number`, `phone`, `experience_years`, `image_url`, `is_active`, `created_at`) VALUES
-(1, 'Nguyễn Văn An', 'B2-123456', '0901234567', 10, 'https://res.cloudinary.com/dncl2jdhn/image/upload/v1764478353/drivers/drivers/24b8a344-f7a5-4af6-92ce-2b9d776d9105.png', 1, '2025-11-23 14:12:35'),
-(2, 'Trần Văn Bình', 'B2-123457', '0901234568', 8, 'https://res.cloudinary.com/dncl2jdhn/image/upload/v1764494287/drivers/drivers/a492eebe-019b-4d68-8d9b-57d684d9c956.png', 1, '2025-11-23 14:12:35'),
-(3, 'Lê Văn Cường', 'B2-123458', '0901234569', 12, NULL, 1, '2025-11-23 14:12:35'),
-(4, 'Phạm Văn Dũng', 'B2-123459', '0901234570', 7, NULL, 1, '2025-11-23 14:12:35'),
-(5, 'Hoàng Văn Em', 'B2-123460', '0901234571', 9, NULL, 1, '2025-11-23 14:12:35'),
-(6, 'Vũ Văn Phúc', 'B2-123461', '0901234572', 11, NULL, 1, '2025-11-23 14:12:35'),
-(7, 'Đỗ Văn Giang', 'B2-123462', '0901234573', 5, NULL, 1, '2025-11-23 14:12:35'),
-(8, 'Bùi Văn Hải', 'B2-123463', '0901234574', 6, NULL, 1, '2025-11-23 14:12:35'),
-(9, 'Đặng Văn Ích', 'B2-123464', '0901234575', 8, NULL, 1, '2025-11-23 14:12:35'),
-(10, 'Ngô Văn Kiên', 'B2-123465', '0901234576', 11, '', 1, '2025-11-23 14:12:35'),
-(11, 'Nguyễn Đức Phát', 'B2-123489', '0868253509', 12, '', 1, '2025-11-30 04:53:05');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `feedback`
---
-
-CREATE TABLE `feedback` (
-  `id` int NOT NULL,
-  `user_id` int NOT NULL,
-  `trip_id` int NOT NULL,
-  `rating` int NOT NULL,
-  `comment` text COLLATE utf8mb4_unicode_ci,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ;
+INSERT INTO `drivers` (`id`, `name`, `full_name`, `license_number`, `phone`, `experience_years`, `image_url`, `is_active`, `created_at`) VALUES
+(1, 'Nguyễn Văn An', 'Nguyễn Văn An', 'B2-123456', '0901234567', 10, 'https://res.cloudinary.com/dncl2jdhn/image/upload/v1764424248/drivers/drivers/47327c72-8249-4746-acff-73fcbfd2af50.png', 1, '2025-11-23 14:12:35'),
+(2, 'Trần Văn Bình', 'Trần Văn Bình', 'B2-123457', '0901234568', 8, 'https://res.cloudinary.com/dncl2jdhn/image/upload/v1764424966/drivers/drivers/197b385f-378b-485f-9b05-b2324947f737.png', 1, '2025-11-23 14:12:35'),
+(3, 'Lê Văn Cường', 'Lê Văn Cường', 'B2-123458', '0901234569', 12, NULL, 1, '2025-11-23 14:12:35'),
+(4, 'Phạm Văn Dũng', 'Phạm Văn Dũng', 'B2-123459', '0901234570', 7, NULL, 1, '2025-11-23 14:12:35'),
+(5, 'Hoàng Văn Em', 'Hoàng Văn Em', 'B2-123460', '0901234571', 9, NULL, 1, '2025-11-23 14:12:35'),
+(6, 'Vũ Văn Phúc', 'Vũ Văn Phúc', 'B2-123461', '0901234572', 11, NULL, 1, '2025-11-23 14:12:35'),
+(7, 'Đỗ Văn Giang', 'Đỗ Văn Giang', 'B2-123462', '0901234573', 5, NULL, 1, '2025-11-23 14:12:35'),
+(8, 'Bùi Văn Hải', 'Bùi Văn Hải', 'B2-123463', '0901234574', 6, NULL, 1, '2025-11-23 14:12:35'),
+(9, 'Đặng Văn Ích', 'Đặng Văn Ích', 'B2-123464', '0901234575', 8, NULL, 1, '2025-11-23 14:12:35'),
+(10, 'Ngô Văn Kiên', 'Ngô Văn Kiên', 'B2-123465', '0901234576', 11, '', 1, '2025-11-23 14:12:35');
 
 -- --------------------------------------------------------
 
@@ -144,34 +233,18 @@ CREATE TABLE `feedback` (
 --
 
 CREATE TABLE `invoices` (
-  `id` int NOT NULL COMMENT 'Invoice ID',
-  `invoice_number` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Số hóa đơn (INV-20251126-001)',
-  `booking_group_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'ID nhóm đặt vé',
-  `payment_id` int DEFAULT NULL COMMENT 'ID thanh toán',
-  `user_id` int NOT NULL COMMENT 'ID khách hàng',
-  `total_amount` decimal(10,2) NOT NULL COMMENT 'Tổng tiền trước giảm giá',
-  `discount_amount` decimal(10,2) DEFAULT '0.00' COMMENT 'Số tiền giảm giá',
-  `final_amount` decimal(10,2) NOT NULL COMMENT 'Số tiền cuối cùng phải trả',
-  `invoice_data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'Chi tiết hóa đơn đầy đủ (tickets, trip info, customer, etc.)',
-  `issued_at` datetime NOT NULL COMMENT 'Thời gian xuất hóa đơn',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo bản ghi'
-) ;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `notifications`
---
-
-CREATE TABLE `notifications` (
   `id` int NOT NULL,
-  `user_id` int NOT NULL,
-  `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `message` text COLLATE utf8mb4_unicode_ci NOT NULL,
-  `type` enum('info','success','warning','error') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'info',
-  `is_read` tinyint(1) DEFAULT '0',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `booking_group_id` varchar(50) NOT NULL,
+  `created_at` datetime(6) DEFAULT NULL,
+  `discount_amount` decimal(10,2) DEFAULT NULL,
+  `final_amount` decimal(10,2) NOT NULL,
+  `invoice_data` json DEFAULT NULL,
+  `invoice_number` varchar(50) NOT NULL,
+  `issued_at` datetime(6) NOT NULL,
+  `total_amount` decimal(10,2) NOT NULL,
+  `payment_id` int DEFAULT NULL,
+  `user_id` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -188,70 +261,118 @@ CREATE TABLE `payments` (
   `payment_status` enum('pending','completed','failed','refunded') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
   `transaction_id` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `payment_date` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `promotion_id` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `payments`
 --
 
-INSERT INTO `payments` (`id`, `booking_group_id`, `ticket_count`, `amount`, `payment_method`, `payment_status`, `transaction_id`, `payment_date`, `created_at`) VALUES
-(1, 'BOOKING-a45c0655-cad5-11f0-badd-107c6108bf76', 1, 166600.00, 'vnpay', 'refunded', 'BOOKING_1764162714118_2_1764162714137', '2025-11-26 13:31:02', '2025-11-26 13:11:54'),
-(2, 'BOOKING-a2136c40-d004-4494-b9c6-c64aa5badb55', 2, 299880.00, 'vnpay', 'completed', 'BOOKING_a2136c40-d004-4494-b9c6-c64aa5badb55_1764164045870', '2025-11-26 13:43:08', '2025-11-26 13:34:05'),
-(3, 'BOOKING-a45c06c1-cad5-11f0-badd-107c6108bf76', 1, 166600.00, 'vnpay', 'completed', 'BOOKING_1764164550424_2_1764164550431', '2025-11-26 23:47:52', '2025-11-26 13:42:30'),
-(4, 'BOOKING-83c72d5b-b150-47c5-81ce-2f0b01f2425b', 1, 166600.00, 'vnpay', 'pending', 'BOOKING_1764167523083_2_1764167523103', NULL, '2025-11-26 14:32:03'),
-(5, 'BOOKING_1764168966934_5', 1, 166600.00, 'vnpay', 'pending', 'BOOKING_1764168966934_5_1764168966948', NULL, '2025-11-26 14:56:06'),
-(6, 'BOOKING-882ff6fc-9e92-40a6-a2ad-803202a55126', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-882ff6fc-9e92-40a6-a2ad-803202a55126_1764169188530', NULL, '2025-11-26 14:59:48'),
-(7, 'BOOKING-d7136c97-2ede-4573-99c2-48b94dc03bb0', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-d7136c97-2ede-4573-99c2-48b94dc03bb0_1764169471913', NULL, '2025-11-26 15:04:31'),
-(8, 'BOOKING-1592560f-02a8-42f2-b67c-4fcc47c839c0', 1, 245000.00, 'vnpay', 'pending', 'BOOKING-1592560f-02a8-42f2-b67c-4fcc47c839c0_1764170547297', NULL, '2025-11-26 15:22:27'),
-(9, 'BOOKING-92574d14-18d0-439d-b57a-1d90d6bf5fe6', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-92574d14-18d0-439d-b57a-1d90d6bf5fe6_1764170991691', NULL, '2025-11-26 15:29:51'),
-(10, 'BOOKING-55c8aec6-d438-4a29-b3eb-1d4c085a4ef7', 1, 245000.00, 'vnpay', 'pending', 'BOOKING-55c8aec6-d438-4a29-b3eb-1d4c085a4ef7_1764171752023', NULL, '2025-11-26 15:42:32'),
-(11, 'BOOKING-6d0a31d5-46fb-4985-bc4e-d09a134ef7cc', 1, 245000.00, 'vnpay', 'pending', 'BOOKING-6d0a31d5-46fb-4985-bc4e-d09a134ef7cc_1764172491303', NULL, '2025-11-26 15:54:51'),
-(12, 'BOOKING-dee0863b-7dbb-42d3-b499-98c2ed4b22d8', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-dee0863b-7dbb-42d3-b499-98c2ed4b22d8_1764172577404', NULL, '2025-11-26 15:56:17'),
-(13, 'BOOKING-d1034f2f-b62c-4b40-a88b-10a3c6909ad3', 4, 599760.00, 'vnpay', 'pending', 'BOOKING-d1034f2f-b62c-4b40-a88b-10a3c6909ad3_1764173489905', NULL, '2025-11-26 16:11:29'),
-(14, 'BOOKING-2196a651-12a0-460a-a36f-32eba9c04836', 1, 166600.00, 'momo', 'pending', 'BOOKING-2196a651-12a0-460a-a36f-32eba9c04836_1764198943378', NULL, '2025-11-26 23:15:43'),
-(15, 'BOOKING-ceb5dae1-e03f-4fd3-9195-ad9bbdb563d8', 1, 245000.00, 'momo', 'pending', 'BOOKING-ceb5dae1-e03f-4fd3-9195-ad9bbdb563d8_1764200412260', NULL, '2025-11-26 23:40:12'),
-(16, 'BOOKING-891eeaa4-1b1c-497e-908f-f5b823f43e51', 4, 599760.00, 'momo', 'pending', 'BOOKING-891eeaa4-1b1c-497e-908f-f5b823f43e51_1764204108383', NULL, '2025-11-27 00:41:48'),
-(17, 'BOOKING-cbd96f83-7747-4db8-a75f-036665f50898', 1, 166600.00, 'momo', 'pending', 'BOOKING-cbd96f83-7747-4db8-a75f-036665f50898_1764231843286', NULL, '2025-11-27 08:24:03'),
-(18, 'BOOKING-5c2fb2ee-7234-4424-8d86-d53b6c35c385', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-5c2fb2ee-7234-4424-8d86-d53b6c35c385_1764232024152', NULL, '2025-11-27 08:27:04'),
-(19, 'BOOKING-7070ec88-a8c3-4303-a30b-020c6861d0c2', 1, 166600.00, 'momo', 'completed', 'BOOKING-7070ec88-a8c3-4303-a30b-020c6861d0c2_1764233094769', '2025-11-27 09:20:07', '2025-11-27 08:44:54'),
-(20, 'BOOKING-a7a4f070-4b84-4d49-8b44-ea68744e495f', 1, 166600.00, 'momo', 'completed', 'BOOKING-a7a4f070-4b84-4d49-8b44-ea68744e495f_1764233432057', '2025-11-27 09:19:55', '2025-11-27 08:50:32'),
-(21, 'BOOKING-d3e91f51-3810-4c2f-a9ee-f5cb74013aaa', 1, 166600.00, 'momo', 'completed', 'BOOKING-d3e91f51-3810-4c2f-a9ee-f5cb74013aaa_1764233804542', '2025-11-27 09:19:42', '2025-11-27 08:56:44'),
-(22, 'BOOKING-91aace13-166b-46b0-9feb-2dc3a85ebcab', 1, 166600.00, 'vnpay', 'completed', 'BOOKING-91aace13-166b-46b0-9feb-2dc3a85ebcab_1764234823833', '2025-11-27 09:19:39', '2025-11-27 09:13:43'),
-(23, 'BOOKING-fabddfe5-eb2d-47ef-a3c0-6fe0ee08dd8f', 1, 166600.00, 'momo', 'completed', 'BOOKING-fabddfe5-eb2d-47ef-a3c0-6fe0ee08dd8f_1764235365731', '2025-11-27 09:24:44', '2025-11-27 09:22:45'),
-(24, 'BOOKING-bb90f5af-de5c-4d0a-b713-c50e09142c93', 1, 166600.00, 'momo', 'completed', 'BOOKING-bb90f5af-de5c-4d0a-b713-c50e09142c93_1764235467693', '2025-11-27 09:24:41', '2025-11-27 09:24:27'),
-(25, 'BOOKING-39881b9a-c864-4bb1-af02-0f271a673d18', 1, 166600.00, 'momo', 'completed', 'BOOKING-39881b9a-c864-4bb1-af02-0f271a673d18_1764235513860', '2025-11-27 09:25:18', '2025-11-27 09:25:13'),
-(26, 'BOOKING-39881b9a-c864-4bb1-af02-0f271a673d18', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-39881b9a-c864-4bb1-af02-0f271a673d18_1764235661891', NULL, '2025-11-27 09:27:41'),
-(27, 'BOOKING-4e668b4a-818f-4a37-ab7c-ec607b9cb333', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-4e668b4a-818f-4a37-ab7c-ec607b9cb333_1764235680462', NULL, '2025-11-27 09:28:00'),
-(28, 'BOOKING-14889017-82e4-4c60-ae88-0bfd874eea15', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-14889017-82e4-4c60-ae88-0bfd874eea15_1764236440081', NULL, '2025-11-27 09:40:40'),
-(29, 'BOOKING-b8997746-fd84-40cb-919e-811a8b8dc5f3', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-b8997746-fd84-40cb-919e-811a8b8dc5f3_1764236720254', NULL, '2025-11-27 09:45:20'),
-(30, 'BOOKING-07b7171d-e2b9-4004-b031-1b2dbba3f81b', 1, 166600.00, 'vnpay', 'refunded', 'BOOKING-07b7171d-e2b9-4004-b031-1b2dbba3f81b_1764236847020', '2025-11-27 09:48:31', '2025-11-27 09:47:27'),
-(31, 'BOOKING-fd0d6ee3-6e16-4c7f-b13e-946eab2d1327', 4, 599760.00, 'momo', 'refunded', 'BOOKING-fd0d6ee3-6e16-4c7f-b13e-946eab2d1327_1764237039868', '2025-11-27 09:51:50', '2025-11-27 09:50:39'),
-(32, 'BOOKING-12a969b9-cc85-4dcb-b4c0-d2744e256a1a', 2, 299880.00, 'vnpay', 'completed', 'BOOKING-12a969b9-cc85-4dcb-b4c0-d2744e256a1a_1764251368433', '2025-11-27 13:50:41', '2025-11-27 13:49:28'),
-(33, 'BOOKING-c2bd1ec2-d2c9-4c42-b305-3ae1e47fc940', 2, 1046052.00, 'momo', 'completed', 'BOOKING-c2bd1ec2-d2c9-4c42-b305-3ae1e47fc940_1764268508695', '2025-11-27 18:35:58', '2025-11-27 18:35:08'),
-(34, 'BOOKING-972fe98f-a377-4301-beb1-eb24ae358bcf', 2, 1046052.00, 'vnpay', 'completed', 'BOOKING-972fe98f-a377-4301-beb1-eb24ae358bcf_1764274321476', '2025-11-27 20:12:52', '2025-11-27 20:12:01'),
-(35, 'BOOKING-8dd7f5ba-d538-43c3-b9c7-bcb64ca6263a', 1, 117600.00, 'vnpay', 'completed', 'BOOKING-8dd7f5ba-d538-43c3-b9c7-bcb64ca6263a_1764274578185', '2025-11-27 20:16:50', '2025-11-27 20:16:18'),
-(36, 'BOOKING-5a5db126-0156-462b-a5eb-154231402530', 4, 2092104.00, 'vnpay', 'completed', 'BOOKING-5a5db126-0156-462b-a5eb-154231402530_1764274787133', '2025-11-27 20:20:23', '2025-11-27 20:19:47'),
-(37, 'BOOKING-5cd98246-b947-4de5-af01-e8d84b9ba831', 1, 583100.00, 'momo', 'completed', 'BOOKING-5cd98246-b947-4de5-af01-e8d84b9ba831_1764275043836', '2025-11-27 20:24:41', '2025-11-27 20:24:03'),
-(38, 'BOOKING-9f3196fa-b82c-4ef3-8747-14f0936691b3', 1, 166600.00, 'momo', 'completed', 'BOOKING-9f3196fa-b82c-4ef3-8747-14f0936691b3_1764275267390', '2025-11-27 20:28:13', '2025-11-27 20:27:47'),
-(39, 'BOOKING-6c76bb25-cc58-456e-b9c0-8f9577bbc587', 1, 166600.00, 'vnpay', 'completed', 'BOOKING-6c76bb25-cc58-456e-b9c0-8f9577bbc587_1764275908917', '2025-11-27 20:39:05', '2025-11-27 20:38:28'),
-(40, 'BOOKING-53531c4c-c073-410a-a016-60775b58ce3e', 1, 583100.00, 'vnpay', 'completed', 'BOOKING-53531c4c-c073-410a-a016-60775b58ce3e_1764277617167', '2025-11-27 21:07:25', '2025-11-27 21:06:57'),
-(41, 'BOOKING-0f21a9c7-729b-4986-9a2f-c6b65e90ab6e', 1, 166600.00, 'vnpay', 'completed', 'BOOKING-0f21a9c7-729b-4986-9a2f-c6b65e90ab6e_1764277733610', '2025-11-27 21:09:44', '2025-11-27 21:08:53'),
-(42, 'BOOKING-d1a7314b-f2aa-4623-a3b2-a0da8c2d4ddb', 2, 1046052.00, 'vnpay', 'completed', 'BOOKING-d1a7314b-f2aa-4623-a3b2-a0da8c2d4ddb_1764277865167', '2025-11-27 21:11:30', '2025-11-27 21:11:05'),
-(43, 'BOOKING-849ff683-d147-4fdd-a511-fa4fb8674880', 2, 1046052.00, 'vnpay', 'completed', 'BOOKING-849ff683-d147-4fdd-a511-fa4fb8674880_1764278309794', '2025-11-27 21:19:08', '2025-11-27 21:18:29'),
-(44, 'BOOKING-c8968036-494f-4c73-9414-b1789b215c80', 1, 166600.00, 'vnpay', 'completed', 'BOOKING-c8968036-494f-4c73-9414-b1789b215c80_1764278534512', '2025-11-27 21:22:44', '2025-11-27 21:22:14'),
-(45, 'BOOKING-cc1c3428-3161-4147-a6ac-038f6e58f6c1', 1, 166600.00, 'momo', 'completed', 'BOOKING-cc1c3428-3161-4147-a6ac-038f6e58f6c1_1764279234147', '2025-11-27 21:34:51', '2025-11-27 21:33:54'),
-(46, 'BOOKING-ffac2c6f-4514-422f-a6d8-9a473e894f63', 2, 1046052.00, 'momo', 'pending', 'BOOKING-ffac2c6f-4514-422f-a6d8-9a473e894f63_1764279810796', NULL, '2025-11-27 21:43:30'),
-(47, 'BOOKING-ffac2c6f-4514-422f-a6d8-9a473e894f63', 2, 1162280.00, 'momo', 'pending', 'BOOKING-ffac2c6f-4514-422f-a6d8-9a473e894f63_1764280004701', NULL, '2025-11-27 21:46:44'),
-(48, 'BOOKING-ffac2c6f-4514-422f-a6d8-9a473e894f63', 2, 1162280.00, 'vnpay', 'completed', 'BOOKING-ffac2c6f-4514-422f-a6d8-9a473e894f63_1764280163711', '2025-11-27 21:49:49', '2025-11-27 21:49:23'),
-(49, 'BOOKING-85c37673-0831-4512-bce5-001618102155', 1, 166600.00, 'momo', 'completed', 'BOOKING-85c37673-0831-4512-bce5-001618102155_1764280456194', '2025-11-27 21:54:41', '2025-11-27 21:54:16'),
-(50, 'BOOKING-a7905e7a-b6e6-47dc-997b-437e57edd61b', 2, 705600.00, 'momo', 'pending', 'BOOKING-a7905e7a-b6e6-47dc-997b-437e57edd61b_1764280745110', NULL, '2025-11-27 21:59:05'),
-(51, 'BOOKING-fd3c5577-905b-4569-99e8-72bf84b9faaf', 2, 176400.00, 'momo', 'completed', 'BOOKING-fd3c5577-905b-4569-99e8-72bf84b9faaf_1764280896985', '2025-11-27 22:02:05', '2025-11-27 22:01:36'),
-(52, 'BOOKING-a7905e7a-b6e6-47dc-997b-437e57edd61b', 2, 784000.00, 'momo', 'pending', 'BOOKING-a7905e7a-b6e6-47dc-997b-437e57edd61b_1764281450354', NULL, '2025-11-27 22:10:50'),
-(53, 'BOOKING-815616d8-2f5e-4541-aaa4-7e9c83fc4c92', 2, 176400.00, 'momo', 'completed', 'BOOKING-815616d8-2f5e-4541-aaa4-7e9c83fc4c92_1764281554086', '2025-11-27 22:12:58', '2025-11-27 22:12:34'),
-(54, 'BOOKING-4a2bd83c-885e-4d1b-9b6c-2131c5b7ba6d', 2, 176400.00, 'momo', 'completed', 'BOOKING-4a2bd83c-885e-4d1b-9b6c-2131c5b7ba6d_1764282276166', '2025-11-27 22:25:09', '2025-11-27 22:24:36'),
-(55, 'BOOKING-1bda102c-a4d6-4cb1-ad44-f007e196cef9', 2, 211680.00, 'momo', 'completed', 'BOOKING-1bda102c-a4d6-4cb1-ad44-f007e196cef9_1764471460349', '2025-11-30 02:58:05', '2025-11-30 02:57:40'),
-(56, 'BOOKING-2df2f22e-146e-4b42-b8dd-3b1cd380d850', 4, 423360.00, 'momo', 'completed', 'BOOKING-2df2f22e-146e-4b42-b8dd-3b1cd380d850_1764471759042', '2025-11-30 03:03:00', '2025-11-30 03:02:39');
+INSERT INTO `payments` (`id`, `booking_group_id`, `ticket_count`, `amount`, `payment_method`, `payment_status`, `transaction_id`, `payment_date`, `created_at`, `promotion_id`) VALUES
+(1, 'BOOKING-a45c0655-cad5-11f0-badd-107c6108bf76', 1, 166600.00, 'vnpay', 'refunded', 'BOOKING_1764162714118_2_1764162714137', '2025-11-26 13:31:02', '2025-11-26 13:11:54', NULL),
+(2, 'BOOKING-a2136c40-d004-4494-b9c6-c64aa5badb55', 2, 299880.00, 'vnpay', 'completed', 'BOOKING_a2136c40-d004-4494-b9c6-c64aa5badb55_1764164045870', '2025-11-26 13:43:08', '2025-11-26 13:34:05', NULL),
+(3, 'BOOKING-a45c06c1-cad5-11f0-badd-107c6108bf76', 1, 166600.00, 'vnpay', 'completed', 'BOOKING_1764164550424_2_1764164550431', '2025-11-26 23:47:52', '2025-11-26 13:42:30', NULL),
+(4, 'BOOKING-83c72d5b-b150-47c5-81ce-2f0b01f2425b', 1, 166600.00, 'vnpay', 'pending', 'BOOKING_1764167523083_2_1764167523103', NULL, '2025-11-26 14:32:03', NULL),
+(5, 'BOOKING_1764168966934_5', 1, 166600.00, 'vnpay', 'pending', 'BOOKING_1764168966934_5_1764168966948', NULL, '2025-11-26 14:56:06', NULL),
+(6, 'BOOKING-882ff6fc-9e92-40a6-a2ad-803202a55126', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-882ff6fc-9e92-40a6-a2ad-803202a55126_1764169188530', NULL, '2025-11-26 14:59:48', NULL),
+(7, 'BOOKING-d7136c97-2ede-4573-99c2-48b94dc03bb0', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-d7136c97-2ede-4573-99c2-48b94dc03bb0_1764169471913', NULL, '2025-11-26 15:04:31', NULL),
+(8, 'BOOKING-1592560f-02a8-42f2-b67c-4fcc47c839c0', 1, 245000.00, 'vnpay', 'pending', 'BOOKING-1592560f-02a8-42f2-b67c-4fcc47c839c0_1764170547297', NULL, '2025-11-26 15:22:27', NULL),
+(9, 'BOOKING-92574d14-18d0-439d-b57a-1d90d6bf5fe6', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-92574d14-18d0-439d-b57a-1d90d6bf5fe6_1764170991691', NULL, '2025-11-26 15:29:51', NULL),
+(10, 'BOOKING-55c8aec6-d438-4a29-b3eb-1d4c085a4ef7', 1, 245000.00, 'vnpay', 'pending', 'BOOKING-55c8aec6-d438-4a29-b3eb-1d4c085a4ef7_1764171752023', NULL, '2025-11-26 15:42:32', NULL),
+(11, 'BOOKING-6d0a31d5-46fb-4985-bc4e-d09a134ef7cc', 1, 245000.00, 'vnpay', 'pending', 'BOOKING-6d0a31d5-46fb-4985-bc4e-d09a134ef7cc_1764172491303', NULL, '2025-11-26 15:54:51', NULL),
+(12, 'BOOKING-dee0863b-7dbb-42d3-b499-98c2ed4b22d8', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-dee0863b-7dbb-42d3-b499-98c2ed4b22d8_1764172577404', NULL, '2025-11-26 15:56:17', NULL),
+(13, 'BOOKING-d1034f2f-b62c-4b40-a88b-10a3c6909ad3', 4, 599760.00, 'vnpay', 'pending', 'BOOKING-d1034f2f-b62c-4b40-a88b-10a3c6909ad3_1764173489905', NULL, '2025-11-26 16:11:29', NULL),
+(14, 'BOOKING-2196a651-12a0-460a-a36f-32eba9c04836', 1, 166600.00, 'momo', 'pending', 'BOOKING-2196a651-12a0-460a-a36f-32eba9c04836_1764198943378', NULL, '2025-11-26 23:15:43', NULL),
+(15, 'BOOKING-ceb5dae1-e03f-4fd3-9195-ad9bbdb563d8', 1, 245000.00, 'momo', 'pending', 'BOOKING-ceb5dae1-e03f-4fd3-9195-ad9bbdb563d8_1764200412260', NULL, '2025-11-26 23:40:12', NULL),
+(16, 'BOOKING-891eeaa4-1b1c-497e-908f-f5b823f43e51', 4, 599760.00, 'momo', 'pending', 'BOOKING-891eeaa4-1b1c-497e-908f-f5b823f43e51_1764204108383', NULL, '2025-11-27 00:41:48', NULL),
+(17, 'BOOKING-cbd96f83-7747-4db8-a75f-036665f50898', 1, 166600.00, 'momo', 'pending', 'BOOKING-cbd96f83-7747-4db8-a75f-036665f50898_1764231843286', NULL, '2025-11-27 08:24:03', NULL),
+(18, 'BOOKING-5c2fb2ee-7234-4424-8d86-d53b6c35c385', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-5c2fb2ee-7234-4424-8d86-d53b6c35c385_1764232024152', NULL, '2025-11-27 08:27:04', NULL),
+(19, 'BOOKING-7070ec88-a8c3-4303-a30b-020c6861d0c2', 1, 166600.00, 'momo', 'completed', 'BOOKING-7070ec88-a8c3-4303-a30b-020c6861d0c2_1764233094769', '2025-11-27 09:20:07', '2025-11-27 08:44:54', NULL),
+(20, 'BOOKING-a7a4f070-4b84-4d49-8b44-ea68744e495f', 1, 166600.00, 'momo', 'completed', 'BOOKING-a7a4f070-4b84-4d49-8b44-ea68744e495f_1764233432057', '2025-11-27 09:19:55', '2025-11-27 08:50:32', NULL),
+(21, 'BOOKING-d3e91f51-3810-4c2f-a9ee-f5cb74013aaa', 1, 166600.00, 'momo', 'completed', 'BOOKING-d3e91f51-3810-4c2f-a9ee-f5cb74013aaa_1764233804542', '2025-11-27 09:19:42', '2025-11-27 08:56:44', NULL),
+(22, 'BOOKING-91aace13-166b-46b0-9feb-2dc3a85ebcab', 1, 166600.00, 'vnpay', 'completed', 'BOOKING-91aace13-166b-46b0-9feb-2dc3a85ebcab_1764234823833', '2025-11-27 09:19:39', '2025-11-27 09:13:43', NULL),
+(23, 'BOOKING-fabddfe5-eb2d-47ef-a3c0-6fe0ee08dd8f', 1, 166600.00, 'momo', 'completed', 'BOOKING-fabddfe5-eb2d-47ef-a3c0-6fe0ee08dd8f_1764235365731', '2025-11-27 09:24:44', '2025-11-27 09:22:45', NULL),
+(24, 'BOOKING-bb90f5af-de5c-4d0a-b713-c50e09142c93', 1, 166600.00, 'momo', 'completed', 'BOOKING-bb90f5af-de5c-4d0a-b713-c50e09142c93_1764235467693', '2025-11-27 09:24:41', '2025-11-27 09:24:27', NULL),
+(25, 'BOOKING-39881b9a-c864-4bb1-af02-0f271a673d18', 1, 166600.00, 'momo', 'completed', 'BOOKING-39881b9a-c864-4bb1-af02-0f271a673d18_1764235513860', '2025-11-27 09:25:18', '2025-11-27 09:25:13', NULL),
+(26, 'BOOKING-39881b9a-c864-4bb1-af02-0f271a673d18', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-39881b9a-c864-4bb1-af02-0f271a673d18_1764235661891', NULL, '2025-11-27 09:27:41', NULL),
+(27, 'BOOKING-4e668b4a-818f-4a37-ab7c-ec607b9cb333', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-4e668b4a-818f-4a37-ab7c-ec607b9cb333_1764235680462', NULL, '2025-11-27 09:28:00', NULL),
+(28, 'BOOKING-14889017-82e4-4c60-ae88-0bfd874eea15', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-14889017-82e4-4c60-ae88-0bfd874eea15_1764236440081', NULL, '2025-11-27 09:40:40', NULL),
+(29, 'BOOKING-b8997746-fd84-40cb-919e-811a8b8dc5f3', 1, 166600.00, 'vnpay', 'pending', 'BOOKING-b8997746-fd84-40cb-919e-811a8b8dc5f3_1764236720254', NULL, '2025-11-27 09:45:20', NULL),
+(30, 'BOOKING-07b7171d-e2b9-4004-b031-1b2dbba3f81b', 1, 166600.00, 'vnpay', 'refunded', 'BOOKING-07b7171d-e2b9-4004-b031-1b2dbba3f81b_1764236847020', '2025-11-27 09:48:31', '2025-11-27 09:47:27', NULL),
+(31, 'BOOKING-fd0d6ee3-6e16-4c7f-b13e-946eab2d1327', 4, 599760.00, 'momo', 'refunded', 'BOOKING-fd0d6ee3-6e16-4c7f-b13e-946eab2d1327_1764237039868', '2025-11-27 09:51:50', '2025-11-27 09:50:39', NULL),
+(32, 'BOOKING-12a969b9-cc85-4dcb-b4c0-d2744e256a1a', 2, 299880.00, 'vnpay', 'completed', 'BOOKING-12a969b9-cc85-4dcb-b4c0-d2744e256a1a_1764251368433', '2025-11-27 13:50:41', '2025-11-27 13:49:28', NULL),
+(33, 'BOOKING-c2bd1ec2-d2c9-4c42-b305-3ae1e47fc940', 2, 1046052.00, 'momo', 'completed', 'BOOKING-c2bd1ec2-d2c9-4c42-b305-3ae1e47fc940_1764268508695', '2025-11-27 18:35:58', '2025-11-27 18:35:08', NULL),
+(34, 'BOOKING-972fe98f-a377-4301-beb1-eb24ae358bcf', 2, 1046052.00, 'vnpay', 'completed', 'BOOKING-972fe98f-a377-4301-beb1-eb24ae358bcf_1764274321476', '2025-11-27 20:12:52', '2025-11-27 20:12:01', NULL),
+(35, 'BOOKING-8dd7f5ba-d538-43c3-b9c7-bcb64ca6263a', 1, 117600.00, 'vnpay', 'completed', 'BOOKING-8dd7f5ba-d538-43c3-b9c7-bcb64ca6263a_1764274578185', '2025-11-27 20:16:50', '2025-11-27 20:16:18', NULL),
+(36, 'BOOKING-5a5db126-0156-462b-a5eb-154231402530', 4, 2092104.00, 'vnpay', 'completed', 'BOOKING-5a5db126-0156-462b-a5eb-154231402530_1764274787133', '2025-11-27 20:20:23', '2025-11-27 20:19:47', NULL),
+(37, 'BOOKING-5cd98246-b947-4de5-af01-e8d84b9ba831', 1, 583100.00, 'momo', 'completed', 'BOOKING-5cd98246-b947-4de5-af01-e8d84b9ba831_1764275043836', '2025-11-27 20:24:41', '2025-11-27 20:24:03', NULL),
+(38, 'BOOKING-9f3196fa-b82c-4ef3-8747-14f0936691b3', 1, 166600.00, 'momo', 'completed', 'BOOKING-9f3196fa-b82c-4ef3-8747-14f0936691b3_1764275267390', '2025-11-27 20:28:13', '2025-11-27 20:27:47', NULL),
+(39, 'BOOKING-6c76bb25-cc58-456e-b9c0-8f9577bbc587', 1, 166600.00, 'vnpay', 'completed', 'BOOKING-6c76bb25-cc58-456e-b9c0-8f9577bbc587_1764275908917', '2025-11-27 20:39:05', '2025-11-27 20:38:28', NULL),
+(40, 'BOOKING-53531c4c-c073-410a-a016-60775b58ce3e', 1, 583100.00, 'vnpay', 'completed', 'BOOKING-53531c4c-c073-410a-a016-60775b58ce3e_1764277617167', '2025-11-27 21:07:25', '2025-11-27 21:06:57', NULL),
+(41, 'BOOKING-0f21a9c7-729b-4986-9a2f-c6b65e90ab6e', 1, 166600.00, 'vnpay', 'completed', 'BOOKING-0f21a9c7-729b-4986-9a2f-c6b65e90ab6e_1764277733610', '2025-11-27 21:09:44', '2025-11-27 21:08:53', NULL),
+(42, 'BOOKING-d1a7314b-f2aa-4623-a3b2-a0da8c2d4ddb', 2, 1046052.00, 'vnpay', 'completed', 'BOOKING-d1a7314b-f2aa-4623-a3b2-a0da8c2d4ddb_1764277865167', '2025-11-27 21:11:30', '2025-11-27 21:11:05', NULL),
+(43, 'BOOKING-849ff683-d147-4fdd-a511-fa4fb8674880', 2, 1046052.00, 'vnpay', 'completed', 'BOOKING-849ff683-d147-4fdd-a511-fa4fb8674880_1764278309794', '2025-11-27 21:19:08', '2025-11-27 21:18:29', NULL),
+(44, 'BOOKING-c8968036-494f-4c73-9414-b1789b215c80', 1, 166600.00, 'vnpay', 'completed', 'BOOKING-c8968036-494f-4c73-9414-b1789b215c80_1764278534512', '2025-11-27 21:22:44', '2025-11-27 21:22:14', NULL),
+(45, 'BOOKING-cc1c3428-3161-4147-a6ac-038f6e58f6c1', 1, 166600.00, 'momo', 'completed', 'BOOKING-cc1c3428-3161-4147-a6ac-038f6e58f6c1_1764279234147', '2025-11-27 21:34:51', '2025-11-27 21:33:54', NULL),
+(46, 'BOOKING-ffac2c6f-4514-422f-a6d8-9a473e894f63', 2, 1046052.00, 'momo', 'pending', 'BOOKING-ffac2c6f-4514-422f-a6d8-9a473e894f63_1764279810796', NULL, '2025-11-27 21:43:30', NULL),
+(47, 'BOOKING-ffac2c6f-4514-422f-a6d8-9a473e894f63', 2, 1162280.00, 'momo', 'pending', 'BOOKING-ffac2c6f-4514-422f-a6d8-9a473e894f63_1764280004701', NULL, '2025-11-27 21:46:44', NULL),
+(48, 'BOOKING-ffac2c6f-4514-422f-a6d8-9a473e894f63', 2, 1162280.00, 'vnpay', 'completed', 'BOOKING-ffac2c6f-4514-422f-a6d8-9a473e894f63_1764280163711', '2025-11-27 21:49:49', '2025-11-27 21:49:23', NULL),
+(49, 'BOOKING-85c37673-0831-4512-bce5-001618102155', 1, 166600.00, 'momo', 'completed', 'BOOKING-85c37673-0831-4512-bce5-001618102155_1764280456194', '2025-11-27 21:54:41', '2025-11-27 21:54:16', NULL),
+(50, 'BOOKING-a7905e7a-b6e6-47dc-997b-437e57edd61b', 2, 705600.00, 'momo', 'pending', 'BOOKING-a7905e7a-b6e6-47dc-997b-437e57edd61b_1764280745110', NULL, '2025-11-27 21:59:05', NULL),
+(51, 'BOOKING-fd3c5577-905b-4569-99e8-72bf84b9faaf', 2, 176400.00, 'momo', 'completed', 'BOOKING-fd3c5577-905b-4569-99e8-72bf84b9faaf_1764280896985', '2025-11-27 22:02:05', '2025-11-27 22:01:36', NULL),
+(52, 'BOOKING-a7905e7a-b6e6-47dc-997b-437e57edd61b', 2, 784000.00, 'momo', 'pending', 'BOOKING-a7905e7a-b6e6-47dc-997b-437e57edd61b_1764281450354', NULL, '2025-11-27 22:10:50', NULL),
+(53, 'BOOKING-815616d8-2f5e-4541-aaa4-7e9c83fc4c92', 2, 176400.00, 'momo', 'completed', 'BOOKING-815616d8-2f5e-4541-aaa4-7e9c83fc4c92_1764281554086', '2025-11-27 22:12:58', '2025-11-27 22:12:34', NULL),
+(54, 'BOOKING-4a2bd83c-885e-4d1b-9b6c-2131c5b7ba6d', 2, 176400.00, 'momo', 'completed', 'BOOKING-4a2bd83c-885e-4d1b-9b6c-2131c5b7ba6d_1764282276166', '2025-11-27 22:25:09', '2025-11-27 22:24:36', NULL),
+(55, 'BOOKING-1bda102c-a4d6-4cb1-ad44-f007e196cef9', 2, 211680.00, 'momo', 'completed', 'BOOKING-1bda102c-a4d6-4cb1-ad44-f007e196cef9_1764471460349', '2025-11-30 02:58:05', '2025-11-30 02:57:40', NULL),
+(56, 'BOOKING-2df2f22e-146e-4b42-b8dd-3b1cd380d850', 4, 423360.00, 'momo', 'completed', 'BOOKING-2df2f22e-146e-4b42-b8dd-3b1cd380d850_1764471759042', '2025-11-30 03:03:00', '2025-11-30 03:02:39', NULL),
+(57, 'BOOKING-fb990d7a-e3ba-49ad-8b33-6a3496514d93', 4, 588000.00, 'momo', 'pending', 'BOOKING-fb990d7a-e3ba-49ad-8b33-6a3496514d93_1764965002000', NULL, '2025-12-05 20:03:22', NULL),
+(58, 'BOOKING-66c5985d-d995-4ee1-ac59-f8e06a8dd2ac', 4, 588000.00, 'vnpay', 'pending', 'BOOKING-66c5985d-d995-4ee1-ac59-f8e06a8dd2ac_1764968713420', NULL, '2025-12-05 21:05:13', NULL),
+(59, 'BOOKING-07e91cbf-d596-48a8-8d97-d876e634958e', 4, 259200.00, 'momo', 'completed', 'BOOKING-07e91cbf-d596-48a8-8d97-d876e634958e_1764969190802', '2025-12-05 21:13:45', '2025-12-05 21:13:11', NULL),
+(60, 'BOOKING-eae2fa71-fb60-429e-bba1-492e11de7f97', 4, 259200.00, 'vnpay', 'completed', 'BOOKING-eae2fa71-fb60-429e-bba1-492e11de7f97_1764969478467', '2025-12-05 21:19:13', '2025-12-05 21:17:58', NULL),
+(61, 'BOOKING-b7644383-02dc-424b-8821-090c27738061', 4, 259200.00, 'momo', 'pending', 'BOOKING-b7644383-02dc-424b-8821-090c27738061_1765003700562', NULL, '2025-12-06 06:48:21', NULL),
+(62, 'BOOKING-b7644383-02dc-424b-8821-090c27738061', 4, 288000.00, 'vnpay', 'completed', 'BOOKING-b7644383-02dc-424b-8821-090c27738061_1765003801320', '2025-12-06 06:50:22', '2025-12-06 06:50:01', NULL),
+(63, 'BOOKING-50c5a4f9-0e88-42ed-9444-6b554f7b7a25', 4, 529200.00, 'vnpay', 'completed', 'BOOKING-50c5a4f9-0e88-42ed-9444-6b554f7b7a25_1765003891936', '2025-12-06 06:52:21', '2025-12-06 06:51:32', NULL),
+(64, 'BOOKING-dc1fa7dd-e323-4f1a-b74f-9243452fe8d3', 4, 259200.00, 'momo', 'completed', 'BOOKING-dc1fa7dd-e323-4f1a-b74f-9243452fe8d3_1765005778614', '2025-12-06 07:25:10', '2025-12-06 07:22:59', 9),
+(65, 'BOOKING-4647918a-bbe5-446a-9c2f-76a24dcceee4', 4, 259200.00, 'momo', 'pending', 'BOOKING-4647918a-bbe5-446a-9c2f-76a24dcceee4_1765006864532', NULL, '2025-12-06 07:41:05', 9),
+(66, 'BOOKING-4647918a-bbe5-446a-9c2f-76a24dcceee4', 4, 259200.00, 'vnpay', 'completed', 'BOOKING-4647918a-bbe5-446a-9c2f-76a24dcceee4_1765006920609', '2025-12-06 07:42:23', '2025-12-06 07:42:01', 9),
+(67, 'BOOKING-7dce23e4-2486-4687-9b19-c81781e2bb76', 4, 207360.00, 'vnpay', 'completed', 'BOOKING-7dce23e4-2486-4687-9b19-c81781e2bb76_1765007624088', '2025-12-06 07:54:22', '2025-12-06 07:53:44', 9),
+(68, 'BOOKING-60dfeba4-c792-44fb-9dee-95c978d45dfc', 4, 207360.00, 'vnpay', 'completed', 'BOOKING-60dfeba4-c792-44fb-9dee-95c978d45dfc_1765008215086', '2025-12-06 08:04:06', '2025-12-06 08:03:35', 9),
+(69, 'BOOKING-6f644131-9887-48b4-996d-c10e966b03ea', 4, 207360.00, 'vnpay', 'completed', 'BOOKING-6f644131-9887-48b4-996d-c10e966b03ea_1765010179261', '2025-12-06 08:37:02', '2025-12-06 08:36:19', 9),
+(70, 'BOOKING-9ba5db46-a90f-4d9f-9233-571419f2ac8f', 3, 194400.00, 'vnpay', 'completed', 'BOOKING-9ba5db46-a90f-4d9f-9233-571419f2ac8f_1765011224743', '2025-12-06 08:54:07', '2025-12-06 08:53:45', 9),
+(71, 'BOOKING-204a4856-05e7-45fa-bcac-0ecdc82999f4', 4, 259200.00, 'vnpay', 'completed', 'BOOKING-204a4856-05e7-45fa-bcac-0ecdc82999f4_1765012052204', '2025-12-06 09:07:55', '2025-12-06 09:07:32', 9),
+(72, 'BOOKING-991c82cd-4a1b-492e-86d1-f78d4deab6ba', 3, 194400.00, 'momo', 'completed', 'BOOKING-991c82cd-4a1b-492e-86d1-f78d4deab6ba_1765016217146', '2025-12-06 10:17:23', '2025-12-06 10:16:57', 9),
+(73, 'BOOKING-a0f6998e-ee6a-4b88-8d9a-5bede18607d1', 4, 259200.00, 'vnpay', 'completed', 'BOOKING-a0f6998e-ee6a-4b88-8d9a-5bede18607d1_1765024987972', '2025-12-06 12:43:27', '2025-12-06 12:43:08', 9),
+(74, 'BOOKING-d37aa05f-215f-4fc4-8730-607aa02a2ea7', 1, 147000.00, 'vnpay', 'pending', 'BOOKING-d37aa05f-215f-4fc4-8730-607aa02a2ea7_1765025311676', NULL, '2025-12-06 12:48:32', NULL),
+(75, 'BOOKING-d37aa05f-215f-4fc4-8730-607aa02a2ea7', 1, 72000.00, 'vnpay', 'completed', 'BOOKING-d37aa05f-215f-4fc4-8730-607aa02a2ea7_1765025327423', '2025-12-06 12:49:29', '2025-12-06 12:48:47', 9),
+(76, 'BOOKING-b04a7a1f-74be-45f7-b385-ee576e618748', 1, 117600.00, 'vnpay', 'pending', 'BOOKING-b04a7a1f-74be-45f7-b385-ee576e618748_1765025498008', NULL, '2025-12-06 12:51:38', NULL),
+(77, 'BOOKING-b04a7a1f-74be-45f7-b385-ee576e618748', 1, 57600.00, 'vnpay', 'completed', 'BOOKING-b04a7a1f-74be-45f7-b385-ee576e618748_1765025509543', '2025-12-06 12:52:14', '2025-12-06 12:51:50', 9),
+(78, 'BOOKING-f4693236-590f-49e9-abd6-1bac77940f55', 4, 207360.00, 'vnpay', 'completed', 'BOOKING-f4693236-590f-49e9-abd6-1bac77940f55_1765026213060', '2025-12-06 13:03:59', '2025-12-06 13:03:33', 9),
+(79, 'BOOKING-13ef6091-1986-4f84-8800-fb2f0d4301a9', 1, 117600.00, 'vnpay', 'completed', 'BOOKING-13ef6091-1986-4f84-8800-fb2f0d4301a9_1765026292417', '2025-12-06 13:05:31', '2025-12-06 13:04:52', NULL),
+(80, 'BOOKING-0772f5de-6893-4224-a49c-ade95a65e8ce', 1, 147000.00, 'momo', 'completed', 'BOOKING-0772f5de-6893-4224-a49c-ade95a65e8ce_1765026947247', '2025-12-06 13:17:07', '2025-12-06 13:15:47', NULL),
+(81, 'BOOKING-91b7e08b-3ec9-4ae4-ba53-8d5555682d32', 3, 155520.00, 'vnpay', 'completed', 'BOOKING-91b7e08b-3ec9-4ae4-ba53-8d5555682d32_1765027166748', '2025-12-06 13:19:51', '2025-12-06 13:19:27', 9),
+(82, 'BOOKING-f4857cc4-f9d7-4c9e-b9b4-85bea2b3751a', 1, 117600.00, 'momo', 'pending', 'BOOKING-f4857cc4-f9d7-4c9e-b9b4-85bea2b3751a_1765027570630', NULL, '2025-12-06 13:26:11', NULL),
+(83, 'BOOKING-f4857cc4-f9d7-4c9e-b9b4-85bea2b3751a', 1, 117600.00, 'vnpay', 'completed', 'BOOKING-f4857cc4-f9d7-4c9e-b9b4-85bea2b3751a_1765027689135', '2025-12-06 13:28:34', '2025-12-06 13:28:09', NULL),
+(84, 'BOOKING-d082e084-57e9-42be-8fad-36dd338c0826', 1, 147000.00, 'vnpay', 'completed', 'BOOKING-d082e084-57e9-42be-8fad-36dd338c0826_1765027863314', '2025-12-06 13:31:36', '2025-12-06 13:31:03', NULL),
+(85, 'BOOKING-93ccd5ba-5715-41da-849d-dc0ed9925b93', 1, 147000.00, 'vnpay', 'completed', 'BOOKING-93ccd5ba-5715-41da-849d-dc0ed9925b93_1765028094802', '2025-12-06 13:35:22', '2025-12-06 13:34:55', NULL),
+(86, 'BOOKING-54e7d015-97cd-4d5e-95a2-5c1686d8f9a7', 1, 117600.00, 'momo', 'pending', 'BOOKING-54e7d015-97cd-4d5e-95a2-5c1686d8f9a7_1765029295268', NULL, '2025-12-06 13:54:55', NULL),
+(87, 'BOOKING-54e7d015-97cd-4d5e-95a2-5c1686d8f9a7', 1, 117600.00, 'vnpay', 'completed', 'BOOKING-54e7d015-97cd-4d5e-95a2-5c1686d8f9a7_1765029354699', '2025-12-06 13:56:43', '2025-12-06 13:55:55', NULL),
+(88, 'BOOKING-e3f4297e-21f3-4c13-8668-879a4c719788', 3, 317520.00, 'vnpay', 'completed', 'BOOKING-e3f4297e-21f3-4c13-8668-879a4c719788_1765029774760', '2025-12-06 14:03:23', '2025-12-06 14:02:55', NULL),
+(89, 'BOOKING-53ffb317-ab84-414d-9853-48dfd0c872b8', 1, 147000.00, 'vnpay', 'completed', 'BOOKING-53ffb317-ab84-414d-9853-48dfd0c872b8_1765030034155', '2025-12-06 14:07:40', '2025-12-06 14:07:14', NULL),
+(90, 'BOOKING-38c37e82-3607-45e0-ae64-a7845cbf98ee', 1, 147000.00, 'vnpay', 'completed', 'BOOKING-38c37e82-3607-45e0-ae64-a7845cbf98ee_1765030264533', '2025-12-06 14:11:28', '2025-12-06 14:11:05', NULL),
+(91, 'BOOKING-6c39e4bc-55b3-4310-b9fd-11e9e84e0e81', 1, 147000.00, 'vnpay', 'completed', 'BOOKING-6c39e4bc-55b3-4310-b9fd-11e9e84e0e81_1765030502567', '2025-12-06 14:15:24', '2025-12-06 14:15:03', NULL),
+(92, 'BOOKING-7553a265-e534-4262-9712-f4af79d57287', 3, 155520.00, 'vnpay', 'completed', 'BOOKING-7553a265-e534-4262-9712-f4af79d57287_1765030604877', '2025-12-06 14:17:15', '2025-12-06 14:16:45', 9),
+(93, 'BOOKING-c2e79d8f-db4d-41d1-9621-1fb2cfee5cea', 3, 155520.00, 'vnpay', 'completed', 'BOOKING-c2e79d8f-db4d-41d1-9621-1fb2cfee5cea_1765030887143', '2025-12-06 14:21:46', '2025-12-06 14:21:27', 9),
+(94, 'BOOKING-01c9210b-0b6b-4ad6-90cc-f4f482d423ba', 1, 147000.00, 'vnpay', 'completed', 'BOOKING-01c9210b-0b6b-4ad6-90cc-f4f482d423ba_1765031169685', '2025-12-06 14:26:33', '2025-12-06 14:26:10', NULL),
+(95, 'BOOKING-c6cd6d38-bf08-43ab-b6c9-22fe4b7d5320', 1, 117600.00, 'vnpay', 'completed', 'BOOKING-c6cd6d38-bf08-43ab-b6c9-22fe4b7d5320_1765031394831', '2025-12-06 14:30:26', '2025-12-06 14:29:55', NULL),
+(96, 'BOOKING-9cfe999e-7211-4128-b1bc-f8b47c70ea70', 1, 147000.00, 'vnpay', 'completed', 'BOOKING-9cfe999e-7211-4128-b1bc-f8b47c70ea70_1765031757731', '2025-12-06 14:36:21', '2025-12-06 14:35:58', NULL),
+(97, 'BOOKING-388427d0-7857-40f4-bed2-7c2dae933765', 1, 117600.00, 'vnpay', 'completed', 'BOOKING-388427d0-7857-40f4-bed2-7c2dae933765_1765032040664', '2025-12-06 14:41:04', '2025-12-06 14:40:41', NULL),
+(98, 'BOOKING-56eec0b0-762a-4ad2-b555-73b00d784e06', 1, 117600.00, 'vnpay', 'completed', 'BOOKING-56eec0b0-762a-4ad2-b555-73b00d784e06_1765032221548', '2025-12-06 14:44:04', '2025-12-06 14:43:42', NULL),
+(99, 'BOOKING-56eec0b0-762a-4ad2-b555-73b00d784e06', 1, 117600.00, 'vnpay', 'pending', 'BOOKING-56eec0b0-762a-4ad2-b555-73b00d784e06_1765032221827', NULL, '2025-12-06 14:43:42', NULL),
+(100, 'BOOKING-85ec5d2b-5523-46c7-8e7f-1505ccf873d8', 1, 147000.00, 'vnpay', 'completed', 'BOOKING-85ec5d2b-5523-46c7-8e7f-1505ccf873d8_1765032550550', '2025-12-06 14:49:34', '2025-12-06 14:49:11', NULL),
+(101, 'BOOKING-960e3fac-b826-4253-bf66-85cb1ea6b5c1', 3, 155520.00, 'vnpay', 'completed', 'BOOKING-960e3fac-b826-4253-bf66-85cb1ea6b5c1_1765033083986', '2025-12-06 14:58:26', '2025-12-06 14:58:04', 9),
+(102, 'BOOKING-98e22bdd-4200-4223-af9c-8921d94d1e63', 4, 207360.00, 'vnpay', 'completed', 'BOOKING-98e22bdd-4200-4223-af9c-8921d94d1e63_1765033407150', '2025-12-06 15:03:56', '2025-12-06 15:03:27', 9),
+(103, 'BOOKING-94db8675-1664-454a-84c4-5cc5a6bb17e9', 6, 311040.00, 'vnpay', 'completed', 'BOOKING-94db8675-1664-454a-84c4-5cc5a6bb17e9_1765033859918', '2025-12-06 15:11:34', '2025-12-06 15:11:00', 9);
 
 -- --------------------------------------------------------
 
@@ -281,10 +402,12 @@ CREATE TABLE `promotions` (
 --
 
 INSERT INTO `promotions` (`id`, `code`, `description`, `discount_type`, `discount_value`, `min_amount`, `max_discount`, `start_date`, `end_date`, `usage_limit`, `used_count`, `is_active`, `applicable_to_round_trip`, `created_at`) VALUES
-(1, 'WELCOME10', 'Giảm 10% cho khách hàng mới', 'percentage', 10.00, 100000.00, 50000.00, '2025-11-23 21:12:35', '2025-12-23 21:12:35', 100, 0, 1, 0, '2025-11-23 14:12:35'),
-(2, 'SUMMER2024', 'Giảm 50.000đ cho đơn hàng từ 500.000đ', 'fixed', 50000.00, 500000.00, NULL, '2025-11-23 21:12:35', '2026-01-22 21:12:35', 200, 0, 1, 0, '2025-11-23 14:12:35'),
-(3, 'VIP20', 'Giảm 20% cho ghế VIP', 'percentage', 20.00, 200000.00, 100000.00, '2025-11-23 21:12:35', '2026-02-21 21:12:35', 50, 0, 1, 0, '2025-11-23 14:12:35'),
-(4, 'ROUNDTRIP15', 'Giảm 10% cho vé khứ hồi - Tiết kiệm hơn khi đặt cả chiều đi và về', 'percentage', 15.00, 0.00, NULL, '2025-11-25 10:37:33', '2026-11-25 10:37:33', 10000, 0, 1, 1, '2025-11-25 03:37:33');
+(1, 'WELCOME10', 'Giảm 10% cho khách hàng mới', 'percentage', 10.00, 100000.00, 50000.00, '2025-12-01 00:00:00', '2026-12-31 23:59:59', 100, 0, 1, 0, '2025-11-23 14:12:35'),
+(2, 'SUMMER2024', 'Giảm 50.000đ cho đơn hàng từ 500.000đ', 'fixed', 5000.00, 100000.00, NULL, '2025-12-01 00:00:00', '2026-12-31 23:59:59', 200, 0, 1, 0, '2025-11-23 14:12:35'),
+(3, 'VIP20', 'Giảm 20% cho ghế VIP', 'percentage', 20.00, 200000.00, 100000.00, '2025-12-01 00:00:00', '2026-12-31 23:59:59', 50, 0, 1, 0, '2025-11-23 14:12:35'),
+(4, 'ROUNDTRIP15', 'Giảm 10% cho vé khứ hồi - Tiết kiệm hơn khi đặt cả chiều đi và về', 'percentage', 15.00, 0.00, NULL, '2025-12-01 00:00:00', '2026-12-31 23:59:59', 10000, 0, 1, 1, '2025-11-25 03:37:33'),
+(6, 'ROUNDTRIP20', 'Giảm 20% cho vé khứ hồi - Tiết kiệm hơn khi đặt cả chiều đi và về', 'percentage', 20.00, 0.00, NULL, '2025-12-07 00:00:00', '2025-12-31 23:59:59', 100, 0, 1, 1, '2025-12-05 20:46:08'),
+(9, 'ROUNDTRIP50', 'Giảm 20% cho vé khứ hồi - Tiết kiệm hơn khi đặt cả chiều đi và về', 'percentage', 50.00, 0.00, NULL, '2025-12-01 00:00:00', '2025-12-31 23:59:59', 100, 0, 1, 1, '2025-12-05 21:03:09');
 
 -- --------------------------------------------------------
 
@@ -301,40 +424,164 @@ CREATE TABLE `routes` (
   `estimated_duration` int NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `pickup_points` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'Danh sách điểm đón (JSON array)',
-  `dropoff_points` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'Danh sách điểm trả (JSON array)'
+  `dropoff_points` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'Danh sách điểm trả (JSON array)',
+  `from_city_id` int DEFAULT NULL COMMENT 'FK to cities - for ERD only, not used by application',
+  `to_city_id` int DEFAULT NULL COMMENT 'FK to cities - for ERD only, not used by application'
 ) ;
 
 --
 -- Dumping data for table `routes`
 --
 
-INSERT INTO `routes` (`id`, `from_location`, `to_location`, `distance_km`, `base_price`, `estimated_duration`, `created_at`, `pickup_points`, `dropoff_points`) VALUES
-(1, 'TP Hồ Chí Minh', 'Vũng Tàu', 125.00, 120000.00, 150, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"Bến xe Miền Tây\", \"address\": \"395 Kinh Dương Vương, An Lạc\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Vũng Tàu\", \"address\": \"52 Nam Kỳ Khởi Nghĩa, Vũng Tàu\"}, {\"name\": \"Trung tâm Vũng Tàu\", \"address\": \"Thùy Vân, Vũng Tàu\"}]'),
-(2, 'Vũng Tàu', 'TP Hồ Chí Minh', 125.00, 120000.00, 150, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Vũng Tàu\", \"address\": \"52 Nam Kỳ Khởi Nghĩa, Vũng Tàu\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"Bến xe Miền Tây\", \"address\": \"395 Kinh Dương Vương, An Lạc\"}]'),
-(3, 'TP Hồ Chí Minh', 'Đà Lạt', 308.00, 250000.00, 390, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Đà Lạt\", \"address\": \"01 Tô Hiến Thành, Đà Lạt\"}, {\"name\": \"Trung tâm Đà Lạt\", \"address\": \"Hồ Xuân Hương, Đà Lạt\"}]'),
-(4, 'Đà Lạt', 'TP Hồ Chí Minh', 308.00, 250000.00, 390, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Lạt\", \"address\": \"01 Tô Hiến Thành, Đà Lạt\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
-(5, 'TP Hồ Chí Minh', 'Nha Trang', 450.00, 350000.00, 570, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}, {\"name\": \"Trung tâm Nha Trang\", \"address\": \"Trần Phú, Nha Trang\"}]'),
-(6, 'Nha Trang', 'TP Hồ Chí Minh', 450.00, 350000.00, 570, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
-(7, 'TP Hồ Chí Minh', 'Cần Thơ', 169.00, 150000.00, 210, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Tây\", \"address\": \"395 Kinh Dương Vương, An Lạc\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Cần Thơ\", \"address\": \"Nguyễn Trãi, Cần Thơ\"}, {\"name\": \"Trung tâm Cần Thơ\", \"address\": \"Chợ Cần Thơ\"}]'),
-(8, 'Cần Thơ', 'TP Hồ Chí Minh', 169.00, 150000.00, 210, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Cần Thơ\", \"address\": \"Nguyễn Trãi, Cần Thơ\"}]', '[{\"name\": \"Bến xe Miền Tây\", \"address\": \"395 Kinh Dương Vương, An Lạc\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
-(9, 'TP Hồ Chí Minh', 'Phan Thiết', 200.00, 170000.00, 240, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Phan Thiết\", \"address\": \"Tôn Đức Thắng, Phan Thiết\"}, {\"name\": \"Mũi Né\", \"address\": \"Nguyễn Đình Chiểu, Mũi Né\"}]'),
-(10, 'Phan Thiết', 'TP Hồ Chí Minh', 200.00, 170000.00, 240, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Phan Thiết\", \"address\": \"Tôn Đức Thắng, Phan Thiết\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
-(11, 'Đà Nẵng', 'Huế', 100.00, 95000.00, 125, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]', '[{\"name\": \"Bến xe Huế\", \"address\": \"An Cựu, Huế\"}, {\"name\": \"Trung tâm Huế\", \"address\": \"Lê Duẩn, Huế\"}]'),
-(12, 'Huế', 'Đà Nẵng', 100.00, 95000.00, 125, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Huế\", \"address\": \"An Cựu, Huế\"}]', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]'),
-(13, 'Đà Nẵng', 'Nha Trang', 520.00, 100000.00, 690, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}, {\"name\": \"Trung tâm Nha Trang\", \"address\": \"Trần Phú, Nha Trang\"}]'),
-(14, 'Nha Trang', 'Đà Nẵng', 520.00, 100000.00, 690, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}]', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]'),
-(15, 'Nha Trang', 'Đà Lạt', 140.00, 130000.00, 180, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}, {\"name\": \"Trung tâm Nha Trang\", \"address\": \"Trần Phú, Nha Trang\"}]', '[{\"name\": \"Bến xe Đà Lạt\", \"address\": \"01 Tô Hiến Thành, Đà Lạt\"}, {\"name\": \"Trung tâm Đà Lạt\", \"address\": \"Hồ Xuân Hương, Đà Lạt\"}]'),
-(16, 'Đà Lạt', 'Nha Trang', 140.00, 130000.00, 180, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Lạt\", \"address\": \"01 Tô Hiến Thành, Đà Lạt\"}]', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}, {\"name\": \"Trung tâm Nha Trang\", \"address\": \"Trần Phú, Nha Trang\"}]'),
-(17, 'Hà Nội', 'Hải Phòng', 105.00, 100000.00, 135, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"Bến xe Giáp Bát\", \"address\": \"Giải Phóng, Hoàng Mai, Hà Nội\"}, {\"name\": \"VP TPT Hà Nội\", \"address\": \"Hoàn Kiếm, Hà Nội\"}]', '[{\"name\": \"Bến xe Hải Phòng\", \"address\": \"Lê Thánh Tông, Hải Phòng\"}, {\"name\": \"Trung tâm Hải Phòng\", \"address\": \"Hoàng Văn Thụ, Hải Phòng\"}]'),
-(18, 'Hải Phòng', 'Hà Nội', 105.00, 100000.00, 135, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Hải Phòng\", \"address\": \"Lê Thánh Tông, Hải Phòng\"}]', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"Bến xe Giáp Bát\", \"address\": \"Giải Phóng, Hoàng Mai, Hà Nội\"}]'),
-(19, 'Hà Nội', 'Lào Cai', 340.00, 275000.00, 450, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"VP TPT Hà Nội\", \"address\": \"Hoàn Kiếm, Hà Nội\"}]', '[{\"name\": \"Bến xe Lào Cai\", \"address\": \"Quốc lộ 4D, Lào Cai\"}, {\"name\": \"Sa Pa\", \"address\": \"Trung tâm Sa Pa\"}]'),
-(20, 'Lào Cai', 'Hà Nội', 340.00, 275000.00, 450, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Lào Cai\", \"address\": \"Quốc lộ 4D, Lào Cai\"}]', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"VP TPT Hà Nội\", \"address\": \"Hoàn Kiếm, Hà Nội\"}]'),
-(21, 'TP Hồ Chí Minh', 'Hà Nội', 1700.00, 1200000.00, 2100, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"Bến xe Giáp Bát\", \"address\": \"Giải Phóng, Hoàng Mai, Hà Nội\"}]'),
-(22, 'Hà Nội', 'TP Hồ Chí Minh', 1700.00, 1200000.00, 2100, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"Bến xe Giáp Bát\", \"address\": \"Giải Phóng, Hoàng Mai, Hà Nội\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
-(23, 'TP Hồ Chí Minh', 'Đà Nẵng', 970.00, 700000.00, 1260, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]'),
-(24, 'Đà Nẵng', 'TP Hồ Chí Minh', 970.00, 700000.00, 1260, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]'),
-(25, 'Nha Trang', 'Huế', 612.00, 595000.00, 453, '2025-11-27 17:36:02', NULL, NULL),
-(26, 'Huế', 'Nha Trang', 608.00, 591000.00, 453, '2025-11-27 17:41:10', NULL, NULL);
+INSERT INTO `routes` (`id`, `from_location`, `to_location`, `distance_km`, `base_price`, `estimated_duration`, `created_at`, `pickup_points`, `dropoff_points`, `from_city_id`, `to_city_id`) VALUES
+(1, 'TP Hồ Chí Minh', 'Vũng Tàu', 125.00, 120000.00, 150, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"Bến xe Miền Tây\", \"address\": \"395 Kinh Dương Vương, An Lạc\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Vũng Tàu\", \"address\": \"52 Nam Kỳ Khởi Nghĩa, Vũng Tàu\"}, {\"name\": \"Trung tâm Vũng Tàu\", \"address\": \"Thùy Vân, Vũng Tàu\"}]', 43, 44),
+(2, 'Vũng Tàu', 'TP Hồ Chí Minh', 125.00, 120000.00, 150, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Vũng Tàu\", \"address\": \"52 Nam Kỳ Khởi Nghĩa, Vũng Tàu\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"Bến xe Miền Tây\", \"address\": \"395 Kinh Dương Vương, An Lạc\"}]', 44, 43),
+(3, 'TP Hồ Chí Minh', 'Đà Lạt', 308.00, 250000.00, 390, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Đà Lạt\", \"address\": \"01 Tô Hiến Thành, Đà Lạt\"}, {\"name\": \"Trung tâm Đà Lạt\", \"address\": \"Hồ Xuân Hương, Đà Lạt\"}]', 43, 42),
+(4, 'Đà Lạt', 'TP Hồ Chí Minh', 308.00, 250000.00, 390, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Lạt\", \"address\": \"01 Tô Hiến Thành, Đà Lạt\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', 42, 43),
+(5, 'TP Hồ Chí Minh', 'Nha Trang', 450.00, 350000.00, 570, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}, {\"name\": \"Trung tâm Nha Trang\", \"address\": \"Trần Phú, Nha Trang\"}]', 43, 35),
+(6, 'Nha Trang', 'TP Hồ Chí Minh', 450.00, 350000.00, 570, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', 35, 43),
+(7, 'TP Hồ Chí Minh', 'Cần Thơ', 169.00, 150000.00, 210, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Tây\", \"address\": \"395 Kinh Dương Vương, An Lạc\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Cần Thơ\", \"address\": \"Nguyễn Trãi, Cần Thơ\"}, {\"name\": \"Trung tâm Cần Thơ\", \"address\": \"Chợ Cần Thơ\"}]', 43, 57),
+(8, 'Cần Thơ', 'TP Hồ Chí Minh', 169.00, 150000.00, 210, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Cần Thơ\", \"address\": \"Nguyễn Trãi, Cần Thơ\"}]', '[{\"name\": \"Bến xe Miền Tây\", \"address\": \"395 Kinh Dương Vương, An Lạc\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', 57, 43),
+(9, 'TP Hồ Chí Minh', 'Phan Thiết', 200.00, 170000.00, 240, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Phan Thiết\", \"address\": \"Tôn Đức Thắng, Phan Thiết\"}, {\"name\": \"Mũi Né\", \"address\": \"Nguyễn Đình Chiểu, Mũi Né\"}]', 43, 37),
+(10, 'Phan Thiết', 'TP Hồ Chí Minh', 200.00, 170000.00, 240, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Phan Thiết\", \"address\": \"Tôn Đức Thắng, Phan Thiết\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', 37, 43),
+(11, 'Đà Nẵng', 'Huế', 100.00, 95000.00, 125, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]', '[{\"name\": \"Bến xe Huế\", \"address\": \"An Cựu, Huế\"}, {\"name\": \"Trung tâm Huế\", \"address\": \"Lê Duẩn, Huế\"}]', 30, 29),
+(12, 'Huế', 'Đà Nẵng', 100.00, 95000.00, 125, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Huế\", \"address\": \"An Cựu, Huế\"}]', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]', 29, 30),
+(13, 'Đà Nẵng', 'Nha Trang', 520.00, 100000.00, 690, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}, {\"name\": \"Trung tâm Nha Trang\", \"address\": \"Trần Phú, Nha Trang\"}]', 30, 35),
+(14, 'Nha Trang', 'Đà Nẵng', 520.00, 100000.00, 690, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}]', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]', 35, 30),
+(15, 'Nha Trang', 'Đà Lạt', 140.00, 130000.00, 180, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}, {\"name\": \"Trung tâm Nha Trang\", \"address\": \"Trần Phú, Nha Trang\"}]', '[{\"name\": \"Bến xe Đà Lạt\", \"address\": \"01 Tô Hiến Thành, Đà Lạt\"}, {\"name\": \"Trung tâm Đà Lạt\", \"address\": \"Hồ Xuân Hương, Đà Lạt\"}]', 35, 42),
+(16, 'Đà Lạt', 'Nha Trang', 140.00, 130000.00, 180, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Lạt\", \"address\": \"01 Tô Hiến Thành, Đà Lạt\"}]', '[{\"name\": \"Bến xe Nha Trang\", \"address\": \"23 Tháng 10, Nha Trang\"}, {\"name\": \"Trung tâm Nha Trang\", \"address\": \"Trần Phú, Nha Trang\"}]', 42, 35),
+(17, 'Hà Nội', 'Hải Phòng', 105.00, 100000.00, 135, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"Bến xe Giáp Bát\", \"address\": \"Giải Phóng, Hoàng Mai, Hà Nội\"}, {\"name\": \"VP TPT Hà Nội\", \"address\": \"Hoàn Kiếm, Hà Nội\"}]', '[{\"name\": \"Bến xe Hải Phòng\", \"address\": \"Lê Thánh Tông, Hải Phòng\"}, {\"name\": \"Trung tâm Hải Phòng\", \"address\": \"Hoàng Văn Thụ, Hải Phòng\"}]', 1, 2),
+(18, 'Hải Phòng', 'Hà Nội', 105.00, 100000.00, 135, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Hải Phòng\", \"address\": \"Lê Thánh Tông, Hải Phòng\"}]', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"Bến xe Giáp Bát\", \"address\": \"Giải Phóng, Hoàng Mai, Hà Nội\"}]', 2, 1),
+(19, 'Hà Nội', 'Lào Cai', 340.00, 275000.00, 450, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"VP TPT Hà Nội\", \"address\": \"Hoàn Kiếm, Hà Nội\"}]', '[{\"name\": \"Bến xe Lào Cai\", \"address\": \"Quốc lộ 4D, Lào Cai\"}, {\"name\": \"Sa Pa\", \"address\": \"Trung tâm Sa Pa\"}]', 1, 6),
+(20, 'Lào Cai', 'Hà Nội', 340.00, 275000.00, 450, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Lào Cai\", \"address\": \"Quốc lộ 4D, Lào Cai\"}]', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"VP TPT Hà Nội\", \"address\": \"Hoàn Kiếm, Hà Nội\"}]', 6, 1),
+(21, 'TP Hồ Chí Minh', 'Hà Nội', 1700.00, 1200000.00, 2100, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"Bến xe Giáp Bát\", \"address\": \"Giải Phóng, Hoàng Mai, Hà Nội\"}]', 43, 1),
+(22, 'Hà Nội', 'TP Hồ Chí Minh', 1700.00, 1200000.00, 2100, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Mỹ Đình\", \"address\": \"Phạm Hùng, Nam Từ Liêm, Hà Nội\"}, {\"name\": \"Bến xe Giáp Bát\", \"address\": \"Giải Phóng, Hoàng Mai, Hà Nội\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', 1, 43),
+(23, 'TP Hồ Chí Minh', 'Đà Nẵng', 970.00, 700000.00, 1260, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]', 43, 30),
+(24, 'Đà Nẵng', 'TP Hồ Chí Minh', 970.00, 700000.00, 1260, '2025-11-23 14:12:35', '[{\"name\": \"Bến xe Đà Nẵng\", \"address\": \"Điện Biên Phủ, Đà Nẵng\"}, {\"name\": \"VP TPT Đà Nẵng\", \"address\": \"Hải Châu, Đà Nẵng\"}]', '[{\"name\": \"Bến xe Miền Đông\", \"address\": \"292 Đinh Bộ Lĩnh, Bình Thạnh\"}, {\"name\": \"VP TPT Quận 1\", \"address\": \"234 Nguyễn Trãi, Quận 1\"}]', 30, 43),
+(25, 'Nha Trang', 'Huế', 612.00, 595000.00, 453, '2025-11-27 17:36:02', NULL, NULL, 35, 29),
+(26, 'Huế', 'Nha Trang', 608.00, 591000.00, 453, '2025-11-27 17:41:10', NULL, NULL, 29, 35),
+(27, 'Tuy Hòa', 'Đắk Lắk', 183.00, 228000.00, 182, '2025-12-06 21:37:04', NULL, NULL, 246, 40);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `route_stations`
+--
+
+CREATE TABLE `route_stations` (
+  `id` int NOT NULL,
+  `route_id` int NOT NULL COMMENT 'FK to routes',
+  `station_id` int NOT NULL COMMENT 'FK to stations',
+  `point_type` enum('pickup','dropoff','both') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'both' COMMENT 'Station type',
+  `sequence_order` int DEFAULT '0' COMMENT 'Order in route',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Junction table for routes and stations - for ERD completeness only. NOT USED BY APPLICATION.';
+
+--
+-- Dumping data for table `route_stations`
+--
+
+INSERT INTO `route_stations` (`id`, `route_id`, `station_id`, `point_type`, `sequence_order`, `created_at`) VALUES
+(1, 21, 1, 'dropoff', 1, '2025-12-07 13:30:51'),
+(2, 20, 1, 'dropoff', 2, '2025-12-07 13:30:51'),
+(3, 18, 1, 'dropoff', 3, '2025-12-07 13:30:51'),
+(4, 22, 1, 'pickup', 4, '2025-12-07 13:30:51'),
+(5, 19, 1, 'pickup', 5, '2025-12-07 13:30:51'),
+(6, 17, 1, 'pickup', 6, '2025-12-07 13:30:51'),
+(7, 21, 2, 'dropoff', 7, '2025-12-07 13:30:51'),
+(8, 20, 2, 'dropoff', 8, '2025-12-07 13:30:51'),
+(9, 18, 2, 'dropoff', 9, '2025-12-07 13:30:51'),
+(10, 22, 2, 'pickup', 10, '2025-12-07 13:30:51'),
+(11, 19, 2, 'pickup', 11, '2025-12-07 13:30:51'),
+(12, 17, 2, 'pickup', 12, '2025-12-07 13:30:51'),
+(13, 2, 3, 'dropoff', 13, '2025-12-07 13:30:51'),
+(14, 1, 3, 'pickup', 14, '2025-12-07 13:30:51'),
+(15, 9, 3, 'pickup', 15, '2025-12-07 13:30:51'),
+(16, 5, 3, 'pickup', 16, '2025-12-07 13:30:51'),
+(17, 21, 3, 'pickup', 17, '2025-12-07 13:30:51'),
+(18, 23, 3, 'pickup', 18, '2025-12-07 13:30:51'),
+(19, 3, 3, 'pickup', 19, '2025-12-07 13:30:51'),
+(20, 7, 3, 'pickup', 20, '2025-12-07 13:30:51'),
+(21, 10, 3, 'dropoff', 21, '2025-12-07 13:30:51'),
+(22, 6, 3, 'dropoff', 22, '2025-12-07 13:30:51'),
+(23, 22, 3, 'dropoff', 23, '2025-12-07 13:30:51'),
+(24, 24, 3, 'dropoff', 24, '2025-12-07 13:30:51'),
+(25, 4, 3, 'dropoff', 25, '2025-12-07 13:30:51'),
+(26, 8, 3, 'dropoff', 26, '2025-12-07 13:30:51'),
+(27, 2, 4, 'dropoff', 27, '2025-12-07 13:30:51'),
+(28, 1, 4, 'pickup', 28, '2025-12-07 13:30:51'),
+(29, 9, 4, 'pickup', 29, '2025-12-07 13:30:51'),
+(30, 5, 4, 'pickup', 30, '2025-12-07 13:30:51'),
+(31, 21, 4, 'pickup', 31, '2025-12-07 13:30:51'),
+(32, 23, 4, 'pickup', 32, '2025-12-07 13:30:51'),
+(33, 3, 4, 'pickup', 33, '2025-12-07 13:30:51'),
+(34, 7, 4, 'pickup', 34, '2025-12-07 13:30:51'),
+(35, 10, 4, 'dropoff', 35, '2025-12-07 13:30:51'),
+(36, 6, 4, 'dropoff', 36, '2025-12-07 13:30:51'),
+(37, 22, 4, 'dropoff', 37, '2025-12-07 13:30:51'),
+(38, 24, 4, 'dropoff', 38, '2025-12-07 13:30:51'),
+(39, 4, 4, 'dropoff', 39, '2025-12-07 13:30:51'),
+(40, 8, 4, 'dropoff', 40, '2025-12-07 13:30:51'),
+(41, 23, 5, 'dropoff', 41, '2025-12-07 13:30:51'),
+(42, 14, 5, 'dropoff', 42, '2025-12-07 13:30:51'),
+(43, 12, 5, 'dropoff', 43, '2025-12-07 13:30:51'),
+(44, 24, 5, 'pickup', 44, '2025-12-07 13:30:51'),
+(45, 13, 5, 'pickup', 45, '2025-12-07 13:30:51'),
+(46, 11, 5, 'pickup', 46, '2025-12-07 13:30:51'),
+(47, 25, 6, 'dropoff', 47, '2025-12-07 13:30:51'),
+(48, 26, 6, 'pickup', 48, '2025-12-07 13:30:51'),
+(49, 12, 6, 'pickup', 49, '2025-12-07 13:30:51'),
+(50, 11, 6, 'dropoff', 50, '2025-12-07 13:30:51'),
+(51, 3, 8, 'dropoff', 51, '2025-12-07 13:30:51'),
+(52, 15, 8, 'dropoff', 52, '2025-12-07 13:30:51'),
+(53, 4, 8, 'pickup', 53, '2025-12-07 13:30:51'),
+(54, 16, 8, 'pickup', 54, '2025-12-07 13:30:51'),
+(55, 21, 9, 'dropoff', 55, '2025-12-07 13:30:51'),
+(56, 20, 9, 'dropoff', 56, '2025-12-07 13:30:51'),
+(57, 18, 9, 'dropoff', 57, '2025-12-07 13:30:51'),
+(58, 22, 9, 'pickup', 58, '2025-12-07 13:30:51'),
+(59, 19, 9, 'pickup', 59, '2025-12-07 13:30:51'),
+(60, 17, 9, 'pickup', 60, '2025-12-07 13:30:51'),
+(61, 2, 11, 'dropoff', 61, '2025-12-07 13:30:51'),
+(62, 1, 11, 'pickup', 62, '2025-12-07 13:30:51'),
+(63, 9, 11, 'pickup', 63, '2025-12-07 13:30:51'),
+(64, 5, 11, 'pickup', 64, '2025-12-07 13:30:51'),
+(65, 21, 11, 'pickup', 65, '2025-12-07 13:30:51'),
+(66, 23, 11, 'pickup', 66, '2025-12-07 13:30:51'),
+(67, 3, 11, 'pickup', 67, '2025-12-07 13:30:51'),
+(68, 7, 11, 'pickup', 68, '2025-12-07 13:30:51'),
+(69, 10, 11, 'dropoff', 69, '2025-12-07 13:30:51'),
+(70, 6, 11, 'dropoff', 70, '2025-12-07 13:30:51'),
+(71, 22, 11, 'dropoff', 71, '2025-12-07 13:30:51'),
+(72, 24, 11, 'dropoff', 72, '2025-12-07 13:30:51'),
+(73, 4, 11, 'dropoff', 73, '2025-12-07 13:30:51'),
+(74, 8, 11, 'dropoff', 74, '2025-12-07 13:30:51'),
+(75, 2, 12, 'dropoff', 75, '2025-12-07 13:30:51'),
+(76, 1, 12, 'pickup', 76, '2025-12-07 13:30:51'),
+(77, 9, 12, 'pickup', 77, '2025-12-07 13:30:51'),
+(78, 5, 12, 'pickup', 78, '2025-12-07 13:30:51'),
+(79, 21, 12, 'pickup', 79, '2025-12-07 13:30:51'),
+(80, 23, 12, 'pickup', 80, '2025-12-07 13:30:51'),
+(81, 3, 12, 'pickup', 81, '2025-12-07 13:30:51'),
+(82, 7, 12, 'pickup', 82, '2025-12-07 13:30:51'),
+(83, 10, 12, 'dropoff', 83, '2025-12-07 13:30:51'),
+(84, 6, 12, 'dropoff', 84, '2025-12-07 13:30:51'),
+(85, 22, 12, 'dropoff', 85, '2025-12-07 13:30:51'),
+(86, 24, 12, 'dropoff', 86, '2025-12-07 13:30:51'),
+(87, 4, 12, 'dropoff', 87, '2025-12-07 13:30:51'),
+(88, 8, 12, 'dropoff', 88, '2025-12-07 13:30:51'),
+(89, 2, 13, 'dropoff', 89, '2025-12-07 13:30:51'),
+(90, 1, 13, 'pickup', 90, '2025-12-07 13:30:51'),
+(91, 9, 13, 'pickup', 91, '2025-12-07 13:30:51'),
+(92, 5, 13, 'pickup', 92, '2025-12-07 13:30:51'),
+(93, 21, 13, 'pickup', 93, '2025-12-07 13:30:51'),
+(94, 23, 13, 'pickup', 94, '2025-12-07 13:30:51'),
+(95, 3, 13, 'pickup', 95, '2025-12-07 13:30:51'),
+(96, 7, 13, 'pickup', 96, '2025-12-07 13:30:51'),
+(97, 10, 13, 'dropoff', 97, '2025-12-07 13:30:51'),
+(98, 6, 13, 'dropoff', 98, '2025-12-07 13:30:51'),
+(99, 22, 13, 'dropoff', 99, '2025-12-07 13:30:51'),
+(100, 24, 13, 'dropoff', 100, '2025-12-07 13:30:51');
 
 -- --------------------------------------------------------
 
@@ -710,46 +957,48 @@ CREATE TABLE `stations` (
   `longitude` decimal(11,8) NOT NULL COMMENT 'Kinh độ (Google Maps)',
   `phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Số điện thoại trạm',
   `is_active` tinyint(1) DEFAULT '1' COMMENT 'Trạm đang hoạt động',
+  `station_type` enum('departure','arrival','both') COLLATE utf8mb4_unicode_ci DEFAULT 'both' COMMENT 'Loại trạm',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `is_approved` tinyint(1) DEFAULT '1' COMMENT 'False if station uses unapproved city',
-  `station_type` enum('arrival','both','departure') COLLATE utf8mb4_unicode_ci NOT NULL
+  `city_id` int DEFAULT NULL COMMENT 'FK to cities - for ERD only'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Trạm xe bus thực tế với tọa độ Google Maps';
 
 --
 -- Dumping data for table `stations`
 --
 
-INSERT INTO `stations` (`id`, `name`, `address`, `city`, `latitude`, `longitude`, `phone`, `is_active`, `created_at`, `is_approved`, `station_type`) VALUES
-(1, 'Bến xe Giáp Bát', 'Đường Giải Phóng, Giáp Bát, Hoàng Mai, Hà Nội', 'Hà Nội', 20.98170000, 105.84080000, '02436414704', 1, '2025-11-25 10:39:40', 1, 'arrival'),
-(2, 'Bến xe Mỹ Đình', 'Phạm Hùng, Mỹ Đình, Nam Từ Liêm, Hà Nội', 'Hà Nội', 21.02850000, 105.78480000, '02437685549', 1, '2025-11-25 10:39:40', 1, 'arrival'),
-(3, 'Bến xe Miền Đông', '292 Đinh Bộ Lĩnh, Phường 26, Bình Thạnh, TP.HCM', 'TP Hồ Chí Minh', 10.81420000, 106.71050000, '02838294056', 1, '2025-11-25 10:39:40', 1, 'arrival'),
-(4, 'Bến xe Miền Tây', '395 Kinh Dương Vương, An Lạc, Bình Tân, TP.HCM', 'TP Hồ Chí Minh', 10.73820000, 106.61820000, '02838753082', 1, '2025-11-25 10:39:40', 1, 'arrival'),
-(5, 'Bến xe Đà Nẵng', 'Đường Điện Biên Phủ, Thanh Khê, Đà Nẵng', 'Đà Nẵng', 16.05440000, 108.20220000, '02363826140', 1, '2025-11-25 10:39:40', 1, 'arrival'),
-(6, 'Bến xe Huế', 'Đường An Cựu, An Cựu, TP Huế', 'Huế', 16.46370000, 107.60000000, '02343822175', 1, '2025-11-25 10:39:40', 1, 'arrival'),
-(7, 'Bến xe Nha Trang', '23 Tháng 10, Phường Vĩnh Hòa, Nha Trang', 'Nha Trang', 12.26470000, 109.18990000, '02583822895', 0, '2025-11-25 10:39:40', 1, 'arrival'),
-(8, 'Bến xe Đà Lạt', '1 Tô Hiến Thành, Phường 3, Đà Lạt, Lâm Đồng', 'Đà Lạt', 11.94040000, 108.45830000, '02633837291', 1, '2025-11-25 10:39:40', 1, 'arrival'),
-(9, 'Bến xe Nước Ngầm', 'Giải Phóng, Hoàng Mai, Hà Nội', 'Hà Nội', 20.98146500, 105.84381700, NULL, 1, '2025-11-25 18:33:31', 1, 'arrival'),
-(10, 'Bến xe Nhà Rồng', 'Nha Rong Port Historic Site, Phường Xóm Chiếu, Thủ Đức, Ho Chi Minh City, Vietnam', 'Hồ Chí Minh', 10.76821100, 106.70667000, NULL, 1, '2025-11-25 19:10:28', 1, 'arrival'),
-(11, 'Bến xe Miền Đông 2', '292 Đinh Bộ Lĩnh, Phường 26, Bình Thạnh, TP HCM', 'TP Hồ Chí Minh', 10.81502300, 106.71241600, '028 3899 4056', 1, '2025-11-25 19:12:18', 1, 'arrival'),
-(12, 'Bến xe Miền Tây 2', '395 Kinh Dương Vương, Phường An Lạc, Quận Bình Tân, TP HCM', 'TP Hồ Chí Minh', 10.73905900, 106.60515800, '028 3877 5569', 1, '2025-11-25 19:12:18', 1, 'arrival'),
-(13, 'Bến xe Miền Đông Mới', 'Đường Võ Nguyên Giáp, Phường Long Bình, TP Thủ Đức, TP HCM', 'TP Hồ Chí Minh', 10.83963600, 106.81748700, '028 3719 3773', 1, '2025-11-25 19:12:18', 1, 'arrival'),
-(14, 'Bến xe Đà Lạt', '01 Tô Hiến Thành, Phường 3, Đà Lạt, Lâm Đồng', 'Đà Lạt', 11.94432100, 108.43822900, '0263 3822 635', 1, '2025-11-25 19:12:18', 1, 'arrival'),
-(15, 'Bến xe Nha Trang 3', '23 Tháng 10, Phường Vĩnh Phước, Nha Trang, Khánh Hòa', 'Nha Trang', 12.23859500, 109.19430400, '0258 3822 862', 1, '2025-11-25 19:12:18', 1, 'arrival'),
-(16, 'Bến xe Đà Nẵng', 'Đường Điện Biên Phủ, Hải Châu, Đà Nẵng', 'Đà Nẵng', 16.07059900, 108.20982900, '0236 3821 265', 1, '2025-11-25 19:12:18', 1, 'arrival'),
-(17, 'Bến xe Huế 3', '48 An Dương Vương, Phường Phú Hội, Huế, Thừa Thiên Huế', 'Huế', 16.45659100, 107.58987900, '0234 3822 175', 1, '2025-11-25 19:12:18', 1, 'arrival'),
-(18, 'Bến xe Mỹ Đình', 'Phạm Hùng, Mỹ Đình, Nam Từ Liêm, Hà Nội', 'Hà Nội', 21.02766900, 105.78078300, '024 3768 5549', 1, '2025-11-25 19:12:18', 1, 'arrival'),
-(19, 'Bến xe Giáp Bát', 'Đường Giải Phóng, Hoàng Mai, Hà Nội', 'Hà Nội', 20.98178200, 105.84134500, '024 3864 1467', 1, '2025-11-25 19:12:18', 1, 'arrival'),
-(20, 'Bến xe Hải Phòng', '01 Lê Thánh Tông, Ngô Quyền, Hải Phòng', 'Hải Phòng', 20.86141900, 106.68397300, '0225 3842 748', 1, '2025-11-25 19:12:18', 1, 'arrival'),
-(21, 'Bến xe Cần Thơ', 'Đường Nguyễn Văn Linh, Hưng Lợi, Ninh Kiều, Cần Thơ', 'Cần Thơ', 10.03337700, 105.77277300, '0292 3821 259', 1, '2025-11-25 19:12:18', 1, 'arrival'),
-(22, 'Bến xe nhà bè', 'Bến xe Bình Khánh, Huynh Tan Phat, Xã Nhà Bè, Ho Chi Minh City, Vietnam', 'TP Hồ Chí Minh', 10.67435600, 106.76614100, NULL, 1, '2025-11-27 13:37:25', 1, 'arrival'),
-(23, 'Bến phú mỹ hưng', 'Ben Duoc Tunnels - Liberation Area, Đường tỉnh 789, Ấp Phú Hiệp, Xã An Nhơn Tây, Ho Chi Minh City, Xã Hưng Thuận, Tây Ninh Province, Vietnam', 'TP Hồ Chí Minh', 11.14090500, 106.46105100, NULL, 1, '2025-11-27 13:48:00', 1, 'arrival'),
-(24, 'Trạm Bàn Cờ', 'Dự án đường Vành đai 2, Khu phố 8, Phường Thủ Đức, Thủ Đức, Ho Chi Minh City, 71221, Vietnam', 'TP Hồ Chí Minh', 10.76891000, 106.68136100, NULL, 1, '2025-11-27 16:27:31', 1, 'arrival'),
-(25, 'Bến test', 'Xã Châu Pha, Ho Chi Minh City, Vietnam', 'TP Hồ Chí Minh', 10.66614300, 106.54401100, NULL, 1, '2025-11-27 17:13:48', 1, 'arrival'),
-(26, 'Bến xe nha trang 1', 'Nha Trang Bus station (North), 2 Tháng 4, Bắc Nha Trang, Phường Bắc Nha Trang, Khánh Hòa Province, 57100, Vietnam', 'Nha Trang', 12.28868500, 109.19058400, NULL, 1, '2025-11-27 17:36:53', 1, 'arrival'),
-(27, 'Bến xe nha trang 2', 'Nha Trang Bus station (North), 2 Tháng 4, Bắc Nha Trang, Phường Bắc Nha Trang, Khánh Hòa Province, 57100, Vietnam', 'Nha Trang', 12.22997100, 109.17527100, NULL, 1, '2025-11-27 17:37:24', 1, 'arrival'),
-(28, 'Bến xe Cá', 'Huynh Gia Bus Station, 16-18, Nguyen Chanh Street, Phuoc Hoa, Nha Trang, Khánh Hòa Province, 57100, Vietnam', 'Nha Trang', 12.23574300, 109.16906700, NULL, 1, '2025-11-27 17:49:43', 1, 'arrival'),
-(29, 'Bến xe phan thiết', 'Sông Sa Lung, Phan Xá, Vĩnh Linh Commune, Quảng Trị Province, Vietnam', 'Phan Thiết', 17.04499700, 107.01073500, NULL, 1, '2025-11-27 20:27:11', 1, 'arrival'),
-(30, 'Bến xe Vũng Tàu', 'Vũng Tàu Bus Station, 192, Nam Kỳ Khởi Nghĩa, Phường Vũng Tàu, Ho Chi Minh City, 76666, Vietnam', 'Vũng Tàu', 10.35044700, 107.08704800, NULL, 1, '2025-11-30 02:52:50', 1, 'arrival');
+INSERT INTO `stations` (`id`, `name`, `address`, `city`, `latitude`, `longitude`, `phone`, `is_active`, `station_type`, `created_at`, `is_approved`, `city_id`) VALUES
+(1, 'Bến xe Giáp Bát', 'Đường Giải Phóng, Giáp Bát, Hoàng Mai, Hà Nội', 'Hà Nội', 20.98170000, 105.84080000, '02436414704', 1, 'both', '2025-11-25 10:39:40', 1, 1),
+(2, 'Bến xe Mỹ Đình', 'Phạm Hùng, Mỹ Đình, Nam Từ Liêm, Hà Nội', 'Hà Nội', 21.02850000, 105.78480000, '02437685549', 1, 'both', '2025-11-25 10:39:40', 1, 1),
+(3, 'Bến xe Miền Đông', '292 Đinh Bộ Lĩnh, Phường 26, Bình Thạnh, TP.HCM', 'TP Hồ Chí Minh', 10.81420000, 106.71050000, '02838294056', 1, 'both', '2025-11-25 10:39:40', 1, 43),
+(4, 'Bến xe Miền Tây', '395 Kinh Dương Vương, An Lạc, Bình Tân, TP.HCM', 'TP Hồ Chí Minh', 10.73820000, 106.61820000, '02838753082', 1, 'both', '2025-11-25 10:39:40', 1, 43),
+(5, 'Bến xe Đà Nẵng', 'Đường Điện Biên Phủ, Thanh Khê, Đà Nẵng', 'Đà Nẵng', 16.05440000, 108.20220000, '02363826140', 1, 'both', '2025-11-25 10:39:40', 1, 30),
+(6, 'Bến xe Huế', 'Đường An Cựu, An Cựu, TP Huế', 'Huế', 16.46370000, 107.60000000, '02343822175', 1, 'both', '2025-11-25 10:39:40', 1, 29),
+(7, 'Bến xe Nha Trang', '23 Tháng 10, Phường Vĩnh Hòa, Nha Trang', 'Nha Trang', 12.26470000, 109.18990000, '02583822895', 0, 'both', '2025-11-25 10:39:40', 1, 35),
+(8, 'Bến xe Đà Lạt', '1 Tô Hiến Thành, Phường 3, Đà Lạt, Lâm Đồng', 'Đà Lạt', 11.94040000, 108.45830000, '02633837291', 1, 'both', '2025-11-25 10:39:40', 1, 42),
+(9, 'Bến xe Nước Ngầm', 'Giải Phóng, Hoàng Mai, Hà Nội', 'Hà Nội', 20.98146500, 105.84381700, NULL, 1, 'both', '2025-11-25 18:33:31', 1, 1),
+(10, 'Bến xe Nhà Rồng', 'Nha Rong Port Historic Site, Phường Xóm Chiếu, Thủ Đức, Ho Chi Minh City, Vietnam', 'Hồ Chí Minh', 10.76821100, 106.70667000, NULL, 1, 'both', '2025-11-25 19:10:28', 1, 43),
+(11, 'Bến xe Miền Đông 2', '292 Đinh Bộ Lĩnh, Phường 26, Bình Thạnh, TP HCM', 'TP Hồ Chí Minh', 10.81502300, 106.71241600, '028 3899 4056', 1, 'both', '2025-11-25 19:12:18', 1, 43),
+(12, 'Bến xe Miền Tây 2', '395 Kinh Dương Vương, Phường An Lạc, Quận Bình Tân, TP HCM', 'TP Hồ Chí Minh', 10.73905900, 106.60515800, '028 3877 5569', 1, 'both', '2025-11-25 19:12:18', 1, 43),
+(13, 'Bến xe Miền Đông Mới', 'Đường Võ Nguyên Giáp, Phường Long Bình, TP Thủ Đức, TP HCM', 'TP Hồ Chí Minh', 10.83963600, 106.81748700, '028 3719 3773', 1, 'both', '2025-11-25 19:12:18', 1, 43),
+(14, 'Bến xe Đà Lạt', '01 Tô Hiến Thành, Phường 3, Đà Lạt, Lâm Đồng', 'Đà Lạt', 11.94432100, 108.43822900, '0263 3822 635', 1, 'both', '2025-11-25 19:12:18', 1, 42),
+(15, 'Bến xe Nha Trang 3', '23 Tháng 10, Phường Vĩnh Phước, Nha Trang, Khánh Hòa', 'Nha Trang', 12.23859500, 109.19430400, '0258 3822 862', 1, 'both', '2025-11-25 19:12:18', 1, 35),
+(16, 'Bến xe Đà Nẵng', 'Đường Điện Biên Phủ, Hải Châu, Đà Nẵng', 'Đà Nẵng', 16.07059900, 108.20982900, '0236 3821 265', 1, 'both', '2025-11-25 19:12:18', 1, 30),
+(17, 'Bến xe Huế 3', '48 An Dương Vương, Phường Phú Hội, Huế, Thừa Thiên Huế', 'Huế', 16.45659100, 107.58987900, '0234 3822 175', 1, 'both', '2025-11-25 19:12:18', 1, 29),
+(18, 'Bến xe Mỹ Đình', 'Phạm Hùng, Mỹ Đình, Nam Từ Liêm, Hà Nội', 'Hà Nội', 21.02766900, 105.78078300, '024 3768 5549', 1, 'both', '2025-11-25 19:12:18', 1, 1),
+(19, 'Bến xe Giáp Bát', 'Đường Giải Phóng, Hoàng Mai, Hà Nội', 'Hà Nội', 20.98178200, 105.84134500, '024 3864 1467', 1, 'both', '2025-11-25 19:12:18', 1, 1),
+(20, 'Bến xe Hải Phòng', '01 Lê Thánh Tông, Ngô Quyền, Hải Phòng', 'Hải Phòng', 20.86141900, 106.68397300, '0225 3842 748', 1, 'both', '2025-11-25 19:12:18', 1, 2),
+(21, 'Bến xe Cần Thơ', 'Đường Nguyễn Văn Linh, Hưng Lợi, Ninh Kiều, Cần Thơ', 'Cần Thơ', 10.03337700, 105.77277300, '0292 3821 259', 1, 'both', '2025-11-25 19:12:18', 1, 57),
+(22, 'Bến xe nhà bè', 'Bến xe Bình Khánh, Huynh Tan Phat, Xã Nhà Bè, Ho Chi Minh City, Vietnam', 'TP Hồ Chí Minh', 10.67435600, 106.76614100, NULL, 1, 'both', '2025-11-27 13:37:25', 1, 43),
+(23, 'Bến phú mỹ hưng', 'Ben Duoc Tunnels - Liberation Area, Đường tỉnh 789, Ấp Phú Hiệp, Xã An Nhơn Tây, Ho Chi Minh City, Xã Hưng Thuận, Tây Ninh Province, Vietnam', 'TP Hồ Chí Minh', 11.14090500, 106.46105100, NULL, 1, 'both', '2025-11-27 13:48:00', 1, 43),
+(24, 'Trạm Bàn Cờ', 'Dự án đường Vành đai 2, Khu phố 8, Phường Thủ Đức, Thủ Đức, Ho Chi Minh City, 71221, Vietnam', 'TP Hồ Chí Minh', 10.76891000, 106.68136100, NULL, 1, 'both', '2025-11-27 16:27:31', 1, 43),
+(25, 'Bến test', 'Xã Châu Pha, Ho Chi Minh City, Vietnam', 'TP Hồ Chí Minh', 10.66614300, 106.54401100, NULL, 1, 'both', '2025-11-27 17:13:48', 1, 43),
+(26, 'Bến xe nha trang 1', 'Nha Trang Bus station (North), 2 Tháng 4, Bắc Nha Trang, Phường Bắc Nha Trang, Khánh Hòa Province, 57100, Vietnam', 'Nha Trang', 12.28868500, 109.19058400, NULL, 1, 'both', '2025-11-27 17:36:53', 1, 35),
+(27, 'Bến xe nha trang 2', 'Nha Trang Bus station (North), 2 Tháng 4, Bắc Nha Trang, Phường Bắc Nha Trang, Khánh Hòa Province, 57100, Vietnam', 'Nha Trang', 12.22997100, 109.17527100, NULL, 1, 'both', '2025-11-27 17:37:24', 1, 35),
+(28, 'Bến xe Cá', 'Huynh Gia Bus Station, 16-18, Nguyen Chanh Street, Phuoc Hoa, Nha Trang, Khánh Hòa Province, 57100, Vietnam', 'Nha Trang', 12.23574300, 109.16906700, NULL, 1, 'both', '2025-11-27 17:49:43', 1, 35),
+(29, 'Bến xe phan thiết', 'Sông Sa Lung, Phan Xá, Vĩnh Linh Commune, Quảng Trị Province, Vietnam', 'Phan Thiết', 17.04499700, 107.01073500, NULL, 1, 'both', '2025-11-27 20:27:11', 1, 37),
+(30, 'Bến xe Vũng Tàu', 'Vũng Tàu Bus Station, 192, Nam Kỳ Khởi Nghĩa, Phường Vũng Tàu, Ho Chi Minh City, 76666, Vietnam', 'Vũng Tàu', 10.35044700, 107.08704800, NULL, 1, 'both', '2025-11-30 02:52:50', 1, 44),
+(31, 'Bến xe tuy hòa đời mới', 'Bến xe Nội Thành, Nguyễn Trãi, Tuy Hòa, Phường Tuy Hòa, Đắk Lắk Province, Vietnam', 'Tuy Hòa', 13.08770400, 109.30689300, NULL, 1, 'both', '2025-12-06 18:56:55', 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -828,8 +1077,8 @@ INSERT INTO `tickets` (`id`, `user_id`, `trip_id`, `seat_id`, `trip_seat_id`, `p
 (41, 2, 292, 202, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 40, 'BOOKING-6c9a5df4-8963-4a16-99d0-b3048989c312', '2025-11-26 08:33:06', '2025-11-26 10:11:00', NULL, '2025-11-26 08:33:06', NULL),
 (42, 2, 310, 8, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 43, 'BOOKING-0f2760a5-8ebc-4714-99d6-bc67a76baa8b', '2025-11-26 08:49:07', '2025-11-26 10:11:00', NULL, '2025-11-26 08:49:07', NULL),
 (43, 2, 292, 217, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253404', '12345levan@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 42, 'BOOKING-0f2760a5-8ebc-4714-99d6-bc67a76baa8b', '2025-11-26 08:49:07', '2025-11-26 10:11:00', NULL, '2025-11-26 08:49:07', NULL),
-(44, 4, 64, 212, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'booked', 'round_trip', 0, 45, 'BOOKING-f77e1c3c-592c-4288-a81d-506ad4671942', '2025-11-26 10:10:41', NULL, NULL, '2025-11-26 10:10:41', NULL),
-(45, 4, 313, 21, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'booked', 'round_trip', 1, 44, 'BOOKING-f77e1c3c-592c-4288-a81d-506ad4671942', '2025-11-26 10:10:41', NULL, NULL, '2025-11-26 10:10:41', NULL),
+(44, 4, 64, 212, NULL, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 45, 'BOOKING-f77e1c3c-592c-4288-a81d-506ad4671942', '2025-11-26 10:10:41', '2025-12-06 06:58:59', NULL, '2025-11-26 10:10:41', NULL),
+(45, 4, 313, 21, NULL, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 44, 'BOOKING-f77e1c3c-592c-4288-a81d-506ad4671942', '2025-11-26 10:10:41', '2025-12-06 06:58:59', NULL, '2025-11-26 10:10:41', NULL),
 (46, 4, 310, NULL, 26601, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 47, 'BOOKING-1ddbbd80-d915-49a6-89fe-b1c1c06bd292', '2025-11-26 10:57:35', '2025-11-26 11:03:00', NULL, '2025-11-26 10:57:35', NULL),
 (47, 4, 292, NULL, 38160, NULL, 'Bến xe Miền Đông', 'Bến xe Phan Thiết', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 1, 46, 'BOOKING-1ddbbd80-d915-49a6-89fe-b1c1c06bd292', '2025-11-26 10:57:35', '2025-11-26 11:03:00', NULL, '2025-11-26 10:57:35', NULL),
 (48, 2, 310, NULL, 26719, NULL, 'Bến xe Phan Thiết', 'Bến xe Miền Đông', 'abcd', '0969242323', 'khongco@gmail.com', '', 170000.00, 'online', 'cancelled', 'round_trip', 0, 49, 'BOOKING-6246b248-edb0-4246-9efa-e0829ab8338c', '2025-11-26 10:58:31', '2025-11-26 11:04:00', NULL, '2025-11-26 10:58:31', NULL),
@@ -932,7 +1181,128 @@ INSERT INTO `tickets` (`id`, `user_id`, `trip_id`, `seat_id`, `trip_seat_id`, `p
 (145, 5, 381, 297, 39575, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253303', 'hieple5@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, 147, 'BOOKING-2df2f22e-146e-4b42-b8dd-3b1cd380d850', '2025-11-30 03:02:32', NULL, NULL, '2025-11-30 03:02:32', '2025-11-30 10:07:32'),
 (146, 5, 381, 296, 39574, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253303', 'hieple5@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, NULL, 'BOOKING-2df2f22e-146e-4b42-b8dd-3b1cd380d850', '2025-11-30 03:02:32', NULL, NULL, '2025-11-30 03:02:32', '2025-11-30 10:07:32'),
 (147, 5, 382, 279, 39589, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253303', 'hieple5@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, 145, 'BOOKING-2df2f22e-146e-4b42-b8dd-3b1cd380d850', '2025-11-30 03:02:32', NULL, NULL, '2025-11-30 03:02:32', '2025-11-30 10:07:32'),
-(148, 5, 382, 280, 39590, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253303', 'hieple5@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-2df2f22e-146e-4b42-b8dd-3b1cd380d850', '2025-11-30 03:02:32', NULL, NULL, '2025-11-30 03:02:32', '2025-11-30 10:07:32');
+(148, 5, 382, 280, 39590, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253303', 'hieple5@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-2df2f22e-146e-4b42-b8dd-3b1cd380d850', '2025-11-30 03:02:32', NULL, NULL, '2025-11-30 03:02:32', '2025-11-30 10:07:32'),
+(149, 4, 386, 308, 39714, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'cancelled', 'round_trip', 0, 151, 'BOOKING-fb990d7a-e3ba-49ad-8b33-6a3496514d93', '2025-12-05 20:01:09', '2025-12-05 20:07:00', NULL, '2025-12-05 20:01:09', '2025-12-06 03:06:09'),
+(150, 4, 386, 309, 39715, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'cancelled', 'round_trip', 0, NULL, 'BOOKING-fb990d7a-e3ba-49ad-8b33-6a3496514d93', '2025-12-05 20:01:09', '2025-12-05 20:07:00', NULL, '2025-12-05 20:01:09', '2025-12-06 03:06:09'),
+(151, 4, 387, 328, 39766, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'cancelled', 'round_trip', 1, 149, 'BOOKING-fb990d7a-e3ba-49ad-8b33-6a3496514d93', '2025-12-05 20:01:09', '2025-12-05 20:07:00', NULL, '2025-12-05 20:01:09', '2025-12-06 03:06:09'),
+(152, 4, 387, 329, 39767, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'cancelled', 'round_trip', 1, NULL, 'BOOKING-fb990d7a-e3ba-49ad-8b33-6a3496514d93', '2025-12-05 20:01:09', '2025-12-05 20:07:00', NULL, '2025-12-05 20:01:09', '2025-12-06 03:06:09'),
+(153, 4, 386, 308, 39714, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'cancelled', 'round_trip', 0, 155, 'BOOKING-ad4e0dc9-f7ef-48d8-b78f-7017cf6f94a0', '2025-12-05 20:50:49', '2025-12-05 20:56:00', NULL, '2025-12-05 20:50:49', NULL),
+(154, 4, 386, 309, 39715, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'cancelled', 'round_trip', 0, NULL, 'BOOKING-ad4e0dc9-f7ef-48d8-b78f-7017cf6f94a0', '2025-12-05 20:50:49', '2025-12-05 20:56:00', NULL, '2025-12-05 20:50:49', NULL),
+(155, 4, 387, 328, 39766, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'cancelled', 'round_trip', 1, 153, 'BOOKING-ad4e0dc9-f7ef-48d8-b78f-7017cf6f94a0', '2025-12-05 20:50:49', '2025-12-05 20:56:00', NULL, '2025-12-05 20:50:49', NULL),
+(156, 4, 387, 329, 39767, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'cancelled', 'round_trip', 1, NULL, 'BOOKING-ad4e0dc9-f7ef-48d8-b78f-7017cf6f94a0', '2025-12-05 20:50:49', '2025-12-05 20:56:00', NULL, '2025-12-05 20:50:49', NULL),
+(157, 4, 386, 308, 39714, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'cancelled', 'round_trip', 0, 159, 'BOOKING-66c5985d-d995-4ee1-ac59-f8e06a8dd2ac', '2025-12-05 20:59:38', '2025-12-05 21:05:00', NULL, '2025-12-05 20:59:38', NULL),
+(158, 4, 386, 309, 39715, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'cancelled', 'round_trip', 0, NULL, 'BOOKING-66c5985d-d995-4ee1-ac59-f8e06a8dd2ac', '2025-12-05 20:59:38', '2025-12-05 21:05:00', NULL, '2025-12-05 20:59:38', NULL),
+(159, 4, 387, 328, 39766, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'cancelled', 'round_trip', 1, 157, 'BOOKING-66c5985d-d995-4ee1-ac59-f8e06a8dd2ac', '2025-12-05 20:59:38', '2025-12-05 21:05:00', NULL, '2025-12-05 20:59:38', NULL),
+(160, 4, 387, 329, 39767, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'cancelled', 'round_trip', 1, NULL, 'BOOKING-66c5985d-d995-4ee1-ac59-f8e06a8dd2ac', '2025-12-05 20:59:38', '2025-12-05 21:05:00', NULL, '2025-12-05 20:59:38', NULL),
+(161, 4, 386, 308, 39714, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, 163, 'BOOKING-07e91cbf-d596-48a8-8d97-d876e634958e', '2025-12-05 21:11:42', NULL, NULL, '2025-12-05 21:11:42', '2025-12-06 04:16:42'),
+(162, 4, 386, 309, 39715, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, NULL, 'BOOKING-07e91cbf-d596-48a8-8d97-d876e634958e', '2025-12-05 21:11:42', NULL, NULL, '2025-12-05 21:11:42', '2025-12-06 04:16:42'),
+(163, 4, 387, 328, 39766, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, 161, 'BOOKING-07e91cbf-d596-48a8-8d97-d876e634958e', '2025-12-05 21:11:42', NULL, NULL, '2025-12-05 21:11:42', '2025-12-06 04:16:42');
+INSERT INTO `tickets` (`id`, `user_id`, `trip_id`, `seat_id`, `trip_seat_id`, `promotion_id`, `pickup_point`, `dropoff_point`, `customer_name`, `customer_phone`, `customer_email`, `notes`, `price`, `booking_method`, `status`, `trip_type`, `is_return_trip`, `linked_ticket_id`, `booking_group_id`, `booked_at`, `cancelled_at`, `paid_at`, `created_at`, `expires_at`) VALUES
+(164, 4, 387, 329, 39767, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-07e91cbf-d596-48a8-8d97-d876e634958e', '2025-12-05 21:11:42', NULL, NULL, '2025-12-05 21:11:42', '2025-12-06 04:16:42'),
+(165, 4, 386, 312, 39718, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, 167, 'BOOKING-eae2fa71-fb60-429e-bba1-492e11de7f97', '2025-12-05 21:17:44', NULL, NULL, '2025-12-05 21:17:44', '2025-12-06 04:22:44'),
+(166, 4, 386, 311, 39717, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, NULL, 'BOOKING-eae2fa71-fb60-429e-bba1-492e11de7f97', '2025-12-05 21:17:44', NULL, NULL, '2025-12-05 21:17:44', '2025-12-06 04:22:44'),
+(167, 4, 387, 308, 39746, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, 165, 'BOOKING-eae2fa71-fb60-429e-bba1-492e11de7f97', '2025-12-05 21:17:44', NULL, NULL, '2025-12-05 21:17:44', '2025-12-06 04:22:44'),
+(168, 4, 387, 309, 39747, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-eae2fa71-fb60-429e-bba1-492e11de7f97', '2025-12-05 21:17:44', NULL, NULL, '2025-12-05 21:17:44', '2025-12-06 04:22:44'),
+(169, 4, 386, 306, 39712, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, 171, 'BOOKING-b7644383-02dc-424b-8821-090c27738061', '2025-12-06 06:47:46', NULL, NULL, '2025-12-06 06:47:46', '2025-12-06 13:52:46'),
+(170, 4, 386, 305, 39711, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, NULL, 'BOOKING-b7644383-02dc-424b-8821-090c27738061', '2025-12-06 06:47:46', NULL, NULL, '2025-12-06 06:47:46', '2025-12-06 13:52:46'),
+(171, 4, 387, 325, 39763, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, 169, 'BOOKING-b7644383-02dc-424b-8821-090c27738061', '2025-12-06 06:47:46', NULL, NULL, '2025-12-06 06:47:46', '2025-12-06 13:52:46'),
+(172, 4, 387, 326, 39764, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-b7644383-02dc-424b-8821-090c27738061', '2025-12-06 06:47:46', NULL, NULL, '2025-12-06 06:47:46', '2025-12-06 13:52:46'),
+(173, 4, 386, 315, 39721, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, 175, 'BOOKING-50c5a4f9-0e88-42ed-9444-6b554f7b7a25', '2025-12-06 06:51:28', NULL, NULL, '2025-12-06 06:51:28', '2025-12-06 13:56:28'),
+(174, 4, 386, 314, 39720, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, NULL, 'BOOKING-50c5a4f9-0e88-42ed-9444-6b554f7b7a25', '2025-12-06 06:51:28', NULL, NULL, '2025-12-06 06:51:28', '2025-12-06 13:56:28'),
+(175, 4, 387, 306, 39744, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, 173, 'BOOKING-50c5a4f9-0e88-42ed-9444-6b554f7b7a25', '2025-12-06 06:51:28', NULL, NULL, '2025-12-06 06:51:28', '2025-12-06 13:56:28'),
+(176, 4, 387, 305, 39743, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-50c5a4f9-0e88-42ed-9444-6b554f7b7a25', '2025-12-06 06:51:28', NULL, NULL, '2025-12-06 06:51:28', '2025-12-06 13:56:28'),
+(177, 4, 386, 318, 39724, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, 179, 'BOOKING-dc1fa7dd-e323-4f1a-b74f-9243452fe8d3', '2025-12-06 07:22:31', NULL, NULL, '2025-12-06 07:22:31', '2025-12-06 14:27:31'),
+(178, 4, 386, 317, 39723, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, NULL, 'BOOKING-dc1fa7dd-e323-4f1a-b74f-9243452fe8d3', '2025-12-06 07:22:32', NULL, NULL, '2025-12-06 07:22:32', '2025-12-06 14:27:32'),
+(179, 4, 387, 331, 39769, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, 177, 'BOOKING-dc1fa7dd-e323-4f1a-b74f-9243452fe8d3', '2025-12-06 07:22:32', NULL, NULL, '2025-12-06 07:22:32', '2025-12-06 14:27:32'),
+(180, 4, 387, 332, 39770, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-dc1fa7dd-e323-4f1a-b74f-9243452fe8d3', '2025-12-06 07:22:32', NULL, NULL, '2025-12-06 07:22:32', '2025-12-06 14:27:32'),
+(181, 4, 386, 321, 39727, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, 183, 'BOOKING-4647918a-bbe5-446a-9c2f-76a24dcceee4', '2025-12-06 07:40:51', NULL, NULL, '2025-12-06 07:40:51', '2025-12-06 14:45:51'),
+(182, 4, 386, 320, 39726, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, NULL, 'BOOKING-4647918a-bbe5-446a-9c2f-76a24dcceee4', '2025-12-06 07:40:51', NULL, NULL, '2025-12-06 07:40:51', '2025-12-06 14:45:51'),
+(183, 4, 387, 307, 39745, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, 181, 'BOOKING-4647918a-bbe5-446a-9c2f-76a24dcceee4', '2025-12-06 07:40:51', NULL, NULL, '2025-12-06 07:40:51', '2025-12-06 14:45:51'),
+(184, 4, 387, 310, 39748, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-4647918a-bbe5-446a-9c2f-76a24dcceee4', '2025-12-06 07:40:51', NULL, NULL, '2025-12-06 07:40:51', '2025-12-06 14:45:51'),
+(185, 4, 388, 201, 39775, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, 187, 'BOOKING-7dce23e4-2486-4687-9b19-c81781e2bb76', '2025-12-06 07:53:25', NULL, NULL, '2025-12-06 07:53:25', '2025-12-06 14:58:25'),
+(186, 4, 388, 202, 39776, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, NULL, 'BOOKING-7dce23e4-2486-4687-9b19-c81781e2bb76', '2025-12-06 07:53:25', NULL, NULL, '2025-12-06 07:53:25', '2025-12-06 14:58:25'),
+(187, 4, 390, 305, 39831, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, 185, 'BOOKING-7dce23e4-2486-4687-9b19-c81781e2bb76', '2025-12-06 07:53:25', NULL, NULL, '2025-12-06 07:53:25', '2025-12-06 14:58:25'),
+(188, 4, 390, 306, 39832, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-7dce23e4-2486-4687-9b19-c81781e2bb76', '2025-12-06 07:53:25', NULL, NULL, '2025-12-06 07:53:25', '2025-12-06 14:58:25'),
+(189, 4, 388, 205, 39779, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, 191, 'BOOKING-60dfeba4-c792-44fb-9dee-95c978d45dfc', '2025-12-06 08:03:13', NULL, NULL, '2025-12-06 08:03:13', '2025-12-06 15:08:13'),
+(190, 4, 388, 206, 39780, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, NULL, 'BOOKING-60dfeba4-c792-44fb-9dee-95c978d45dfc', '2025-12-06 08:03:13', NULL, NULL, '2025-12-06 08:03:13', '2025-12-06 15:08:13'),
+(191, 4, 390, 308, 39834, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, 189, 'BOOKING-60dfeba4-c792-44fb-9dee-95c978d45dfc', '2025-12-06 08:03:13', NULL, NULL, '2025-12-06 08:03:13', '2025-12-06 15:08:13'),
+(192, 4, 390, 309, 39835, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-60dfeba4-c792-44fb-9dee-95c978d45dfc', '2025-12-06 08:03:13', NULL, NULL, '2025-12-06 08:03:13', '2025-12-06 15:08:13'),
+(193, 4, 388, 210, 39784, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'cancelled', 'round_trip', 0, 195, 'BOOKING-45c3ce19-9c7b-43d8-94e0-ce1a2685ab29', '2025-12-06 08:21:04', '2025-12-06 08:26:47', NULL, '2025-12-06 08:21:04', '2025-12-06 15:26:04'),
+(194, 4, 388, 209, 39783, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'cancelled', 'round_trip', 0, NULL, 'BOOKING-45c3ce19-9c7b-43d8-94e0-ce1a2685ab29', '2025-12-06 08:21:04', '2025-12-06 08:26:47', NULL, '2025-12-06 08:21:04', '2025-12-06 15:26:04'),
+(195, 4, 390, 312, 39838, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'cancelled', 'round_trip', 1, 193, 'BOOKING-45c3ce19-9c7b-43d8-94e0-ce1a2685ab29', '2025-12-06 08:21:04', '2025-12-06 08:26:47', NULL, '2025-12-06 08:21:04', '2025-12-06 15:26:04'),
+(196, 4, 390, 311, 39837, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'cancelled', 'round_trip', 1, NULL, 'BOOKING-45c3ce19-9c7b-43d8-94e0-ce1a2685ab29', '2025-12-06 08:21:04', '2025-12-06 08:26:47', NULL, '2025-12-06 08:21:04', '2025-12-06 15:26:04'),
+(197, 4, 388, 210, 39784, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, 199, 'BOOKING-6f644131-9887-48b4-996d-c10e966b03ea', '2025-12-06 08:31:38', '2025-12-06 08:37:00', NULL, '2025-12-06 08:31:38', NULL),
+(198, 4, 388, 209, 39783, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, NULL, 'BOOKING-6f644131-9887-48b4-996d-c10e966b03ea', '2025-12-06 08:31:38', '2025-12-06 08:37:00', NULL, '2025-12-06 08:31:38', NULL),
+(199, 4, 390, 312, 39838, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, 197, 'BOOKING-6f644131-9887-48b4-996d-c10e966b03ea', '2025-12-06 08:31:38', '2025-12-06 08:37:00', NULL, '2025-12-06 08:31:38', NULL),
+(200, 4, 390, 311, 39837, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-6f644131-9887-48b4-996d-c10e966b03ea', '2025-12-06 08:31:38', '2025-12-06 08:37:00', NULL, '2025-12-06 08:31:38', NULL),
+(201, 4, 386, 323, 39729, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, 202, 'BOOKING-9ba5db46-a90f-4d9f-9233-571419f2ac8f', '2025-12-06 08:53:24', NULL, NULL, '2025-12-06 08:53:24', '2025-12-06 15:58:24'),
+(202, 4, 387, 312, 39750, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, 201, 'BOOKING-9ba5db46-a90f-4d9f-9233-571419f2ac8f', '2025-12-06 08:53:24', NULL, NULL, '2025-12-06 08:53:24', '2025-12-06 15:58:24'),
+(203, 4, 387, 313, 39751, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-9ba5db46-a90f-4d9f-9233-571419f2ac8f', '2025-12-06 08:53:24', NULL, NULL, '2025-12-06 08:53:24', '2025-12-06 15:58:24'),
+(204, 4, 386, 324, 39730, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, 206, 'BOOKING-204a4856-05e7-45fa-bcac-0ecdc82999f4', '2025-12-06 09:07:22', NULL, NULL, '2025-12-06 09:07:22', '2025-12-06 16:12:22'),
+(205, 4, 386, 322, 39728, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, NULL, 'BOOKING-204a4856-05e7-45fa-bcac-0ecdc82999f4', '2025-12-06 09:07:22', NULL, NULL, '2025-12-06 09:07:22', '2025-12-06 16:12:22'),
+(206, 4, 387, 311, 39749, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, 204, 'BOOKING-204a4856-05e7-45fa-bcac-0ecdc82999f4', '2025-12-06 09:07:22', NULL, NULL, '2025-12-06 09:07:22', '2025-12-06 16:12:22'),
+(207, 4, 387, 314, 39752, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-204a4856-05e7-45fa-bcac-0ecdc82999f4', '2025-12-06 09:07:22', NULL, NULL, '2025-12-06 09:07:22', '2025-12-06 16:12:22'),
+(208, 4, 386, 319, 39725, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, 209, 'BOOKING-991c82cd-4a1b-492e-86d1-f78d4deab6ba', '2025-12-06 10:16:44', NULL, NULL, '2025-12-06 10:16:44', '2025-12-06 17:21:44'),
+(209, 4, 387, 335, 39773, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, 208, 'BOOKING-991c82cd-4a1b-492e-86d1-f78d4deab6ba', '2025-12-06 10:16:44', NULL, NULL, '2025-12-06 10:16:44', '2025-12-06 17:21:44'),
+(210, 4, 387, 334, 39772, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-991c82cd-4a1b-492e-86d1-f78d4deab6ba', '2025-12-06 10:16:44', NULL, NULL, '2025-12-06 10:16:44', '2025-12-06 17:21:44'),
+(211, 4, 386, 334, 39740, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, 213, 'BOOKING-a0f6998e-ee6a-4b88-8d9a-5bede18607d1', '2025-12-06 12:42:51', NULL, NULL, '2025-12-06 12:42:51', '2025-12-06 19:47:51'),
+(212, 4, 386, 335, 39741, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 0, NULL, 'BOOKING-a0f6998e-ee6a-4b88-8d9a-5bede18607d1', '2025-12-06 12:42:51', NULL, NULL, '2025-12-06 12:42:51', '2025-12-06 19:47:51'),
+(213, 4, 387, 336, 39774, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, 211, 'BOOKING-a0f6998e-ee6a-4b88-8d9a-5bede18607d1', '2025-12-06 12:42:51', NULL, NULL, '2025-12-06 12:42:51', '2025-12-06 19:47:51'),
+(214, 4, 387, 333, 39771, NULL, 'Bến xe Cần Thơ', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-a0f6998e-ee6a-4b88-8d9a-5bede18607d1', '2025-12-06 12:42:51', NULL, NULL, '2025-12-06 12:42:51', '2025-12-06 19:47:51'),
+(215, 4, 386, 336, 39742, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-d37aa05f-215f-4fc4-8730-607aa02a2ea7', '2025-12-06 12:48:30', NULL, NULL, '2025-12-06 12:48:30', '2025-12-06 19:53:30'),
+(216, 4, 388, 209, 39783, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-b04a7a1f-74be-45f7-b385-ee576e618748', '2025-12-06 12:50:54', NULL, NULL, '2025-12-06 12:50:54', '2025-12-06 19:55:54'),
+(217, 4, 388, 210, 39784, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-13ef6091-1986-4f84-8800-fb2f0d4301a9', '2025-12-06 13:02:25', NULL, NULL, '2025-12-06 13:02:25', '2025-12-06 20:07:25'),
+(218, 4, 388, 211, 39785, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, 220, 'BOOKING-f4693236-590f-49e9-abd6-1bac77940f55', '2025-12-06 13:03:07', NULL, NULL, '2025-12-06 13:03:07', '2025-12-06 20:08:07'),
+(219, 4, 388, 212, 39786, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, NULL, 'BOOKING-f4693236-590f-49e9-abd6-1bac77940f55', '2025-12-06 13:03:07', NULL, NULL, '2025-12-06 13:03:07', '2025-12-06 20:08:07'),
+(220, 4, 390, 307, 39833, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, 218, 'BOOKING-f4693236-590f-49e9-abd6-1bac77940f55', '2025-12-06 13:03:07', NULL, NULL, '2025-12-06 13:03:07', '2025-12-06 20:08:07'),
+(221, 4, 390, 310, 39836, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-f4693236-590f-49e9-abd6-1bac77940f55', '2025-12-06 13:03:07', NULL, NULL, '2025-12-06 13:03:07', '2025-12-06 20:08:07'),
+(222, 4, 386, 316, 39722, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-0772f5de-6893-4224-a49c-ade95a65e8ce', '2025-12-06 13:15:25', NULL, NULL, '2025-12-06 13:15:25', '2025-12-06 20:20:25'),
+(223, 4, 388, 208, 39782, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, 224, 'BOOKING-91b7e08b-3ec9-4ae4-ba53-8d5555682d32', '2025-12-06 13:19:09', NULL, NULL, '2025-12-06 13:19:09', '2025-12-06 20:24:09'),
+(224, 4, 390, 313, 39839, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, 223, 'BOOKING-91b7e08b-3ec9-4ae4-ba53-8d5555682d32', '2025-12-06 13:19:09', NULL, NULL, '2025-12-06 13:19:09', '2025-12-06 20:24:09'),
+(225, 4, 390, 312, 39838, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-91b7e08b-3ec9-4ae4-ba53-8d5555682d32', '2025-12-06 13:19:09', NULL, NULL, '2025-12-06 13:19:09', '2025-12-06 20:24:09'),
+(226, 4, 388, 207, 39781, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-f4857cc4-f9d7-4c9e-b9b4-85bea2b3751a', '2025-12-06 13:26:06', NULL, NULL, '2025-12-06 13:26:06', '2025-12-06 20:31:06'),
+(227, 4, 386, 333, 39739, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-d082e084-57e9-42be-8fad-36dd338c0826', '2025-12-06 13:31:01', NULL, NULL, '2025-12-06 13:31:01', '2025-12-06 20:36:01'),
+(228, 4, 386, 313, 39719, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-93ccd5ba-5715-41da-849d-dc0ed9925b93', '2025-12-06 13:34:53', NULL, NULL, '2025-12-06 13:34:53', '2025-12-06 20:39:53'),
+(229, 4, 388, 204, 39778, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-54e7d015-97cd-4d5e-95a2-5c1686d8f9a7', '2025-12-06 13:54:52', NULL, NULL, '2025-12-06 13:54:52', '2025-12-06 20:59:52'),
+(230, 4, 388, 217, 39791, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, 231, 'BOOKING-e3f4297e-21f3-4c13-8668-879a4c719788', '2025-12-06 14:02:49', NULL, NULL, '2025-12-06 14:02:49', '2025-12-06 21:07:49'),
+(231, 4, 390, 328, 39854, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, 230, 'BOOKING-e3f4297e-21f3-4c13-8668-879a4c719788', '2025-12-06 14:02:49', NULL, NULL, '2025-12-06 14:02:49', '2025-12-06 21:07:49'),
+(232, 4, 390, 335, 39861, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-e3f4297e-21f3-4c13-8668-879a4c719788', '2025-12-06 14:02:49', NULL, NULL, '2025-12-06 14:02:49', '2025-12-06 21:07:49'),
+(233, 4, 386, 310, 39716, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-53ffb317-ab84-414d-9853-48dfd0c872b8', '2025-12-06 14:07:12', NULL, NULL, '2025-12-06 14:07:12', '2025-12-06 21:12:12'),
+(234, 4, 386, 307, 39713, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-38c37e82-3607-45e0-ae64-a7845cbf98ee', '2025-12-06 14:11:02', NULL, NULL, '2025-12-06 14:11:02', '2025-12-06 21:16:02'),
+(235, 4, 386, 332, 39738, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-6c39e4bc-55b3-4310-b9fd-11e9e84e0e81', '2025-12-06 14:15:01', NULL, NULL, '2025-12-06 14:15:01', '2025-12-06 21:20:01'),
+(236, 4, 388, 214, 39788, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, 237, 'BOOKING-7553a265-e534-4262-9712-f4af79d57287', '2025-12-06 14:16:34', NULL, NULL, '2025-12-06 14:16:34', '2025-12-06 21:21:34'),
+(237, 4, 390, 315, 39841, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, 236, 'BOOKING-7553a265-e534-4262-9712-f4af79d57287', '2025-12-06 14:16:34', NULL, NULL, '2025-12-06 14:16:34', '2025-12-06 21:21:34'),
+(238, 4, 390, 314, 39840, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-7553a265-e534-4262-9712-f4af79d57287', '2025-12-06 14:16:34', NULL, NULL, '2025-12-06 14:16:34', '2025-12-06 21:21:34'),
+(239, 4, 388, 203, 39777, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, 240, 'BOOKING-c2e79d8f-db4d-41d1-9621-1fb2cfee5cea', '2025-12-06 14:21:10', NULL, NULL, '2025-12-06 14:21:10', '2025-12-06 21:26:10'),
+(240, 4, 390, 311, 39837, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, 239, 'BOOKING-c2e79d8f-db4d-41d1-9621-1fb2cfee5cea', '2025-12-06 14:21:10', NULL, NULL, '2025-12-06 14:21:10', '2025-12-06 21:26:10'),
+(241, 4, 390, 316, 39842, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-c2e79d8f-db4d-41d1-9621-1fb2cfee5cea', '2025-12-06 14:21:10', NULL, NULL, '2025-12-06 14:21:10', '2025-12-06 21:26:10'),
+(242, 4, 386, 331, 39737, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-01c9210b-0b6b-4ad6-90cc-f4f482d423ba', '2025-12-06 14:26:08', NULL, NULL, '2025-12-06 14:26:08', '2025-12-06 21:31:08'),
+(243, 4, 388, 213, 39787, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-c6cd6d38-bf08-43ab-b6c9-22fe4b7d5320', '2025-12-06 14:29:53', NULL, NULL, '2025-12-06 14:29:53', '2025-12-06 21:34:53'),
+(244, 4, 386, 328, 39734, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-9cfe999e-7211-4128-b1bc-f8b47c70ea70', '2025-12-06 14:35:55', NULL, NULL, '2025-12-06 14:35:55', '2025-12-06 21:40:55'),
+(245, 4, 388, 221, 39795, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-388427d0-7857-40f4-bed2-7c2dae933765', '2025-12-06 14:40:38', NULL, NULL, '2025-12-06 14:40:38', '2025-12-06 21:45:38'),
+(246, 4, 388, 222, 39796, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-56eec0b0-762a-4ad2-b555-73b00d784e06', '2025-12-06 14:43:39', NULL, NULL, '2025-12-06 14:43:39', '2025-12-06 21:48:39'),
+(247, 4, 386, 329, 39735, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'confirmed', 'one_way', 0, NULL, 'BOOKING-85ec5d2b-5523-46c7-8e7f-1505ccf873d8', '2025-12-06 14:49:08', NULL, NULL, '2025-12-06 14:49:08', '2025-12-06 21:54:08'),
+(248, 4, 388, 218, 39792, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-af8fe7b7-84fb-470b-8161-8e6ccaa01c64', '2025-12-06 14:57:24', '2025-12-06 15:02:28', NULL, '2025-12-06 14:57:24', '2025-12-06 22:02:24'),
+(249, 4, 388, 219, 39793, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, 250, 'BOOKING-960e3fac-b826-4253-bf66-85cb1ea6b5c1', '2025-12-06 14:57:52', NULL, NULL, '2025-12-06 14:57:52', '2025-12-06 22:02:52'),
+(250, 4, 390, 318, 39844, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, 249, 'BOOKING-960e3fac-b826-4253-bf66-85cb1ea6b5c1', '2025-12-06 14:57:52', NULL, NULL, '2025-12-06 14:57:52', '2025-12-06 22:02:52'),
+(251, 4, 390, 317, 39843, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-960e3fac-b826-4253-bf66-85cb1ea6b5c1', '2025-12-06 14:57:52', NULL, NULL, '2025-12-06 14:57:52', '2025-12-06 22:02:52'),
+(252, 4, 389, 273, 39799, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, 255, 'BOOKING-98e22bdd-4200-4223-af9c-8921d94d1e63', '2025-12-06 15:03:16', NULL, NULL, '2025-12-06 15:03:16', '2025-12-06 22:08:16'),
+(253, 4, 389, 274, 39800, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, NULL, 'BOOKING-98e22bdd-4200-4223-af9c-8921d94d1e63', '2025-12-06 15:03:16', NULL, NULL, '2025-12-06 15:03:16', '2025-12-06 22:08:16'),
+(254, 4, 389, 275, 39801, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, NULL, 'BOOKING-98e22bdd-4200-4223-af9c-8921d94d1e63', '2025-12-06 15:03:16', NULL, NULL, '2025-12-06 15:03:16', '2025-12-06 22:08:16'),
+(255, 4, 390, 321, 39847, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, 252, 'BOOKING-98e22bdd-4200-4223-af9c-8921d94d1e63', '2025-12-06 15:03:16', NULL, NULL, '2025-12-06 15:03:16', '2025-12-06 22:08:16'),
+(256, 4, 389, 277, 39803, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, 259, 'BOOKING-94db8675-1664-454a-84c4-5cc5a6bb17e9', '2025-12-06 15:10:47', NULL, NULL, '2025-12-06 15:10:47', '2025-12-06 22:15:47'),
+(257, 4, 389, 276, 39802, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, NULL, 'BOOKING-94db8675-1664-454a-84c4-5cc5a6bb17e9', '2025-12-06 15:10:47', NULL, NULL, '2025-12-06 15:10:47', '2025-12-06 22:15:47'),
+(258, 4, 389, 278, 39804, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 0, NULL, 'BOOKING-94db8675-1664-454a-84c4-5cc5a6bb17e9', '2025-12-06 15:10:47', NULL, NULL, '2025-12-06 15:10:47', '2025-12-06 22:15:47'),
+(259, 4, 390, 320, 39846, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, 256, 'BOOKING-94db8675-1664-454a-84c4-5cc5a6bb17e9', '2025-12-06 15:10:47', NULL, NULL, '2025-12-06 15:10:47', '2025-12-06 22:15:47'),
+(260, 4, 390, 323, 39849, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-94db8675-1664-454a-84c4-5cc5a6bb17e9', '2025-12-06 15:10:47', NULL, NULL, '2025-12-06 15:10:47', '2025-12-06 22:15:47'),
+(261, 4, 390, 324, 39850, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'confirmed', 'round_trip', 1, NULL, 'BOOKING-94db8675-1664-454a-84c4-5cc5a6bb17e9', '2025-12-06 15:10:47', NULL, NULL, '2025-12-06 15:10:47', '2025-12-06 22:15:47'),
+(262, 4, 386, 330, 39736, NULL, 'Bến xe Miền Đông', 'Bến xe Cần Thơ', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 150000.00, 'online', 'cancelled', 'one_way', 0, NULL, 'BOOKING-a6b2aaec-8a90-4a66-aeff-7290ba76dd56', '2025-12-06 16:17:55', '2025-12-06 16:23:00', NULL, '2025-12-06 16:17:55', NULL),
+(263, 4, 389, 279, 39805, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'cancelled', 'round_trip', 0, 266, 'BOOKING-1636727b-8772-4e35-ad25-1ff36a255dc3', '2025-12-06 21:41:24', '2025-12-06 21:46:28', NULL, '2025-12-06 21:41:24', '2025-12-07 04:46:24'),
+(264, 4, 389, 280, 39806, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'cancelled', 'round_trip', 0, NULL, 'BOOKING-1636727b-8772-4e35-ad25-1ff36a255dc3', '2025-12-06 21:41:24', '2025-12-06 21:46:28', NULL, '2025-12-06 21:41:24', '2025-12-07 04:46:24'),
+(265, 4, 389, 281, 39807, NULL, 'Bến xe Miền Đông', 'Bến xe Vũng Tàu', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'cancelled', 'round_trip', 0, NULL, 'BOOKING-1636727b-8772-4e35-ad25-1ff36a255dc3', '2025-12-06 21:41:24', '2025-12-06 21:46:28', NULL, '2025-12-06 21:41:24', '2025-12-07 04:46:24'),
+(266, 4, 390, 331, 39857, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'cancelled', 'round_trip', 1, 263, 'BOOKING-1636727b-8772-4e35-ad25-1ff36a255dc3', '2025-12-06 21:41:24', '2025-12-06 21:46:28', NULL, '2025-12-06 21:41:24', '2025-12-07 04:46:24'),
+(267, 4, 390, 332, 39858, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'cancelled', 'round_trip', 1, NULL, 'BOOKING-1636727b-8772-4e35-ad25-1ff36a255dc3', '2025-12-06 21:41:24', '2025-12-06 21:46:28', NULL, '2025-12-06 21:41:24', '2025-12-07 04:46:24'),
+(268, 4, 390, 334, 39860, NULL, 'Bến xe Vũng Tàu', 'Bến xe Miền Đông', 'Lê Nguyễn Nhất Tâm', '0868253505', 'lnntam04@gmail.com', '', 120000.00, 'online', 'cancelled', 'round_trip', 1, NULL, 'BOOKING-1636727b-8772-4e35-ad25-1ff36a255dc3', '2025-12-06 21:41:24', '2025-12-06 21:46:28', NULL, '2025-12-06 21:41:24', '2025-12-07 04:46:24');
 
 -- --------------------------------------------------------
 
@@ -1093,11 +1463,11 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (135, 1, 4, 4, '2025-11-30 11:00:00', '2025-11-30 13:30:00', 'completed', '2025-11-24 19:30:04'),
 (136, 1, 1, 5, '2025-11-30 14:00:00', '2025-11-30 16:30:00', 'completed', '2025-11-24 19:30:04'),
 (137, 1, 2, 6, '2025-11-30 16:00:00', '2025-11-30 18:30:00', 'completed', '2025-11-24 19:30:04'),
-(138, 1, 1, 1, '2025-12-01 06:00:00', '2025-12-01 08:30:00', 'scheduled', '2025-11-24 19:30:04'),
-(139, 1, 2, 2, '2025-12-01 08:00:00', '2025-12-01 10:30:00', 'scheduled', '2025-11-24 19:30:04'),
-(140, 1, 3, 3, '2025-12-01 10:00:00', '2025-12-01 12:30:00', 'scheduled', '2025-11-24 19:30:04'),
-(141, 1, 4, 4, '2025-12-01 13:00:00', '2025-12-01 15:30:00', 'scheduled', '2025-11-24 19:30:04'),
-(142, 1, 1, 5, '2025-12-01 15:00:00', '2025-12-01 17:30:00', 'scheduled', '2025-11-24 19:30:04'),
+(138, 1, 1, 1, '2025-12-01 06:00:00', '2025-12-01 08:30:00', 'completed', '2025-11-24 19:30:04'),
+(139, 1, 2, 2, '2025-12-01 08:00:00', '2025-12-01 10:30:00', 'completed', '2025-11-24 19:30:04'),
+(140, 1, 3, 3, '2025-12-01 10:00:00', '2025-12-01 12:30:00', 'completed', '2025-11-24 19:30:04'),
+(141, 1, 4, 4, '2025-12-01 13:00:00', '2025-12-01 15:30:00', 'completed', '2025-11-24 19:30:04'),
+(142, 1, 1, 5, '2025-12-01 15:00:00', '2025-12-01 17:30:00', 'completed', '2025-11-24 19:30:04'),
 (143, 2, 1, 1, '2025-11-25 07:00:00', '2025-11-25 09:30:00', 'completed', '2025-11-24 19:30:04'),
 (144, 2, 2, 2, '2025-11-25 09:00:00', '2025-11-25 11:30:00', 'completed', '2025-11-24 19:30:04'),
 (145, 2, 3, 3, '2025-11-25 11:00:00', '2025-11-25 13:30:00', 'completed', '2025-11-24 19:30:04'),
@@ -1125,10 +1495,10 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (167, 2, 2, 2, '2025-11-30 10:00:00', '2025-11-30 12:30:00', 'completed', '2025-11-24 19:30:04'),
 (168, 2, 3, 3, '2025-11-30 13:00:00', '2025-11-30 15:30:00', 'completed', '2025-11-24 19:30:04'),
 (169, 2, 4, 4, '2025-11-30 15:30:00', '2025-11-30 18:00:00', 'completed', '2025-11-24 19:30:04'),
-(170, 2, 1, 1, '2025-12-01 07:00:00', '2025-12-01 09:30:00', 'scheduled', '2025-11-24 19:30:04'),
-(171, 2, 2, 2, '2025-12-01 09:30:00', '2025-12-01 12:00:00', 'scheduled', '2025-11-24 19:30:04'),
-(172, 2, 3, 3, '2025-12-01 12:00:00', '2025-12-01 14:30:00', 'scheduled', '2025-11-24 19:30:04'),
-(173, 2, 4, 4, '2025-12-01 15:00:00', '2025-12-01 17:30:00', 'scheduled', '2025-11-24 19:30:04'),
+(170, 2, 1, 1, '2025-12-01 07:00:00', '2025-12-01 09:30:00', 'completed', '2025-11-24 19:30:04'),
+(171, 2, 2, 2, '2025-12-01 09:30:00', '2025-12-01 12:00:00', 'completed', '2025-11-24 19:30:04'),
+(172, 2, 3, 3, '2025-12-01 12:00:00', '2025-12-01 14:30:00', 'completed', '2025-11-24 19:30:04'),
+(173, 2, 4, 4, '2025-12-01 15:00:00', '2025-12-01 17:30:00', 'completed', '2025-11-24 19:30:04'),
 (174, 3, 1, 1, '2025-11-25 05:00:00', '2025-11-25 11:30:00', 'completed', '2025-11-24 19:30:04'),
 (175, 3, 5, 2, '2025-11-25 08:00:00', '2025-11-25 14:30:00', 'completed', '2025-11-24 19:30:04'),
 (176, 3, 2, 3, '2025-11-25 13:00:00', '2025-11-25 19:30:00', 'completed', '2025-11-24 19:30:04'),
@@ -1151,9 +1521,9 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (193, 3, 1, 1, '2025-11-30 06:00:00', '2025-11-30 12:30:00', 'completed', '2025-11-24 19:30:04'),
 (194, 3, 5, 2, '2025-11-30 09:00:00', '2025-11-30 15:30:00', 'completed', '2025-11-24 19:30:04'),
 (195, 3, 2, 3, '2025-11-30 14:00:00', '2025-11-30 20:30:00', 'completed', '2025-11-24 19:30:04'),
-(196, 3, 1, 1, '2025-12-01 05:00:00', '2025-12-01 11:30:00', 'scheduled', '2025-11-24 19:30:04'),
-(197, 3, 5, 2, '2025-12-01 08:00:00', '2025-12-01 14:30:00', 'scheduled', '2025-11-24 19:30:04'),
-(198, 3, 2, 3, '2025-12-01 13:00:00', '2025-12-01 19:30:00', 'scheduled', '2025-11-24 19:30:04'),
+(196, 3, 1, 1, '2025-12-01 05:00:00', '2025-12-01 11:30:00', 'completed', '2025-11-24 19:30:04'),
+(197, 3, 5, 2, '2025-12-01 08:00:00', '2025-12-01 14:30:00', 'completed', '2025-11-24 19:30:04'),
+(198, 3, 2, 3, '2025-12-01 13:00:00', '2025-12-01 19:30:00', 'completed', '2025-11-24 19:30:04'),
 (199, 4, 1, 1, '2025-11-25 06:00:00', '2025-11-25 12:30:00', 'completed', '2025-11-24 19:30:04'),
 (200, 4, 5, 2, '2025-11-25 10:00:00', '2025-11-25 16:30:00', 'completed', '2025-11-24 19:30:04'),
 (201, 4, 2, 3, '2025-11-25 14:00:00', '2025-11-25 20:30:00', 'completed', '2025-11-24 19:30:04'),
@@ -1171,10 +1541,10 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (213, 4, 2, 3, '2025-11-29 14:00:00', '2025-11-29 20:30:00', 'completed', '2025-11-24 19:30:04'),
 (214, 4, 1, 1, '2025-11-30 07:00:00', '2025-11-30 13:30:00', 'completed', '2025-11-24 19:30:04'),
 (215, 4, 5, 2, '2025-11-30 11:00:00', '2025-11-30 17:30:00', 'completed', '2025-11-24 19:30:04'),
-(216, 4, 2, 3, '2025-11-30 15:00:00', '2025-11-30 21:30:00', 'ongoing', '2025-11-24 19:30:04'),
-(217, 4, 1, 1, '2025-12-01 06:00:00', '2025-12-01 12:30:00', 'scheduled', '2025-11-24 19:30:04'),
-(218, 4, 5, 2, '2025-12-01 10:00:00', '2025-12-01 16:30:00', 'scheduled', '2025-11-24 19:30:04'),
-(219, 4, 2, 3, '2025-12-01 14:00:00', '2025-12-01 20:30:00', 'scheduled', '2025-11-24 19:30:04'),
+(216, 4, 2, 3, '2025-11-30 15:00:00', '2025-11-30 21:30:00', 'completed', '2025-11-24 19:30:04'),
+(217, 4, 1, 1, '2025-12-01 06:00:00', '2025-12-01 12:30:00', 'completed', '2025-11-24 19:30:04'),
+(218, 4, 5, 2, '2025-12-01 10:00:00', '2025-12-01 16:30:00', 'completed', '2025-11-24 19:30:04'),
+(219, 4, 2, 3, '2025-12-01 14:00:00', '2025-12-01 20:30:00', 'completed', '2025-11-24 19:30:04'),
 (220, 7, 1, 1, '2025-11-25 05:30:00', '2025-11-25 09:00:00', 'completed', '2025-11-24 19:30:04'),
 (221, 7, 1, 2, '2025-11-25 07:30:00', '2025-11-25 11:00:00', 'completed', '2025-11-24 19:30:04'),
 (222, 7, 2, 3, '2025-11-25 09:30:00', '2025-11-25 13:00:00', 'completed', '2025-11-24 19:30:04'),
@@ -1205,10 +1575,10 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (247, 7, 2, 2, '2025-11-30 08:30:00', '2025-11-30 12:00:00', 'completed', '2025-11-24 19:30:04'),
 (248, 7, 1, 3, '2025-11-30 11:00:00', '2025-11-30 14:30:00', 'completed', '2025-11-24 19:30:04'),
 (249, 7, 2, 4, '2025-11-30 13:30:00', '2025-11-30 17:00:00', 'completed', '2025-11-24 19:30:04'),
-(250, 7, 1, 1, '2025-12-01 05:30:00', '2025-12-01 09:00:00', 'scheduled', '2025-11-24 19:30:04'),
-(251, 7, 2, 2, '2025-12-01 08:00:00', '2025-12-01 11:30:00', 'scheduled', '2025-11-24 19:30:04'),
-(252, 7, 1, 3, '2025-12-01 10:30:00', '2025-12-01 14:00:00', 'scheduled', '2025-11-24 19:30:04'),
-(253, 7, 2, 4, '2025-12-01 13:00:00', '2025-12-01 16:30:00', 'scheduled', '2025-11-24 19:30:04'),
+(250, 7, 1, 1, '2025-12-01 05:30:00', '2025-12-01 09:00:00', 'completed', '2025-11-24 19:30:04'),
+(251, 7, 2, 2, '2025-12-01 08:00:00', '2025-12-01 11:30:00', 'completed', '2025-11-24 19:30:04'),
+(252, 7, 1, 3, '2025-12-01 10:30:00', '2025-12-01 14:00:00', 'completed', '2025-11-24 19:30:04'),
+(253, 7, 2, 4, '2025-12-01 13:00:00', '2025-12-01 16:30:00', 'completed', '2025-11-24 19:30:04'),
 (254, 8, 1, 1, '2025-11-25 06:30:00', '2025-11-25 10:00:00', 'completed', '2025-11-24 19:30:04'),
 (255, 8, 2, 2, '2025-11-25 09:00:00', '2025-11-25 12:30:00', 'completed', '2025-11-24 19:30:04'),
 (256, 8, 1, 3, '2025-11-25 11:30:00', '2025-11-25 15:00:00', 'completed', '2025-11-24 19:30:04'),
@@ -1232,9 +1602,9 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (274, 8, 1, 1, '2025-11-30 07:00:00', '2025-11-30 10:30:00', 'completed', '2025-11-24 19:30:04'),
 (275, 8, 2, 2, '2025-11-30 10:00:00', '2025-11-30 13:30:00', 'completed', '2025-11-24 19:30:04'),
 (276, 8, 1, 3, '2025-11-30 13:00:00', '2025-11-30 16:30:00', 'completed', '2025-11-24 19:30:04'),
-(277, 8, 1, 1, '2025-12-01 06:30:00', '2025-12-01 10:00:00', 'scheduled', '2025-11-24 19:30:04'),
-(278, 8, 2, 2, '2025-12-01 09:30:00', '2025-12-01 13:00:00', 'scheduled', '2025-11-24 19:30:04'),
-(279, 8, 1, 3, '2025-12-01 12:30:00', '2025-12-01 16:00:00', 'scheduled', '2025-11-24 19:30:04'),
+(277, 8, 1, 1, '2025-12-01 06:30:00', '2025-12-01 10:00:00', 'completed', '2025-11-24 19:30:04'),
+(278, 8, 2, 2, '2025-12-01 09:30:00', '2025-12-01 13:00:00', 'completed', '2025-11-24 19:30:04'),
+(279, 8, 1, 3, '2025-12-01 12:30:00', '2025-12-01 16:00:00', 'completed', '2025-11-24 19:30:04'),
 (280, 9, 1, 1, '2025-11-25 06:00:00', '2025-11-25 10:00:00', 'completed', '2025-11-24 19:30:04'),
 (281, 9, 2, 2, '2025-11-25 08:30:00', '2025-11-25 12:30:00', 'completed', '2025-11-24 19:30:04'),
 (282, 9, 3, 3, '2025-11-25 11:00:00', '2025-11-25 15:00:00', 'completed', '2025-11-24 19:30:04'),
@@ -1255,9 +1625,9 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (297, 9, 1, 1, '2025-11-30 06:30:00', '2025-11-30 10:30:00', 'completed', '2025-11-24 19:30:04'),
 (298, 9, 2, 2, '2025-11-30 09:30:00', '2025-11-30 13:30:00', 'completed', '2025-11-24 19:30:04'),
 (299, 9, 3, 3, '2025-11-30 12:30:00', '2025-11-30 16:30:00', 'completed', '2025-11-24 19:30:04'),
-(300, 9, 1, 1, '2025-12-01 06:00:00', '2025-12-01 10:00:00', 'scheduled', '2025-11-24 19:30:04'),
-(301, 9, 2, 2, '2025-12-01 09:00:00', '2025-12-01 13:00:00', 'scheduled', '2025-11-24 19:30:04'),
-(302, 9, 3, 3, '2025-12-01 12:30:00', '2025-12-01 16:30:00', 'scheduled', '2025-11-24 19:30:04'),
+(300, 9, 1, 1, '2025-12-01 06:00:00', '2025-12-01 10:00:00', 'completed', '2025-11-24 19:30:04'),
+(301, 9, 2, 2, '2025-12-01 09:00:00', '2025-12-01 13:00:00', 'completed', '2025-11-24 19:30:04'),
+(302, 9, 3, 3, '2025-12-01 12:30:00', '2025-12-01 16:30:00', 'completed', '2025-11-24 19:30:04'),
 (303, 10, 1, 1, '2025-11-25 07:00:00', '2025-11-25 11:00:00', 'completed', '2025-11-24 19:30:04'),
 (304, 10, 2, 2, '2025-11-25 10:00:00', '2025-11-25 14:00:00', 'completed', '2025-11-24 19:30:04'),
 (305, 10, 3, 3, '2025-11-25 13:00:00', '2025-11-25 17:00:00', 'completed', '2025-11-24 19:30:04'),
@@ -1277,9 +1647,9 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (319, 10, 1, 1, '2025-11-30 07:30:00', '2025-11-30 11:30:00', 'completed', '2025-11-24 19:30:04'),
 (320, 10, 2, 2, '2025-11-30 11:00:00', '2025-11-30 15:00:00', 'completed', '2025-11-24 19:30:04'),
 (321, 10, 3, 3, '2025-11-30 14:30:00', '2025-11-30 18:30:00', 'completed', '2025-11-24 19:30:04'),
-(322, 10, 1, 1, '2025-12-01 07:00:00', '2025-12-01 11:00:00', 'scheduled', '2025-11-24 19:30:04'),
-(323, 10, 2, 2, '2025-12-01 10:30:00', '2025-12-01 14:30:00', 'scheduled', '2025-11-24 19:30:04'),
-(324, 10, 3, 3, '2025-12-01 14:00:00', '2025-12-01 18:00:00', 'scheduled', '2025-11-24 19:30:04'),
+(322, 10, 1, 1, '2025-12-01 07:00:00', '2025-12-01 11:00:00', 'completed', '2025-11-24 19:30:04'),
+(323, 10, 2, 2, '2025-12-01 10:30:00', '2025-12-01 14:30:00', 'completed', '2025-11-24 19:30:04'),
+(324, 10, 3, 3, '2025-12-01 14:00:00', '2025-12-01 18:00:00', 'completed', '2025-11-24 19:30:04'),
 (325, 1, 1, 1, '2025-11-25 05:30:00', '2025-11-25 08:00:00', 'completed', '2025-11-24 19:53:55'),
 (326, 1, 3, 3, '2025-11-25 08:00:00', '2025-11-25 10:30:00', 'completed', '2025-11-24 19:53:55'),
 (327, 1, 6, 6, '2025-11-25 12:00:00', '2025-11-25 14:30:00', 'completed', '2025-11-24 19:53:55'),
@@ -1330,14 +1700,23 @@ INSERT INTO `trips` (`id`, `route_id`, `vehicle_id`, `driver_id`, `departure_tim
 (372, 10, 1, 1, '2025-11-25 07:00:00', '2025-11-25 11:00:00', 'completed', '2025-11-24 19:53:55'),
 (373, 10, 3, 3, '2025-11-25 14:00:00', '2025-11-25 18:00:00', 'completed', '2025-11-24 19:53:55'),
 (374, 11, 4, 9, '2025-12-28 02:26:13', '2025-12-28 04:31:13', 'scheduled', '2025-11-25 18:23:27'),
-(375, 23, 5, 8, '2025-11-30 08:10:14', '2025-12-01 05:10:14', 'ongoing', '2025-11-27 01:10:46'),
-(376, 3, 6, 2, '2025-11-30 20:46:57', '2025-12-01 03:16:57', 'scheduled', '2025-11-27 13:47:01'),
+(375, 23, 5, 8, '2025-11-30 08:10:14', '2025-12-01 05:10:14', 'completed', '2025-11-27 01:10:46'),
+(376, 3, 6, 2, '2025-11-30 20:46:57', '2025-12-01 03:16:57', 'completed', '2025-11-27 13:47:01'),
 (377, 25, 5, 4, '2025-11-30 00:37:53', '2025-11-30 08:10:53', 'completed', '2025-11-27 17:38:02'),
-(378, 26, 9, 7, '2025-12-02 00:43:18', '2025-12-02 08:16:18', 'scheduled', '2025-11-27 17:43:32'),
+(378, 26, 9, 7, '2025-12-02 00:43:18', '2025-12-02 08:16:18', 'completed', '2025-11-27 17:43:32'),
 (379, 13, 5, 7, '2025-11-29 08:00:30', '2025-11-29 19:30:30', 'completed', '2025-11-27 21:56:42'),
-(380, 14, 9, 10, '2025-11-30 10:01:02', '2025-11-30 21:31:02', 'ongoing', '2025-11-27 21:57:45'),
-(381, 1, 5, 4, '2025-12-01 10:00:15', '2025-12-01 12:30:15', 'scheduled', '2025-11-30 02:49:43'),
-(382, 2, 5, 4, '2025-12-02 09:50:34', '2025-12-02 12:20:34', 'scheduled', '2025-11-30 02:50:40');
+(380, 14, 9, 10, '2025-11-30 10:01:02', '2025-11-30 21:31:02', 'completed', '2025-11-27 21:57:45'),
+(381, 1, 5, 4, '2025-12-01 10:00:15', '2025-12-01 12:30:15', 'completed', '2025-11-30 02:49:43'),
+(382, 2, 5, 4, '2025-12-02 09:50:34', '2025-12-02 12:20:34', 'completed', '2025-11-30 02:50:40'),
+(383, 1, 1, 1, '2025-12-02 19:07:59', '2025-12-02 21:37:59', 'completed', '2025-12-01 12:08:03'),
+(384, 2, 9, 3, '2025-12-03 19:08:16', '2025-12-03 21:38:16', 'completed', '2025-12-01 12:08:21'),
+(385, 5, 2, 4, '2025-12-02 19:08:43', '2025-12-03 04:38:43', 'completed', '2025-12-01 12:08:47'),
+(386, 7, 9, 3, '2025-12-07 03:45:00', '2025-12-07 07:15:00', 'completed', '2025-12-05 19:44:19'),
+(387, 8, 9, 5, '2025-12-08 04:50:00', '2025-12-08 08:20:00', 'scheduled', '2025-12-05 19:44:56'),
+(388, 1, 2, 2, '2025-12-07 02:45:12', '2025-12-07 05:15:12', 'completed', '2025-12-05 19:45:16'),
+(389, 1, 5, 3, '2025-12-09 14:48:34', '2025-12-09 17:18:34', 'scheduled', '2025-12-06 07:48:39'),
+(390, 2, 9, 8, '2025-12-10 14:48:48', '2025-12-10 17:18:48', 'scheduled', '2025-12-06 07:48:53'),
+(391, 1, 6, 10, '2025-12-09 14:49:13', '2025-12-09 17:19:13', 'scheduled', '2025-12-06 07:49:18');
 
 -- --------------------------------------------------------
 
@@ -13638,7 +14017,295 @@ INSERT INTO `trip_seats` (`id`, `trip_id`, `seat_id`, `seat_number`, `seat_type`
 (39611, 382, 301, 'B09', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-30 02:50:40'),
 (39612, 382, 302, 'B10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-30 02:50:40'),
 (39613, 382, 303, 'B11', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-30 02:50:40'),
-(39614, 382, 304, 'B12', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-30 02:50:40');
+(39614, 382, 304, 'B12', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-11-30 02:50:40'),
+(39615, 383, 1, 'A01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39616, 383, 2, 'A02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39617, 383, 3, 'A03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39618, 383, 4, 'A04', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39619, 383, 5, 'A05', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39620, 383, 6, 'A06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39621, 383, 7, 'A07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39622, 383, 8, 'A08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39623, 383, 9, 'A09', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39624, 383, 10, 'A10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39625, 383, 11, 'A11', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39626, 383, 12, 'A12', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39627, 383, 13, 'A13', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39628, 383, 14, 'A14', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39629, 383, 15, 'A15', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39630, 383, 16, 'A16', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39631, 383, 17, 'A17', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39632, 383, 18, 'A18', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39633, 383, 19, 'A19', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39634, 383, 20, 'A20', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39635, 383, 21, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39636, 383, 22, 'B02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39637, 383, 23, 'B03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39638, 383, 24, 'B04', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39639, 383, 25, 'B05', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39640, 383, 26, 'B06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39641, 383, 27, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39642, 383, 28, 'B08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39643, 383, 29, 'B09', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39644, 383, 30, 'B10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39645, 383, 31, 'B11', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39646, 383, 32, 'B12', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39647, 383, 33, 'B13', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39648, 383, 34, 'B14', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39649, 383, 35, 'B15', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39650, 383, 36, 'B16', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39651, 383, 37, 'B17', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39652, 383, 38, 'B18', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39653, 383, 39, 'B19', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39654, 383, 40, 'B20', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:03'),
+(39655, 384, 305, 'A01', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39656, 384, 306, 'A02', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39657, 384, 307, 'A03', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39658, 384, 308, 'A04', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39659, 384, 309, 'A05', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39660, 384, 310, 'A06', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39661, 384, 311, 'A07', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39662, 384, 312, 'A08', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39663, 384, 313, 'A09', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39664, 384, 314, 'A10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39665, 384, 315, 'A11', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39666, 384, 316, 'A12', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39667, 384, 317, 'A13', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39668, 384, 318, 'A14', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39669, 384, 319, 'A15', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39670, 384, 320, 'A16', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39671, 384, 321, 'A17', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39672, 384, 322, 'A18', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39673, 384, 323, 'A19', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39674, 384, 324, 'A20', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39675, 384, 325, 'B01', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39676, 384, 326, 'B02', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39677, 384, 327, 'B03', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39678, 384, 328, 'B04', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39679, 384, 329, 'B05', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39680, 384, 330, 'B06', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39681, 384, 331, 'B07', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39682, 384, 332, 'B08', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39683, 384, 333, 'B09', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39684, 384, 334, 'B10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39685, 384, 335, 'B11', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39686, 384, 336, 'B12', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:21'),
+(39687, 385, 201, 'A01', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39688, 385, 202, 'A02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39689, 385, 203, 'A03', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39690, 385, 204, 'A04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39691, 385, 205, 'A05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39692, 385, 206, 'A06', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39693, 385, 207, 'A07', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39694, 385, 208, 'A08', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39695, 385, 209, 'A09', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39696, 385, 210, 'A10', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39697, 385, 211, 'A11', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39698, 385, 212, 'A12', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39699, 385, 213, 'B01', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39700, 385, 214, 'B02', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39701, 385, 215, 'B03', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39702, 385, 216, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39703, 385, 217, 'B05', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39704, 385, 218, 'B06', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39705, 385, 219, 'B07', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39706, 385, 220, 'B08', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39707, 385, 221, 'B09', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39708, 385, 222, 'B10', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39709, 385, 223, 'B11', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39710, 385, 224, 'B12', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-01 12:08:47'),
+(39711, 386, 305, 'A01', 'bed', 1, 'middle', 'booked', 170, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39712, 386, 306, 'A02', 'bed', 1, 'middle', 'booked', 169, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39713, 386, 307, 'A03', 'bed', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39714, 386, 308, 'A04', 'bed', 1, 'middle', 'booked', 161, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39715, 386, 309, 'A05', 'bed', 1, 'middle', 'booked', 162, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39716, 386, 310, 'A06', 'bed', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39717, 386, 311, 'A07', 'bed', 1, 'middle', 'booked', 166, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39718, 386, 312, 'A08', 'bed', 1, 'middle', 'booked', 165, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39719, 386, 313, 'A09', 'bed', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39720, 386, 314, 'A10', 'bed', 1, 'middle', 'booked', 174, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39721, 386, 315, 'A11', 'bed', 1, 'middle', 'booked', 173, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39722, 386, 316, 'A12', 'bed', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39723, 386, 317, 'A13', 'bed', 1, 'middle', 'booked', 178, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39724, 386, 318, 'A14', 'bed', 1, 'middle', 'booked', 177, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39725, 386, 319, 'A15', 'bed', 1, 'middle', 'booked', 208, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39726, 386, 320, 'A16', 'bed', 1, 'middle', 'booked', 182, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39727, 386, 321, 'A17', 'bed', 1, 'middle', 'booked', 181, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39728, 386, 322, 'A18', 'bed', 1, 'middle', 'booked', 205, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39729, 386, 323, 'A19', 'bed', 1, 'middle', 'booked', 201, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39730, 386, 324, 'A20', 'bed', 1, 'middle', 'booked', 204, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39731, 386, 325, 'B01', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39732, 386, 326, 'B02', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39733, 386, 327, 'B03', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39734, 386, 328, 'B04', 'bed', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39735, 386, 329, 'B05', 'bed', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39736, 386, 330, 'B06', 'bed', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39737, 386, 331, 'B07', 'bed', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39738, 386, 332, 'B08', 'bed', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39739, 386, 333, 'B09', 'bed', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39740, 386, 334, 'B10', 'bed', 1, 'middle', 'booked', 211, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39741, 386, 335, 'B11', 'bed', 1, 'middle', 'booked', 212, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39742, 386, 336, 'B12', 'bed', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:19'),
+(39743, 387, 305, 'A01', 'bed', 1, 'middle', 'booked', 176, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39744, 387, 306, 'A02', 'bed', 1, 'middle', 'booked', 175, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39745, 387, 307, 'A03', 'bed', 1, 'middle', 'booked', 183, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39746, 387, 308, 'A04', 'bed', 1, 'middle', 'booked', 167, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39747, 387, 309, 'A05', 'bed', 1, 'middle', 'booked', 168, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39748, 387, 310, 'A06', 'bed', 1, 'middle', 'booked', 184, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39749, 387, 311, 'A07', 'bed', 1, 'middle', 'booked', 206, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39750, 387, 312, 'A08', 'bed', 1, 'middle', 'booked', 202, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39751, 387, 313, 'A09', 'bed', 1, 'middle', 'booked', 203, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39752, 387, 314, 'A10', 'bed', 1, 'middle', 'booked', 207, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39753, 387, 315, 'A11', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39754, 387, 316, 'A12', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39755, 387, 317, 'A13', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39756, 387, 318, 'A14', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39757, 387, 319, 'A15', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39758, 387, 320, 'A16', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39759, 387, 321, 'A17', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39760, 387, 322, 'A18', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39761, 387, 323, 'A19', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39762, 387, 324, 'A20', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39763, 387, 325, 'B01', 'bed', 1, 'middle', 'booked', 171, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39764, 387, 326, 'B02', 'bed', 1, 'middle', 'booked', 172, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39765, 387, 327, 'B03', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39766, 387, 328, 'B04', 'bed', 1, 'middle', 'booked', 163, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39767, 387, 329, 'B05', 'bed', 1, 'middle', 'booked', 164, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39768, 387, 330, 'B06', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39769, 387, 331, 'B07', 'bed', 1, 'middle', 'booked', 179, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39770, 387, 332, 'B08', 'bed', 1, 'middle', 'booked', 180, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39771, 387, 333, 'B09', 'bed', 1, 'middle', 'booked', 214, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39772, 387, 334, 'B10', 'bed', 1, 'middle', 'booked', 210, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39773, 387, 335, 'B11', 'bed', 1, 'middle', 'booked', 209, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39774, 387, 336, 'B12', 'bed', 1, 'middle', 'booked', 213, NULL, NULL, NULL, NULL, '2025-12-05 19:44:56'),
+(39775, 388, 201, 'A01', 'vip', 1, 'middle', 'booked', 185, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39776, 388, 202, 'A02', 'vip', 1, 'middle', 'booked', 186, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39777, 388, 203, 'A03', 'vip', 1, 'middle', 'booked', 239, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39778, 388, 204, 'A04', 'vip', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39779, 388, 205, 'A05', 'vip', 1, 'middle', 'booked', 189, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39780, 388, 206, 'A06', 'vip', 1, 'middle', 'booked', 190, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39781, 388, 207, 'A07', 'vip', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39782, 388, 208, 'A08', 'vip', 1, 'middle', 'booked', 223, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39783, 388, 209, 'A09', 'vip', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39784, 388, 210, 'A10', 'vip', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39785, 388, 211, 'A11', 'vip', 1, 'middle', 'booked', 218, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39786, 388, 212, 'A12', 'vip', 1, 'middle', 'booked', 219, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39787, 388, 213, 'B01', 'vip', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39788, 388, 214, 'B02', 'vip', 1, 'middle', 'booked', 236, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39789, 388, 215, 'B03', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39790, 388, 216, 'B04', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39791, 388, 217, 'B05', 'vip', 1, 'middle', 'booked', 230, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39792, 388, 218, 'B06', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39793, 388, 219, 'B07', 'vip', 1, 'middle', 'booked', 249, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39794, 388, 220, 'B08', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39795, 388, 221, 'B09', 'vip', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39796, 388, 222, 'B10', 'vip', 1, 'middle', 'booked', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39797, 388, 223, 'B11', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39798, 388, 224, 'B12', 'vip', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-05 19:45:16'),
+(39799, 389, 273, 'A01', 'bed', 1, 'middle', 'booked', 252, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39800, 389, 274, 'A02', 'bed', 1, 'middle', 'booked', 253, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39801, 389, 275, 'A03', 'bed', 1, 'middle', 'booked', 254, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39802, 389, 276, 'A04', 'bed', 1, 'middle', 'booked', 257, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39803, 389, 277, 'A05', 'bed', 1, 'middle', 'booked', 256, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39804, 389, 278, 'A06', 'bed', 1, 'middle', 'booked', 258, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39805, 389, 279, 'A07', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39806, 389, 280, 'A08', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39807, 389, 281, 'A09', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39808, 389, 282, 'A10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39809, 389, 283, 'A11', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39810, 389, 284, 'A12', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39811, 389, 285, 'A13', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39812, 389, 286, 'A14', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39813, 389, 287, 'A15', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39814, 389, 288, 'A16', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39815, 389, 289, 'A17', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39816, 389, 290, 'A18', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39817, 389, 291, 'A19', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39818, 389, 292, 'A20', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39819, 389, 293, 'B01', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39820, 389, 294, 'B02', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39821, 389, 295, 'B03', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39822, 389, 296, 'B04', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39823, 389, 297, 'B05', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39824, 389, 298, 'B06', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39825, 389, 299, 'B07', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39826, 389, 300, 'B08', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39827, 389, 301, 'B09', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39828, 389, 302, 'B10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39829, 389, 303, 'B11', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39830, 389, 304, 'B12', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:39'),
+(39831, 390, 305, 'A01', 'bed', 1, 'middle', 'booked', 187, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39832, 390, 306, 'A02', 'bed', 1, 'middle', 'booked', 188, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39833, 390, 307, 'A03', 'bed', 1, 'middle', 'booked', 220, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39834, 390, 308, 'A04', 'bed', 1, 'middle', 'booked', 191, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39835, 390, 309, 'A05', 'bed', 1, 'middle', 'booked', 192, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39836, 390, 310, 'A06', 'bed', 1, 'middle', 'booked', 221, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39837, 390, 311, 'A07', 'bed', 1, 'middle', 'booked', 240, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39838, 390, 312, 'A08', 'bed', 1, 'middle', 'booked', 225, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39839, 390, 313, 'A09', 'bed', 1, 'middle', 'booked', 224, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39840, 390, 314, 'A10', 'bed', 1, 'middle', 'booked', 238, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39841, 390, 315, 'A11', 'bed', 1, 'middle', 'booked', 237, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39842, 390, 316, 'A12', 'bed', 1, 'middle', 'booked', 241, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39843, 390, 317, 'A13', 'bed', 1, 'middle', 'booked', 251, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39844, 390, 318, 'A14', 'bed', 1, 'middle', 'booked', 250, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39845, 390, 319, 'A15', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39846, 390, 320, 'A16', 'bed', 1, 'middle', 'booked', 259, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39847, 390, 321, 'A17', 'bed', 1, 'middle', 'booked', 255, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39848, 390, 322, 'A18', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39849, 390, 323, 'A19', 'bed', 1, 'middle', 'booked', 260, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39850, 390, 324, 'A20', 'bed', 1, 'middle', 'booked', 261, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39851, 390, 325, 'B01', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39852, 390, 326, 'B02', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39853, 390, 327, 'B03', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39854, 390, 328, 'B04', 'bed', 1, 'middle', 'booked', 231, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39855, 390, 329, 'B05', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39856, 390, 330, 'B06', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39857, 390, 331, 'B07', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39858, 390, 332, 'B08', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39859, 390, 333, 'B09', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39860, 390, 334, 'B10', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39861, 390, 335, 'B11', 'bed', 1, 'middle', 'booked', 232, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39862, 390, 336, 'B12', 'bed', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:48:53'),
+(39863, 391, 81, 'A01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39864, 391, 82, 'A02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39865, 391, 83, 'A03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39866, 391, 84, 'A04', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39867, 391, 85, 'A05', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39868, 391, 86, 'A06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39869, 391, 87, 'A07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39870, 391, 88, 'A08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39871, 391, 89, 'A09', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39872, 391, 90, 'A10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39873, 391, 91, 'A11', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39874, 391, 92, 'A12', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39875, 391, 93, 'A13', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39876, 391, 94, 'A14', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39877, 391, 95, 'A15', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39878, 391, 96, 'A16', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39879, 391, 97, 'A17', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39880, 391, 98, 'A18', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39881, 391, 99, 'A19', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39882, 391, 100, 'A20', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39883, 391, 101, 'B01', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39884, 391, 102, 'B02', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39885, 391, 103, 'B03', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39886, 391, 104, 'B04', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39887, 391, 105, 'B05', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39888, 391, 106, 'B06', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39889, 391, 107, 'B07', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39890, 391, 108, 'B08', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39891, 391, 109, 'B09', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39892, 391, 110, 'B10', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39893, 391, 111, 'B11', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39894, 391, 112, 'B12', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39895, 391, 113, 'B13', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39896, 391, 114, 'B14', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39897, 391, 115, 'B15', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39898, 391, 116, 'B16', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39899, 391, 117, 'B17', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39900, 391, 118, 'B18', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39901, 391, 119, 'B19', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18'),
+(39902, 391, 120, 'B20', 'standard', 1, 'middle', 'available', NULL, NULL, NULL, NULL, NULL, '2025-12-06 07:49:18');
 
 -- --------------------------------------------------------
 
@@ -13669,9 +14336,14 @@ INSERT INTO `users` (`id`, `username`, `password`, `email`, `role`, `full_name`,
 (1, 'admin', '$2a$10$Zmu9x.I7N5fokmgn0YEB6OZ6X5MqyJ/cIo1vBJIv580lhnoCF1.pu', 'admin@busbooking.com', 'admin', 'Administrator', '0123456789', 1, 1, NULL, NULL, '2025-11-23 14:12:35'),
 (2, 'LNNT', '$2a$10$Zmu9x.I7N5fokmgn0YEB6OZ6X5MqyJ/cIo1vBJIv580lhnoCF1.pu', '12345levan@gmail.com', 'admin', 'Lê Nguyễn Nhất Tâm', '0868253404', 1, 1, NULL, NULL, '2025-11-23 14:14:58'),
 (3, 'admin123', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'customer1@example.com', 'admin', 'Customer One', '0901234567', 1, 1, NULL, NULL, '2025-11-25 06:17:54'),
-(4, 'LNNT2', '$2a$10$1oh2Wd32GgocOttFxUnjiOGi88zRzTN28.bOI5NDuJzqvS646d9xS', 'lnntam04@gmail.com', 'customer', 'Lê Nguyễn Nhất Tâm', '0868253505', 1, 1, NULL, NULL, '2025-11-25 06:25:43'),
+(4, 'LNNT2', '$2a$10$pk9KzctdZgT.CTBLwvzqweuVKE0Eh7Qv.AfBeqjM8m7p2P3XYQ2V.', 'lnntam04@gmail.com', 'customer', 'Lê Nguyễn Nhất Tâm', '0868253505', 1, 1, NULL, NULL, '2025-11-25 06:25:43'),
 (5, 'user1', '$2a$10$oF60rJe3koKyLdSPxQ/3COe5ltSrCNr/MbU.mS.JJcII5Egr3DWN.', 'user1@gmail.com', 'customer', 'user1', '0969242323', 1, 1, NULL, NULL, '2025-11-26 12:37:17'),
-(6, 'tester', '$2a$10$sti594N2gRMp4rI6Z/kGpOSOmC5kVmf9810wlgEuC9FAnF.0SphEq', 'hieple6@gmail.com', 'customer', 'tset', '0868253303', 1, 1, NULL, NULL, '2025-11-27 19:37:38');
+(6, 'tester', '$2a$10$sti594N2gRMp4rI6Z/kGpOSOmC5kVmf9810wlgEuC9FAnF.0SphEq', 'hieple6@gmail.com', 'customer', 'Lê Nguyễn Nhị Tâm', '0868253303', 1, 1, NULL, NULL, '2025-11-27 19:37:38'),
+(7, 'nguyenvanan', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhkO', 'nguyenvanan@gmail.com', 'customer', 'Nguyễn Văn An', '0901234567', 1, 1, NULL, NULL, '2025-11-30 20:30:08'),
+(8, 'tranthibich', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhkO', 'tranthibich@yahoo.com', 'customer', 'Trần Thị Bích', '0912345678', 1, 1, NULL, NULL, '2025-11-30 18:30:08'),
+(9, 'leminhtuan', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhkO', 'leminhtuan@outlook.com', 'customer', 'Lê Minh Tuấn', '0923456789', 1, 1, NULL, NULL, '2025-11-29 20:30:08'),
+(10, 'phamthihuong', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhkO', 'phamthihuong@gmail.com', 'customer', 'Phạm Thị Hương', '0934567890', 1, 1, NULL, NULL, '2025-11-28 20:30:08'),
+(11, 'hoangminhquan', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhkO', 'hoangminhquan@hotmail.com', 'customer', 'Hoàng Minh Quân', '0945678901', 1, 1, NULL, NULL, '2025-11-27 20:30:08');
 
 -- --------------------------------------------------------
 
@@ -13685,43 +14357,51 @@ CREATE TABLE `vehicles` (
   `model` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `seat_capacity` int NOT NULL,
   `total_seats` int NOT NULL,
+  `seats_layout` text COLLATE utf8mb4_unicode_ci,
   `vehicle_type` enum('standard','vip','sleeper') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'standard',
   `status` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT 'active',
   `is_active` tinyint(1) DEFAULT '1',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `vehicle_type_display` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `amenities` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'Tiện nghi xe (JSON array): wifi, tv, nước, khăn lạnh...',
-  `seats_layout` text COLLATE utf8mb4_unicode_ci
+  `amenities` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'Tiện nghi xe (JSON array): wifi, tv, nước, khăn lạnh...'
 ) ;
 
 --
 -- Dumping data for table `vehicles`
 --
 
-INSERT INTO `vehicles` (`id`, `license_plate`, `model`, `seat_capacity`, `total_seats`, `vehicle_type`, `status`, `is_active`, `created_at`, `vehicle_type_display`, `amenities`, `seats_layout`) VALUES
-(1, '51B-12345', 'Hyundai Universe', 40, 40, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]', NULL),
-(2, '51B-12346', 'Thaco Universe', 40, 24, 'vip', 'active', 1, '2025-11-23 14:12:35', 'Limousine VIP', '[\"wifi\", \"nước suối\", \"khăn lạnh\", \"tv\", \"điều hòa\", \"ghế massage\"]', NULL),
-(3, '51B-12347', 'Hyundai Universe', 40, 40, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]', NULL),
-(4, '51B-12348', 'Thaco Universe', 40, 24, 'vip', 'active', 1, '2025-11-23 14:12:35', 'Limousine VIP', '[\"wifi\", \"nước suối\", \"khăn lạnh\", \"tv\", \"điều hòa\", \"ghế massage\"]', NULL),
-(5, '51B-12349', 'Hyundai Universe', 40, 32, 'sleeper', 'active', 1, '2025-11-23 14:12:35', 'Giường nằm', '[\"wifi\", \"nước suối\", \"chăn gối\", \"điều hòa\", \"rèm che\"]', NULL),
-(6, '51B-12350', 'Thaco Universe', 40, 40, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]', NULL),
-(7, '51B-12351', 'Hyundai Universe', 40, 24, 'vip', 'active', 1, '2025-11-23 14:12:35', 'Limousine VIP', '[\"wifi\", \"nước suối\", \"khăn lạnh\", \"tv\", \"điều hòa\", \"ghế massage\"]', NULL),
-(8, '51B-12352', 'Thaco Universe', 40, 40, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]', NULL),
-(9, '51B-12353', 'Hyundai Universe', 40, 32, 'sleeper', 'active', 1, '2025-11-23 14:12:35', 'Giường nằm', '[\"wifi\", \"nước suối\", \"chăn gối\", \"điều hòa\", \"rèm che\"]', NULL),
-(10, '51B-12354', 'Thaco Universe', 40, 40, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]', NULL);
+INSERT INTO `vehicles` (`id`, `license_plate`, `model`, `seat_capacity`, `total_seats`, `seats_layout`, `vehicle_type`, `status`, `is_active`, `created_at`, `vehicle_type_display`, `amenities`) VALUES
+(1, '51B-12345', 'Hyundai Universe', 40, 40, NULL, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]'),
+(2, '51B-12346', 'Thaco Universe', 40, 24, NULL, 'vip', 'active', 1, '2025-11-23 14:12:35', 'Limousine VIP', '[\"wifi\", \"nước suối\", \"khăn lạnh\", \"tv\", \"điều hòa\", \"ghế massage\"]'),
+(3, '51B-12347', 'Hyundai Universe', 40, 40, NULL, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]'),
+(4, '51B-12348', 'Thaco Universe', 40, 24, NULL, 'vip', 'active', 1, '2025-11-23 14:12:35', 'Limousine VIP', '[\"wifi\", \"nước suối\", \"khăn lạnh\", \"tv\", \"điều hòa\", \"ghế massage\"]'),
+(5, '51B-12349', 'Hyundai Universe', 40, 32, NULL, 'sleeper', 'active', 1, '2025-11-23 14:12:35', 'Giường nằm', '[\"wifi\", \"nước suối\", \"chăn gối\", \"điều hòa\", \"rèm che\"]'),
+(6, '51B-12350', 'Thaco Universe', 40, 40, NULL, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]'),
+(7, '51B-12351', 'Hyundai Universe', 40, 24, NULL, 'vip', 'active', 1, '2025-11-23 14:12:35', 'Limousine VIP', '[\"wifi\", \"nước suối\", \"khăn lạnh\", \"tv\", \"điều hòa\", \"ghế massage\"]'),
+(8, '51B-12352', 'Thaco Universe', 40, 40, NULL, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]'),
+(9, '51B-12353', 'Hyundai Universe', 40, 32, NULL, 'sleeper', 'active', 1, '2025-11-23 14:12:35', 'Giường nằm', '[\"wifi\", \"nước suối\", \"chăn gối\", \"điều hòa\", \"rèm che\"]'),
+(10, '51B-12354', 'Thaco Universe', 40, 40, NULL, 'standard', 'active', 1, '2025-11-23 14:12:35', 'Ghế ngồi', '[\"wifi\", \"nước suối\", \"điều hòa\"]');
 
 --
 -- Indexes for dumped tables
 --
 
 --
+-- Indexes for table `cities`
+--
+ALTER TABLE `cities`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`),
+  ADD KEY `idx_region` (`region`),
+  ADD KEY `idx_is_active` (`is_active`),
+  ADD KEY `idx_normalized_name` (`normalized_name`);
+
+--
 -- Indexes for table `contact_messages`
 --
 ALTER TABLE `contact_messages`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_status` (`status`),
-  ADD KEY `idx_created` (`created_at`),
-  ADD KEY `user_id` (`user_id`);
+  ADD KEY `idx_user_id` (`user_id`);
 
 --
 -- Indexes for table `drivers`
@@ -13732,34 +14412,13 @@ ALTER TABLE `drivers`
   ADD KEY `idx_license` (`license_number`);
 
 --
--- Indexes for table `feedback`
---
-ALTER TABLE `feedback`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_user` (`user_id`),
-  ADD KEY `idx_trip` (`trip_id`),
-  ADD KEY `idx_rating` (`rating`);
-
---
 -- Indexes for table `invoices`
 --
 ALTER TABLE `invoices`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `invoice_number` (`invoice_number`),
-  ADD KEY `idx_booking_group` (`booking_group_id`),
-  ADD KEY `idx_payment` (`payment_id`),
-  ADD KEY `idx_user` (`user_id`),
-  ADD KEY `idx_invoice_number` (`invoice_number`),
-  ADD KEY `idx_issued_at` (`issued_at`);
-
---
--- Indexes for table `notifications`
---
-ALTER TABLE `notifications`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_user` (`user_id`),
-  ADD KEY `idx_read` (`is_read`),
-  ADD KEY `idx_type` (`type`);
+  ADD UNIQUE KEY `UKl1x55mfsay7co0r3m9ynvipd5` (`invoice_number`),
+  ADD KEY `FKq6fs19k0gqw3rg0mb87h60h6p` (`payment_id`),
+  ADD KEY `FKbwr4d4vyqf2bkoetxtt8j9dx7` (`user_id`);
 
 --
 -- Indexes for table `payments`
@@ -13768,7 +14427,8 @@ ALTER TABLE `payments`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_status` (`payment_status`),
   ADD KEY `idx_transaction` (`transaction_id`),
-  ADD KEY `idx_booking_group` (`booking_group_id`);
+  ADD KEY `idx_booking_group` (`booking_group_id`),
+  ADD KEY `fk_payments_promotions` (`promotion_id`);
 
 --
 -- Indexes for table `promotions`
@@ -13787,7 +14447,19 @@ ALTER TABLE `routes`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_locations` (`from_location`,`to_location`),
   ADD KEY `idx_from` (`from_location`),
-  ADD KEY `idx_to` (`to_location`);
+  ADD KEY `idx_to` (`to_location`),
+  ADD KEY `idx_from_city` (`from_city_id`),
+  ADD KEY `idx_to_city` (`to_city_id`);
+
+--
+-- Indexes for table `route_stations`
+--
+ALTER TABLE `route_stations`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_route_station` (`route_id`,`station_id`,`point_type`),
+  ADD KEY `idx_route_id` (`route_id`),
+  ADD KEY `idx_station_id` (`station_id`),
+  ADD KEY `idx_point_type` (`point_type`);
 
 --
 -- Indexes for table `seats`
@@ -13804,7 +14476,8 @@ ALTER TABLE `stations`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_city` (`city`),
   ADD KEY `idx_active` (`is_active`),
-  ADD KEY `idx_is_approved` (`is_approved`);
+  ADD KEY `idx_is_approved` (`is_approved`),
+  ADD KEY `fk_stations_city` (`city_id`);
 
 --
 -- Indexes for table `tickets`
@@ -13876,52 +14549,52 @@ ALTER TABLE `vehicles`
 --
 
 --
+-- AUTO_INCREMENT for table `cities`
+--
+ALTER TABLE `cities`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=249;
+
+--
 -- AUTO_INCREMENT for table `contact_messages`
 --
 ALTER TABLE `contact_messages`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `drivers`
 --
 ALTER TABLE `drivers`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
-
---
--- AUTO_INCREMENT for table `feedback`
---
-ALTER TABLE `feedback`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `invoices`
 --
 ALTER TABLE `invoices`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT COMMENT 'Invoice ID';
-
---
--- AUTO_INCREMENT for table `notifications`
---
-ALTER TABLE `notifications`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=104;
 
 --
 -- AUTO_INCREMENT for table `promotions`
 --
 ALTER TABLE `promotions`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `routes`
 --
 ALTER TABLE `routes`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `route_stations`
+--
+ALTER TABLE `route_stations`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
 
 --
 -- AUTO_INCREMENT for table `seats`
@@ -13933,31 +14606,31 @@ ALTER TABLE `seats`
 -- AUTO_INCREMENT for table `stations`
 --
 ALTER TABLE `stations`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `tickets`
 --
 ALTER TABLE `tickets`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=149;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=269;
 
 --
 -- AUTO_INCREMENT for table `trips`
 --
 ALTER TABLE `trips`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=383;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=392;
 
 --
 -- AUTO_INCREMENT for table `trip_seats`
 --
 ALTER TABLE `trip_seats`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39615;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39903;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `vehicles`
@@ -13973,33 +14646,46 @@ ALTER TABLE `vehicles`
 -- Constraints for table `contact_messages`
 --
 ALTER TABLE `contact_messages`
-  ADD CONSTRAINT `contact_messages_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
-
---
--- Constraints for table `feedback`
---
-ALTER TABLE `feedback`
-  ADD CONSTRAINT `feedback_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `feedback_ibfk_2` FOREIGN KEY (`trip_id`) REFERENCES `trips` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `fk_contact_messages_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints for table `invoices`
 --
 ALTER TABLE `invoices`
-  ADD CONSTRAINT `invoices_ibfk_1` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `invoices_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `FKbwr4d4vyqf2bkoetxtt8j9dx7` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `FKq6fs19k0gqw3rg0mb87h60h6p` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`id`);
 
 --
--- Constraints for table `notifications`
+-- Constraints for table `payments`
 --
-ALTER TABLE `notifications`
-  ADD CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+ALTER TABLE `payments`
+  ADD CONSTRAINT `FK74kcymn3tqkthl8j5saatdg20` FOREIGN KEY (`promotion_id`) REFERENCES `promotions` (`id`);
+
+--
+-- Constraints for table `routes`
+--
+ALTER TABLE `routes`
+  ADD CONSTRAINT `fk_routes_from_city` FOREIGN KEY (`from_city_id`) REFERENCES `cities` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_routes_to_city` FOREIGN KEY (`to_city_id`) REFERENCES `cities` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Constraints for table `route_stations`
+--
+ALTER TABLE `route_stations`
+  ADD CONSTRAINT `fk_route_stations_route` FOREIGN KEY (`route_id`) REFERENCES `routes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_route_stations_station` FOREIGN KEY (`station_id`) REFERENCES `stations` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `seats`
 --
 ALTER TABLE `seats`
   ADD CONSTRAINT `seats_ibfk_1` FOREIGN KEY (`vehicle_id`) REFERENCES `vehicles` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `stations`
+--
+ALTER TABLE `stations`
+  ADD CONSTRAINT `fk_stations_city` FOREIGN KEY (`city_id`) REFERENCES `cities` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints for table `tickets`

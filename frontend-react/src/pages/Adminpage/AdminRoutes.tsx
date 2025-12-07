@@ -62,10 +62,22 @@ interface RouteCalculation {
   calculationSource: string;
 }
 
+interface City {
+  id: number;
+  name: string;
+  normalizedName: string;
+  region: string;
+  isPopular: boolean;
+  isActive: boolean;
+  latitude?: number;
+  longitude?: number;
+}
+
 function AdminRoutes() {
   const [routes, setRoutes] = useState<Route[]>([])
   const [stations, setStations] = useState<Station[]>([])
   const [cities, setCities] = useState<string[]>([]) // 🆕 Load from API
+  const [cityCoordinates, setCityCoordinates] = useState<Map<string, [number, number]>>(new Map()) // 🗺️ City coordinates from DB
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -88,6 +100,14 @@ function AdminRoutes() {
 
   // 🗺️ City center coordinates for map visualization
   const getCityCoordinates = (cityName: string): [number, number] => {
+    // 1️⃣ Try to get from database first
+    if (cityCoordinates.has(cityName)) {
+      const coords = cityCoordinates.get(cityName)!;
+      console.log(`✅ Using DB coordinates for ${cityName}:`, coords);
+      return coords;
+    }
+
+    // 2️⃣ Fallback to hard-coded coordinates for backward compatibility
     const cityCoords: Record<string, [number, number]> = {
       "TP Hồ Chí Minh": [10.8231, 106.6297],
       "Hà Nội": [21.0285, 105.8542],
@@ -105,7 +125,15 @@ function AdminRoutes() {
       "Vinh": [18.6792, 105.6922],
       "Biên Hòa": [10.9510, 106.8442],
     }
-    return cityCoords[cityName] || [10.8231, 106.6297] // Default to TPHCM if not found
+
+    if (cityCoords[cityName]) {
+      console.log(`⚠️ Using fallback coordinates for ${cityName}:`, cityCoords[cityName]);
+      return cityCoords[cityName];
+    }
+
+    // 3️⃣ Last resort: Default to Vietnam center (Đà Nẵng)
+    console.warn(`❌ No coordinates found for ${cityName}, using default (Đà Nẵng)`);
+    return [16.0544, 108.2022];
   }
 
   useEffect(() => {
@@ -144,10 +172,39 @@ function AdminRoutes() {
 
   const fetchCities = async () => {
     try {
-      // 🔑 Use adminApi to fetch cities
+      // 🔑 Use adminApi to fetch cities with coordinates
       const result = await adminApi.get('/cities')
-      if (result.success && result.data) {
-        setCities(result.data.map((city: any) => city.name)) // Assuming city object has a 'name' field
+
+      if (Array.isArray(result.data)) {
+        // Direct array format
+        const cityList: City[] = result.data;
+        setCities(cityList.map((city: City) => city.name));
+
+        // Build coordinates map
+        const coordsMap = new Map<string, [number, number]>();
+        cityList.forEach((city: City) => {
+          if (city.latitude && city.longitude) {
+            coordsMap.set(city.name, [city.latitude, city.longitude]);
+            console.log(`📍 Loaded coordinates for ${city.name}: [${city.latitude}, ${city.longitude}]`);
+          }
+        });
+        setCityCoordinates(coordsMap);
+        console.log(`✅ Loaded ${coordsMap.size} city coordinates from database`);
+      } else if (result.success && Array.isArray(result.data?.data)) {
+        // Wrapped format {success: true, data: [...]}
+        const cityList: City[] = result.data.data;
+        setCities(cityList.map((city: City) => city.name));
+
+        // Build coordinates map
+        const coordsMap = new Map<string, [number, number]>();
+        cityList.forEach((city: City) => {
+          if (city.latitude && city.longitude) {
+            coordsMap.set(city.name, [city.latitude, city.longitude]);
+            console.log(`📍 Loaded coordinates for ${city.name}: [${city.latitude}, ${city.longitude}]`);
+          }
+        });
+        setCityCoordinates(coordsMap);
+        console.log(`✅ Loaded ${coordsMap.size} city coordinates from database`);
       }
     } catch (error) {
       console.error('Error fetching cities:', error)
